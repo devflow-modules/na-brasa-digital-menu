@@ -90,8 +90,8 @@ Detalhes de operação: [docs/operations.md](docs/operations.md).
 
 ### Pré-requisitos
 
-- Node.js 20+
-- pnpm
+- Node.js 22+ (CI usa Node 22; pnpm 11 exige ≥ 22.13)
+- pnpm 11
 - PostgreSQL
 
 ### Passos
@@ -127,6 +127,24 @@ O seed cria a loja `na-brasa` com cardápio fictício e WhatsApp **placeholder**
 Aliases do `package.json`: `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm prisma:seed`, `pnpm prisma:studio`, `pnpm test:e2e:ui`, `pnpm test:e2e:debug`, `pnpm test:e2e:report`.
 
 Guia completo: [docs/testing.md](docs/testing.md).
+
+### CI (GitHub Actions)
+
+O workflow [`.github/workflows/quality.yml`](.github/workflows/quality.yml) roda em:
+
+- `pull_request` para `main`
+- `push` para `main`
+
+Checks:
+
+1. `pnpm prisma generate`
+2. `pnpm lint`
+3. `pnpm typecheck`
+4. `pnpm build`
+
+Node **22** + pnpm **11** no runner (pnpm 11 não roda em Node 20). Envs fake só para o CI (sem Postgres real, sem migrate/seed).
+
+Playwright E2E **não** entra neste workflow — continue rodando localmente (`pnpm test:e2e`). Detalhes em [docs/testing.md](docs/testing.md).
 
 ### Produção (após configurar envs)
 
