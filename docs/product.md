@@ -71,7 +71,7 @@ O schema Prisma cobre catálogo e pedidos. Detalhes em `docs/database.md`.
 
 Preços e totais usam inteiros em **centavos** (`priceCents`, `totalCents`, etc.).
 
-Nas próximas PRs, o server recalcula totais — não confiar em preço vindo do client.
+Na criação do pedido, o server recalcula totais — não confiar em preço vindo do client.
 
 ## Cardápio público
 
@@ -87,6 +87,15 @@ Nas próximas PRs, o server recalcula totais — não confiar em preço vindo do
 ## Checkout
 
 - Rota `/na-brasa/checkout` captura dados do cliente (nome, telefone, retirada/entrega, pagamento, observações).
-- Validação com Zod + React Hook Form no client; ainda **não cria pedido** nem abre WhatsApp.
-- Totais no checkout são **estimados** (subtotal do carrinho + taxa de entrega quando aplicável).
-- Próxima PR: salvar pedido no banco, recalcular totais no server e preparar mensagem WhatsApp.
+- Validação client com Zod + React Hook Form; totais no checkout são **estimados**.
+- Ao finalizar, o client envia só IDs/quantidades (sem preços como fonte de verdade).
+
+## Criação de pedido
+
+- Server Action cria o pedido **antes** de abrir o WhatsApp.
+- O server recalcula preços, taxas e total a partir do banco (produtos/adicionais ativos).
+- `OrderItem` / `OrderItemAddon` gravam **snapshots** para preservar o histórico.
+- Status inicial: `PENDING`; origem: `DIRECT`.
+- Mensagem formatada é salva em `Order.whatsappMessage`.
+- O cliente é redirecionado para `https://wa.me/<telefone>?text=...` (link, **não** WhatsApp API).
+- Em sucesso, o carrinho local (`na-brasa-cart-v1`) é limpo.

@@ -9,7 +9,7 @@ import {
 } from "@/features/cart/cart-utils";
 import type { AddToCartInput, CartItem, CartState } from "@/features/cart/types";
 
-const STORAGE_KEY = "na-brasa-cart-v1";
+export const CART_STORAGE_KEY = "na-brasa-cart-v1";
 
 function readStoredItems(): CartItem[] {
   if (typeof window === "undefined") {
@@ -17,7 +17,7 @@ function readStoredItems(): CartItem[] {
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
     if (!raw) {
       return [];
     }
@@ -44,7 +44,7 @@ function persistItems(items: CartItem[]) {
     return;
   }
 
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ items }));
+  window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items }));
 }
 
 export function useCart() {

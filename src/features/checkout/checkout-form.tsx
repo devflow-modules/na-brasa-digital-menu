@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCart } from "@/features/cart/use-cart";
+import { CART_STORAGE_KEY, useCart } from "@/features/cart/use-cart";
 import {
   checkoutFormDefaultValues,
   checkoutFormSchema,
@@ -16,14 +16,19 @@ import { DeliveryAddressFields } from "@/features/checkout/components/delivery-a
 import { DeliveryTypeField } from "@/features/checkout/components/delivery-type-field";
 import { PaymentMethodField } from "@/features/checkout/components/payment-method-field";
 import type { CheckoutStoreInfo } from "@/features/checkout/types";
+import { createOrderAction } from "@/features/orders/actions/create-order-action";
 
 type CheckoutFormProps = {
   store: CheckoutStoreInfo;
 };
 
 export function CheckoutForm({ store }: CheckoutFormProps) {
-  const { cart, hydrated } = useCart();
-  const [validatedMessage, setValidatedMessage] = useState<string | null>(null);
+  const { cart, hydrated, clearCart } = useCart();
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [whatsappFallbackUrl, setWhatsappFallbackUrl] = useState<string | null>(
+    null,
+  );
+  const [isPending, startTransition] = useTransition();
 
   const defaultDeliveryType = store.pickupEnabled
     ? "PICKUP"
@@ -36,7 +41,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
     handleSubmit,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
     defaultValues: {
@@ -49,15 +54,46 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
   const showDeliveryFee = deliveryType === "DELIVERY" && store.deliveryEnabled;
 
   const emptyCart = useMemo(
-    () => hydrated && cart.items.length === 0,
-    [cart.items.length, hydrated],
+    () => hydrated && cart.items.length === 0 && !whatsappFallbackUrl,
+    [cart.items.length, hydrated, whatsappFallbackUrl],
   );
 
   function onSubmit(values: CheckoutFormValues) {
-    void values;
-    setValidatedMessage(
-      "Dados validados. Na próxima etapa, o pedido será salvo e aberto no WhatsApp.",
-    );
+    setErrorMessage(null);
+    setWhatsappFallbackUrl(null);
+
+    const changeFor =
+      values.paymentMethod === "CASH" && values.needsChange
+        ? values.changeFor
+        : undefined;
+
+    startTransition(async () => {
+      const result = await createOrderAction({
+        storeSlug: store.slug,
+        customerName: values.customerName,
+        customerPhone: values.customerPhone,
+        deliveryType: values.deliveryType,
+        deliveryAddress: values.deliveryAddress,
+        paymentMethod: values.paymentMethod,
+        changeFor,
+        notes: values.notes,
+        items: cart.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          addonIds: item.selectedAddons.map((addon) => addon.id),
+        })),
+      });
+
+      if (!result.ok) {
+        setErrorMessage(result.message);
+        return;
+      }
+
+      clearCart();
+      window.localStorage.removeItem(CART_STORAGE_KEY);
+      setWhatsappFallbackUrl(result.whatsappUrl);
+      window.location.href = result.whatsappUrl;
+    });
   }
 
   if (!hydrated) {
@@ -105,11 +141,13 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
         </p>
       ) : null}
 
-      <CheckoutCartSummary
-        cart={cart}
-        deliveryFeeCents={store.deliveryFeeCents}
-        showDeliveryFee={showDeliveryFee}
-      />
+      {cart.items.length > 0 ? (
+        <CheckoutCartSummary
+          cart={cart}
+          deliveryFeeCents={store.deliveryFeeCents}
+          showDeliveryFee={showDeliveryFee}
+        />
+      ) : null}
 
       <form
         onSubmit={handleSubmit(onSubmit)}
@@ -153,26 +191,47 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
         </label>
 
         {store.minimumOrderAmountCents > 0 &&
+        cart.items.length > 0 &&
         cart.subtotalCents < store.minimumOrderAmountCents ? (
           <p className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
-            Pedido mínimo estimado: verifique o subtotal antes da próxima etapa.
+            Pedido mínimo estimado: o valor será validado ao finalizar.
           </p>
         ) : null}
 
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isPending || cart.items.length === 0}
           className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
         >
-          Validar checkout
+          {isPending
+            ? "Finalizando pedido..."
+            : "Finalizar pedido no WhatsApp"}
         </button>
 
-        {validatedMessage ? (
+        {errorMessage ? (
+          <p
+            role="alert"
+            className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-sm text-red-100"
+          >
+            {errorMessage}
+          </p>
+        ) : null}
+
+        {whatsappFallbackUrl ? (
           <p
             role="status"
             className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-3 text-sm text-emerald-100"
           >
-            {validatedMessage}
+            Pedido criado. Se o WhatsApp não abrir,{" "}
+            <a
+              href={whatsappFallbackUrl}
+              className="font-semibold underline underline-offset-2"
+              target="_blank"
+              rel="noreferrer"
+            >
+              toque aqui para abrir a conversa
+            </a>
+            .
           </p>
         ) : null}
       </form>

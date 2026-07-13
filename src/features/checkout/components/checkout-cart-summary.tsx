@@ -24,7 +24,7 @@ export function CheckoutCartSummary({
           Resumo do pedido
         </h2>
         <p className="mt-1 text-xs text-stone-400">
-          Totais estimados no cliente. O server recalculará na próxima etapa.
+          Totais estimados no cliente. O server recalcula ao finalizar o pedido.
         </p>
       </div>
 
