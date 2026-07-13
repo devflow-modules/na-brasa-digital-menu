@@ -99,3 +99,11 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 - Mensagem formatada é salva em `Order.whatsappMessage`.
 - O cliente é redirecionado para `https://wa.me/<telefone>?text=...` (link, **não** WhatsApp API).
 - Em sucesso, o carrinho local (`na-brasa-cart-v1`) é limpo.
+
+## Admin (auth)
+
+- `/admin` é área restrita: sem sessão válida, redireciona para `/admin/login`.
+- Login valida `ADMIN_EMAIL` / `ADMIN_PASSWORD` (env) no server.
+- Sessão: JWT assinado (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção.
+- Logout limpa o cookie e volta para `/admin/login`.
+- Esta PR não inclui listagem de pedidos nem gestão de cardápio.
