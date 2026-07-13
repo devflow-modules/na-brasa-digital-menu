@@ -16,6 +16,7 @@ Documentação relacionada:
 - [Produto](docs/product.md)
 - [Banco de dados](docs/database.md)
 - [Deploy](docs/deployment.md)
+- [Production checklist](docs/production-checklist.md)
 - [Operação](docs/operations.md)
 - [Testes E2E](docs/testing.md)
 - [Release notes MVP v0.1.0](docs/release-notes/mvp-v0.1.0.md)
@@ -177,33 +178,43 @@ Não versionar `.env` com credenciais reais. Nunca commitar `ADMIN_PASSWORD` ou 
 
 Mais detalhes: [docs/deployment.md](docs/deployment.md).
 
+## Production readiness
+
+O MVP está em **Production Validation Candidate**: pronto para deploy controlado (Vercel + Neon/Supabase), smoke real e validação com o dono **antes** de divulgar o link aos clientes.
+
+| Documento | Uso |
+| --- | --- |
+| [docs/deployment.md](docs/deployment.md) | Vercel + Neon, envs, migrate/seed, rollback, troubleshooting |
+| [docs/production-checklist.md](docs/production-checklist.md) | Checklist GO/NO-GO (pré-deploy → smoke → dono) |
+| [docs/release-notes/mvp-v0.1.0.md](docs/release-notes/mvp-v0.1.0.md) | Features, CI, limitações, gate antes de publicar |
+
+### CI atual
+
+| Workflow | Escopo |
+| --- | --- |
+| **Quality Checks** | `prisma generate`, lint, typecheck, build |
+| **E2E Tests** | Postgres efêmero + migrate + seed + Playwright |
+
+Não há deploy automático nesta etapa. E2E CI **não** usa banco de produção.
+
 ## Deploy recomendado
 
 - **App:** Vercel
-- **Banco:** Neon ou Supabase Postgres (ou outro PostgreSQL gerenciado)
+- **Banco:** Neon (recomendado) ou Supabase Postgres
+- **URL inicial:** `*.vercel.app` (domínio customizado depois da validação)
 
-Guia completo: [docs/deployment.md](docs/deployment.md).
+Guia: [docs/deployment.md](docs/deployment.md). Checklist: [docs/production-checklist.md](docs/production-checklist.md).
 
-## Checklist de produção
+## Checklist de produção (resumo)
 
-- [ ] `DATABASE_URL` aponta para banco remoto
-- [ ] Migrations aplicadas (`pnpm prisma migrate deploy`)
-- [ ] Seed executado **ou** loja cadastrada com dados reais
-- [ ] WhatsApp da loja configurado no banco (não o placeholder do seed)
-- [ ] `ADMIN_EMAIL` definido
-- [ ] `ADMIN_PASSWORD` forte
-- [ ] `ADMIN_JWT_SECRET` forte (longo e aleatório)
-- [ ] `NEXT_PUBLIC_APP_URL` com URL HTTPS de produção
-- [ ] `NEXT_PUBLIC_STORE_SLUG` correto
-- [ ] Build passa (`pnpm build`)
-- [ ] `/na-brasa` carrega
-- [ ] Pedido teste cria `Order` no banco
-- [ ] `wa.me` abre com mensagem coerente
-- [ ] `/admin/login` funciona
-- [ ] `/admin` lista o pedido
-- [ ] Status muda no painel
+Use o checklist completo: [docs/production-checklist.md](docs/production-checklist.md).
 
-Checklist ampliado e smoke de produção: [docs/deployment.md](docs/deployment.md).
+- [ ] Actions verdes na `main`
+- [ ] `DATABASE_URL` remoto + migrations
+- [ ] WhatsApp da loja real no banco
+- [ ] Envs admin fortes na Vercel
+- [ ] Smoke: pedido teste → `wa.me` → admin → status
+- [ ] Validação com o dono no celular
 
 ## Arquitetura (V1)
 
@@ -238,7 +249,7 @@ docs/            # produto, deploy, operação, release notes
 
 ## Roadmap (próximos passos)
 
-1. Deploy e validação real com o cliente
-2. Ajuste de cardápio/WhatsApp com dados reais
-3. CRUD de cardápio (quando priorizado)
-4. PWA / polish mobile
+1. Deploy controlado + checklist GO ([production-checklist.md](docs/production-checklist.md))
+2. Validação com o dono e ajuste de cardápio/WhatsApp reais
+3. Domínio customizado (quando priorizado)
+4. CRUD de cardápio / PWA / polish mobile
