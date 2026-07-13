@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { CartItemRow } from "@/features/cart/components/cart-item-row";
 import { formatMoney } from "@/features/menu/format-money";
 import type { CartState } from "@/features/cart/types";
@@ -51,13 +52,12 @@ export function CartSummary({
           ))}
         </div>
 
-        <button
-          type="button"
-          disabled
-          className="flex h-12 w-full cursor-not-allowed items-center justify-center rounded-xl bg-orange-500/40 text-sm font-semibold text-stone-950"
+        <Link
+          href="/na-brasa/checkout"
+          className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950"
         >
-          Checkout em breve
-        </button>
+          Continuar para checkout
+        </Link>
       </div>
     </div>
   );
