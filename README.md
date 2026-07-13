@@ -73,7 +73,8 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 | Rota | Status |
 | --- | --- |
 | `/` | Redireciona para `/na-brasa` |
-| `/na-brasa` | Cardápio público + carrinho local (checkout em breve) |
+| `/na-brasa` | Cardápio público + carrinho local |
+| `/na-brasa/checkout` | Checkout (validação local; pedido/WhatsApp na próxima PR) |
 | `/admin` | Placeholder do painel (sem auth ainda) |
 
 ## Roadmap MVP
@@ -82,9 +83,10 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 2. **Modelagem de banco** — Store, cardápio, pedidos/snapshots e seed
 3. **Catálogo público** — cardápio mobile-first em `/na-brasa`
 4. **Carrinho** — estado do pedido no cliente
-5. **Checkout WhatsApp** — mensagem formatada + link `wa.me`
-6. **Pedidos + Admin** — painel básico com auth
-7. **PWA / polish** — melhorias mobile e deploy Vercel
+5. **Checkout (form)** — captura e valida dados do cliente
+6. **Pedido + WhatsApp** — persistência, totais no server e link `wa.me`
+7. **Admin** — painel básico com auth
+8. **PWA / polish** — melhorias mobile e deploy Vercel
 
 ## Estrutura
 

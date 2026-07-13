@@ -82,5 +82,11 @@ Nas próximas PRs, o server recalcula totais — não confiar em preço vindo do
 
 - O cliente monta o pedido no navegador (estado + `localStorage`).
 - Adicionais entram no total do item: `(preço do produto + soma dos adicionais) × quantidade`.
-- Preços no carrinho são snapshots client-side; na PR de checkout/pedido o **server recalcula** tudo.
-- Checkout, persistência de pedido e WhatsApp ficam para a próxima PR.
+- Preços no carrinho são snapshots client-side; na criação do pedido o **server recalcula** tudo.
+
+## Checkout
+
+- Rota `/na-brasa/checkout` captura dados do cliente (nome, telefone, retirada/entrega, pagamento, observações).
+- Validação com Zod + React Hook Form no client; ainda **não cria pedido** nem abre WhatsApp.
+- Totais no checkout são **estimados** (subtotal do carrinho + taxa de entrega quando aplicável).
+- Próxima PR: salvar pedido no banco, recalcular totais no server e preparar mensagem WhatsApp.
