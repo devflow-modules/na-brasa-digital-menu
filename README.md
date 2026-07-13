@@ -73,7 +73,7 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 | Rota | Status |
 | --- | --- |
 | `/` | Redireciona para `/na-brasa` |
-| `/na-brasa` | Placeholder público do cardápio |
+| `/na-brasa` | Cardápio público (Store/Categories/Products do banco) |
 | `/admin` | Placeholder do painel (sem auth ainda) |
 
 ## Roadmap MVP
