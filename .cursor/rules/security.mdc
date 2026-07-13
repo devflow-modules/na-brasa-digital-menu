@@ -1,0 +1,15 @@
+---
+description: Segurança, auth futura e dados pessoais
+alwaysApply: true
+---
+
+# Security
+
+- Painel `/admin` deve ser tratado como área restrita (proteger quando auth existir; não “securizar” só escondendo UI).
+- Auth futura: cookies **HttpOnly**, Secure em produção, SameSite adequado; sem token em `localStorage` para sessão admin.
+- Segredos só em env (`.env` / Vercel); nunca hardcode. Nunca logar ou expor `ADMIN_PASSWORD`.
+- Senhas: nunca em texto puro — hash adequado quando auth for implementada.
+- Validação e autorização **server-side**; não confiar no client.
+- Dados pessoais mínimos (nome/telefone/endereço só o necessário ao pedido).
+- Cuidado com PII em logs, seeds, docs e mensagens de erro.
+- `.env` fora do git; usar `.env.example` sem credenciais reais.

@@ -1,0 +1,26 @@
+---
+description: Regras centrais do produto Na Brasa (MVP V1)
+alwaysApply: true
+---
+
+# Project — Na Brasa
+
+- Objetivo: cardápio online **em produção** para o carrinho Na Brasa (lanches artesanais e espetinhos).
+- Priorize MVP **simples e útil**: cliente pede no celular; operador usa painel admin responsivo.
+- Fluxo V1: montar pedido → **salvar no banco** → abrir WhatsApp com mensagem formatada (link `wa.me`).
+- Mobile-first em tudo que o cliente toca; admin web responsivo (não app nativo).
+
+## Fora da V1 (não implementar)
+
+- WhatsApp Business API / chatbot
+- Pagamento online
+- Integração ou scraping iFood
+- React Native / app nativo
+- Express separado / monorepo enterprise
+
+## Conduta
+
+- Sem overengineering: sem abstração prematura, sem “framework interno”.
+- Sem dados reais sensíveis em seed, fixtures, docs ou screenshots (use fictícios).
+- Diferencie claramente V1, V1.1 e roadmap ao propor escopo.
+- Em dúvida de produto, pergunte — não invente regra de negócio.

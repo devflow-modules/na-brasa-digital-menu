@@ -1,0 +1,18 @@
+---
+description: Arquitetura Next.js fullstack e organização de pastas
+globs: src/**/*.{ts,tsx},prisma/**/*
+alwaysApply: false
+---
+
+# Architecture
+
+- Next.js 15 App Router **fullstack** na V1 (sem Express, sem BFF extra).
+- Server Components por padrão; Client Components só com interação/estado de UI.
+- Mutações: Server Actions ou Route Handlers; validar com Zod nas fronteiras.
+- Prisma **somente no server** (`src/lib/prisma.ts`, repositories/services/actions).
+- Organização preferida:
+  - `src/features/*` — UI e lógica de domínio por feature
+  - `src/server/repositories` → `services` → `actions`
+  - `src/lib` — utilitários, env, prisma
+- Pedidos: gravar **snapshots** de item/preço no pedido (não depender só do catálogo vivo).
+- Código direto e tipado; sem camadas genéricas “enterprise” sem necessidade atual.

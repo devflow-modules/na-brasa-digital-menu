@@ -1,0 +1,15 @@
+---
+description: Pedidos, WhatsApp link e mutações server-side
+globs: src/server/**/*.{ts,tsx},src/lib/**/*.{ts,tsx},src/app/**/actions.ts,src/app/api/**/*
+alwaysApply: false
+---
+
+# Backend
+
+- Lógica de pedido vive no server (services/actions), não no client.
+- Sempre **persistir o pedido** antes de gerar/abrir o link do WhatsApp.
+- Mensagem WhatsApp: gerada de forma **determinística** a partir do pedido salvo.
+- Não confiar em preços/totais enviados pelo client; **recalcular no server**.
+- Validar todo input com Zod; rejeitar payload inválido cedo.
+- Não expor dados sensíveis (senhas, envs, dados internos) em responses ou logs.
+- Auth do admin virá depois: preparar rotas, mas não “fingir” segurança só no client.

@@ -1,0 +1,14 @@
+---
+description: Branches, commits, PRs pequenas e relatório
+alwaysApply: true
+---
+
+# Git workflow
+
+- Uma branch por PR; PRs **pequenas** e revisáveis.
+- Conventional commits (`feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`).
+- Não misturar feature com refactor grande na mesma PR.
+- Não commit sem validação relevante (`pnpm lint`, `pnpm typecheck`, `pnpm build` quando couber).
+- Não fazer commit/push/PR a menos que o usuário peça.
+- Ao concluir tarefa, reportar: arquivos criados/alterados, validações, escopo e o que ficou de fora.
+- Sem `--force` em main/master; sem pular hooks sem pedido explícito.
