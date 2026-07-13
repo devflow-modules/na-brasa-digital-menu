@@ -16,7 +16,7 @@ Cardápio digital para o carrinho de lanches **Na Brasa**: lanches artesanais e 
 - Tailwind CSS
 - Prisma + PostgreSQL
 - Zod
-- React Hook Form (próximas PRs)
+- React Hook Form
 - pnpm
 
 ## Arquitetura (V1)
@@ -74,8 +74,14 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 | --- | --- |
 | `/` | Redireciona para `/na-brasa` |
 | `/na-brasa` | Cardápio público + carrinho local |
-| `/na-brasa/checkout` | Checkout (validação local; pedido/WhatsApp na próxima PR) |
+| `/na-brasa/checkout` | Checkout → cria pedido no server → abre WhatsApp (`wa.me`) |
 | `/admin` | Placeholder do painel (sem auth ainda) |
+
+### Fluxo atual do cliente
+
+```text
+/na-brasa → monta carrinho local → /na-brasa/checkout → pedido salvo → wa.me
+```
 
 ## Roadmap MVP
 
@@ -84,7 +90,7 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 3. **Catálogo público** — cardápio mobile-first em `/na-brasa`
 4. **Carrinho** — estado do pedido no cliente
 5. **Checkout (form)** — captura e valida dados do cliente
-6. **Pedido + WhatsApp** — persistência, totais no server e link `wa.me`
+6. **Pedido + WhatsApp** — persistência, totais no server e link `wa.me` ✅
 7. **Admin** — painel básico com auth
 8. **PWA / polish** — melhorias mobile e deploy Vercel
 

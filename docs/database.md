@@ -10,7 +10,7 @@ Modelo inicial de dados (Prisma 6 + PostgreSQL) para o cardápio online.
 | Dinheiro em centavos (`*Cents` / `Int`) | Evita `Decimal` e floating point no cardápio simples |
 | Snapshots em `OrderItem` / `OrderItemAddon` | Pedido histórico não muda se o cardápio mudar |
 | `OrderSource` | Diferencia pedido direto, iFood (futuro) e outros |
-| Totais em `Order` | `subtotalCents`, `deliveryFeeCents`, `totalCents` recalculados no server nas próximas PRs |
+| Totais em `Order` | `subtotalCents`, `deliveryFeeCents`, `totalCents` recalculados no server na criação |
 
 ## Entidades
 
