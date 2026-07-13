@@ -49,7 +49,7 @@ Cliente abre /na-brasa
 
 ## Modelo de dados inicial
 
-O schema Prisma cobre catálogo e pedidos (sem UI ainda). Detalhes em `docs/database.md`.
+O schema Prisma cobre catálogo e pedidos. Detalhes em `docs/database.md`.
 
 ### Catálogo
 
@@ -72,3 +72,9 @@ O schema Prisma cobre catálogo e pedidos (sem UI ainda). Detalhes em `docs/data
 Preços e totais usam inteiros em **centavos** (`priceCents`, `totalCents`, etc.).
 
 Nas próximas PRs, o server recalcula totais — não confiar em preço vindo do client.
+
+## Cardápio público
+
+- Rota `/na-brasa` renderiza `Store`, categorias e produtos ativos do banco (Server Component + Prisma no server).
+- Exibe status aberto/fechado, retirada/entrega, taxa e pedido mínimo quando aplicável.
+- Carrinho, checkout e WhatsApp ficam para a próxima PR.
