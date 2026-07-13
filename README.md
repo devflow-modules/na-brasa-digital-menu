@@ -17,6 +17,7 @@ Documentação relacionada:
 - [Banco de dados](docs/database.md)
 - [Deploy](docs/deployment.md)
 - [Operação](docs/operations.md)
+- [Testes E2E](docs/testing.md)
 - [Release notes MVP v0.1.0](docs/release-notes/mvp-v0.1.0.md)
 
 ## Stack
@@ -121,8 +122,11 @@ O seed cria a loja `na-brasa` com cardápio fictício e WhatsApp **placeholder**
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript (`tsc --noEmit`) |
 | `pnpm build` | Build de produção |
+| `pnpm test:e2e` | Playwright E2E (Chromium) |
 
-Aliases do `package.json`: `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm prisma:seed`, `pnpm prisma:studio`.
+Aliases do `package.json`: `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm prisma:seed`, `pnpm prisma:studio`, `pnpm test:e2e:ui`, `pnpm test:e2e:debug`, `pnpm test:e2e:report`.
+
+Guia completo: [docs/testing.md](docs/testing.md).
 
 ### Produção (após configurar envs)
 

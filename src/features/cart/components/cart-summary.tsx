@@ -23,7 +23,10 @@ export function CartSummary({
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-orange-500/20 bg-stone-950/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur">
+    <div
+      data-testid="cart-summary"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-orange-500/20 bg-stone-950/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+    >
       <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -35,7 +38,10 @@ export function CartSummary({
               {cart.totalQuantity === 1 ? "item" : "itens"}
             </p>
           </div>
-          <p className="text-lg font-semibold text-orange-300">
+          <p
+            data-testid="cart-subtotal"
+            className="text-lg font-semibold text-orange-300"
+          >
             {formatMoney(cart.subtotalCents)}
           </p>
         </div>
@@ -54,6 +60,7 @@ export function CartSummary({
 
         <Link
           href="/na-brasa/checkout"
+          data-testid="checkout-cta"
           className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950"
         >
           Continuar para checkout

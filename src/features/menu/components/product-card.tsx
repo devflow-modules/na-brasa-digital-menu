@@ -8,7 +8,10 @@ type ProductCardProps = {
 
 export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
-    <article className="flex gap-3 rounded-xl border border-stone-800 bg-stone-900/80 p-3 shadow-sm shadow-black/20">
+    <article
+      data-testid="menu-product-card"
+      className="flex gap-3 rounded-xl border border-stone-800 bg-stone-900/80 p-3 shadow-sm shadow-black/20"
+    >
       <div
         className="flex h-20 w-20 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-stone-800 to-orange-950/60 text-[10px] font-semibold uppercase tracking-wide text-orange-200/70"
         aria-hidden="true"
@@ -41,6 +44,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
           {onAdd ? (
             <button
               type="button"
+              data-testid="open-add-to-cart-button"
               onClick={() => onAdd(product)}
               className="rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-stone-950"
             >

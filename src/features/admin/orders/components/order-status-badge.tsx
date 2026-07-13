@@ -18,6 +18,8 @@ type OrderStatusBadgeProps = {
 export function OrderStatusBadge({ status }: OrderStatusBadgeProps) {
   return (
     <span
+      data-testid="order-status-badge"
+      data-status={status}
       className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${STATUS_STYLES[status]}`}
     >
       {formatOrderStatus(status)}

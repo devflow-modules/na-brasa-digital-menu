@@ -28,7 +28,7 @@ export function OrdersList({ orders }: OrdersListProps) {
   }
 
   return (
-    <section className="flex flex-col gap-3">
+    <section data-testid="admin-orders-list" className="flex flex-col gap-3">
       <div className="hidden overflow-hidden rounded-2xl border border-stone-800 md:block">
         <table className="min-w-full divide-y divide-stone-800 text-left text-sm">
           <thead className="bg-stone-900/80 text-xs uppercase tracking-wide text-stone-400">

@@ -41,12 +41,18 @@ export function AdminLoginForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="flex w-full flex-col gap-4" noValidate>
+    <form
+      data-testid="admin-login-form"
+      onSubmit={onSubmit}
+      className="flex w-full flex-col gap-4"
+      noValidate
+    >
       <label className="flex flex-col gap-1.5 text-sm text-stone-700">
         E-mail
         <input
           type="email"
           name="email"
+          data-testid="admin-login-email"
           autoComplete="username"
           required
           className="h-11 rounded-xl border border-stone-300 bg-white px-3 text-stone-900 outline-none ring-orange-500/40 focus:ring-2"
@@ -58,6 +64,7 @@ export function AdminLoginForm() {
         <input
           type="password"
           name="password"
+          data-testid="admin-login-password"
           autoComplete="current-password"
           required
           className="h-11 rounded-xl border border-stone-300 bg-white px-3 text-stone-900 outline-none ring-orange-500/40 focus:ring-2"
@@ -66,6 +73,7 @@ export function AdminLoginForm() {
 
       <button
         type="submit"
+        data-testid="admin-login-submit"
         disabled={isPending}
         className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
       >
