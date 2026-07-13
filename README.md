@@ -128,6 +128,24 @@ Aliases do `package.json`: `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm 
 
 Guia completo: [docs/testing.md](docs/testing.md).
 
+### CI (GitHub Actions)
+
+O workflow [`.github/workflows/quality.yml`](.github/workflows/quality.yml) roda em:
+
+- `pull_request` para `main`
+- `push` para `main`
+
+Checks:
+
+1. `pnpm prisma generate`
+2. `pnpm lint`
+3. `pnpm typecheck`
+4. `pnpm build`
+
+Node **20** + pnpm **11** no runner. Envs fake só para o CI (sem Postgres real, sem migrate/seed).
+
+Playwright E2E **não** entra neste workflow — continue rodando localmente (`pnpm test:e2e`). Detalhes em [docs/testing.md](docs/testing.md).
+
 ### Produção (após configurar envs)
 
 ```bash

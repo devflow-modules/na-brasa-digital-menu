@@ -120,10 +120,30 @@ Notas:
 - Não commitar tokens/configs pessoais do Cursor
 - Preferir Chromium local; não usar conta/produção do cliente
 
+## CI vs E2E local
+
+O workflow GitHub Actions `Quality Checks` (`.github/workflows/quality.yml`) valida automaticamente em PRs/`push` para `main`:
+
+- `pnpm prisma generate`
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm build`
+
+Nesta etapa o CI **não** sobe Postgres, **não** aplica migrations/seed e **não** executa Playwright.
+
+E2E continua **local/manual**:
+
+```bash
+pnpm prisma db seed
+pnpm test:e2e
+```
+
+Futuro (fora deste escopo): workflow E2E com service Postgres + Playwright no CI.
+
 ## Limitações
 
-- Sem Firefox/WebKit nesta PR
-- Sem CI/CD completo
+- Sem Firefox/WebKit nesta suíte E2E
+- Sem Playwright no CI (ainda)
 - Sem Playwright Cloud
 - Status E2E cobre fluxo PICKUP até COMPLETED (não cobre OUT_FOR_DELIVERY nesta suíte)
 - Pedidos de status/dashboard são criados via helper Prisma (integração UI nos cliques de status e auth)
