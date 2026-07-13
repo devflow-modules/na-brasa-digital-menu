@@ -39,8 +39,10 @@ Cardápio digital para o carrinho de lanches **Na Brasa**: lanches artesanais e 
 ```bash
 pnpm install
 cp .env.example .env
-# Ajuste as variáveis em .env
+# Ajuste DATABASE_URL e demais variáveis em .env
 pnpm prisma generate
+pnpm prisma migrate dev
+pnpm prisma db seed
 pnpm dev
 ```
 
@@ -53,8 +55,18 @@ pnpm dev
 | `pnpm start` | Sobe o build de produção |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript (`tsc --noEmit`) |
-| `pnpm prisma generate` | Gera o Prisma Client |
-| `pnpm prisma migrate dev` | Migrations (quando houver models) |
+| `pnpm prisma:generate` | Gera o Prisma Client |
+| `pnpm prisma:migrate` | Cria/aplica migrations (`migrate dev`) |
+| `pnpm prisma:seed` | Seed idempotente do Na Brasa |
+| `pnpm prisma:studio` | Prisma Studio |
+
+### Banco de dados
+
+- Schema: `prisma/schema.prisma` (Store, cardápio, pedidos com snapshots)
+- Seed fictício: `prisma/seed.ts` (loja `na-brasa`, sem pedidos)
+- Documentação: `docs/database.md`
+
+WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 
 ### Rotas atuais
 
@@ -66,12 +78,13 @@ pnpm dev
 
 ## Roadmap MVP
 
-1. **Fundação** (esta PR) — estrutura, Prisma base, env, páginas placeholder
-2. **Catálogo** — models, cardápio público, categorias e itens
-3. **Carrinho** — estado do pedido no cliente
-4. **Checkout WhatsApp** — mensagem formatada + link `wa.me`
-5. **Pedidos + Admin** — persistência e painel básico com auth
-6. **PWA / polish** — melhorias mobile e deploy Vercel
+1. **Fundação** — estrutura, Prisma base, env, páginas placeholder
+2. **Modelagem de banco** — Store, cardápio, pedidos/snapshots e seed
+3. **Catálogo público** — cardápio mobile-first em `/na-brasa`
+4. **Carrinho** — estado do pedido no cliente
+5. **Checkout WhatsApp** — mensagem formatada + link `wa.me`
+6. **Pedidos + Admin** — painel básico com auth
+7. **PWA / polish** — melhorias mobile e deploy Vercel
 
 ## Estrutura
 

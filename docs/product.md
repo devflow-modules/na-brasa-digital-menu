@@ -46,3 +46,29 @@ Cliente abre /na-brasa
 - Fluxo curto até o WhatsApp
 - Código simples e tipado
 - Incremental: fundação → catálogo → carrinho → checkout → admin
+
+## Modelo de dados inicial
+
+O schema Prisma cobre catálogo e pedidos (sem UI ainda). Detalhes em `docs/database.md`.
+
+### Catálogo
+
+- **Store** — loja `na-brasa` (WhatsApp, endereço, taxas)
+- **Category** / **Product** / **Addon** — cardápio com `active` e `sortOrder`
+- **ProductAddon** — quais adicionais cada produto aceita
+
+### Pedidos
+
+- **Order** — dados do cliente, entrega, pagamento, totais em centavos, `status` e `source`
+- **OrderItem** — snapshot do produto + quantidade + total da linha
+- **OrderItemAddon** — snapshot do adicional no item
+
+### Enums
+
+- `OrderStatus`, `DeliveryType`, `PaymentMethod`, `OrderSource`
+
+### Dinheiro
+
+Preços e totais usam inteiros em **centavos** (`priceCents`, `totalCents`, etc.).
+
+Nas próximas PRs, o server recalcula totais — não confiar em preço vindo do client.
