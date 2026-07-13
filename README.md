@@ -76,9 +76,9 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 | `/` | Redireciona para `/na-brasa` |
 | `/na-brasa` | Cardápio público + carrinho local |
 | `/na-brasa/checkout` | Checkout → cria pedido no server → abre WhatsApp (`wa.me`) |
-| `/admin` | Dashboard de pedidos (protegido, read-only) |
+| `/admin` | Dashboard de pedidos (protegido) |
 | `/admin/login` | Login admin (cookie HttpOnly + JWT) |
-| `/admin/pedidos/[id]` | Detalhe do pedido (protegido, read-only) |
+| `/admin/pedidos/[id]` | Detalhe + ações de status (protegido) |
 
 ### Fluxo atual do cliente
 
@@ -90,7 +90,7 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 
 ```text
 /admin → (sem sessão) /admin/login → cookie HttpOnly → dashboard de pedidos
-/admin/pedidos/[id] → detalhe read-only
+/admin/pedidos/[id] → detalhe + ações de status controladas
 ```
 
 ## Roadmap MVP
@@ -102,8 +102,8 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 5. **Checkout (form)** — captura e valida dados do cliente
 6. **Pedido + WhatsApp** — persistência, totais no server e link `wa.me` ✅
 7. **Admin auth** — login/sessão para proteger o painel ✅
-8. **Admin pedidos** — listagem e detalhe read-only
-9. **Admin gestão** — status/cardápio
+8. **Admin pedidos** — listagem, detalhe e atualização de status
+9. **Admin gestão** — cardápio
 10. **PWA / polish** — melhorias mobile e deploy Vercel
 
 ## Estrutura

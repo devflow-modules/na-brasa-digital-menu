@@ -9,6 +9,7 @@ import {
 } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminOrderDetail } from "@/features/admin/orders/admin-orders.types";
 import { OrderStatusBadge } from "@/features/admin/orders/components/order-status-badge";
+import { OrderStatusActions } from "@/features/admin/orders/components/order-status-actions";
 
 type OrderDetailCardProps = {
   order: AdminOrderDetail;
@@ -31,6 +32,12 @@ export function OrderDetailCard({ order }: OrderDetailCardProps) {
         </div>
         <OrderStatusBadge status={order.status} />
       </div>
+
+      <OrderStatusActions
+        orderId={order.id}
+        status={order.status}
+        deliveryType={order.deliveryType}
+      />
 
       <section className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4">
         <h2 className="text-sm font-semibold text-orange-50">Cliente</h2>

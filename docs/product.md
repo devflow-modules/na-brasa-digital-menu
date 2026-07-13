@@ -112,4 +112,13 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 - `/admin` lista os últimos 50 pedidos (read-only), com cards de resumo.
 - `/admin/pedidos/[id]` mostra detalhe: cliente, itens/adicionais, totais, endereço, pagamento e `whatsappMessage`.
 - Cards usam dia local do servidor (`setHours(0,0,0,0)`); receita de hoje exclui `CANCELLED`.
-- Sem alteração de status, CRUD de cardápio ou APIs públicas nesta etapa.
+- Sem CRUD de cardápio ou APIs públicas nesta etapa.
+
+## Gestão de status
+
+- No detalhe `/admin/pedidos/[id]`, o admin pode avançar o status com ações controladas.
+- Transições validadas no server (não confiar nos botões do client).
+- Enum Prisma: `PENDING` → `CONFIRMED` → `PREPARING` → `READY` → (`OUT_FOR_DELIVERY` se entrega) → `COMPLETED`, com `CANCELLED` até o pedido ser finalizado.
+- Retirada (`PICKUP`): em `READY` não há “Saiu para entrega”; pode concluir direto.
+- Entrega (`DELIVERY`): em `READY` a ação principal é `OUT_FOR_DELIVERY`.
+- Não há notificação automática, WhatsApp API, WebSocket ou polling nesta etapa.

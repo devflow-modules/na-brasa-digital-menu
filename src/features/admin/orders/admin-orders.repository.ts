@@ -114,3 +114,37 @@ export async function getAdminOrderById(
 
   return order;
 }
+
+export type AdminOrderStatusRecord = {
+  id: string;
+  status: AdminOrderDetail["status"];
+  deliveryType: AdminOrderDetail["deliveryType"];
+};
+
+export async function findOrderStatusForUpdate(
+  orderId: string,
+): Promise<AdminOrderStatusRecord | null> {
+  return prisma.order.findUnique({
+    where: { id: orderId },
+    select: {
+      id: true,
+      status: true,
+      deliveryType: true,
+    },
+  });
+}
+
+export async function updateOrderStatus(
+  orderId: string,
+  nextStatus: AdminOrderDetail["status"],
+): Promise<AdminOrderStatusRecord> {
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { status: nextStatus },
+    select: {
+      id: true,
+      status: true,
+      deliveryType: true,
+    },
+  });
+}
