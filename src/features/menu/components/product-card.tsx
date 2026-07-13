@@ -1,11 +1,12 @@
 import { formatMoney } from "@/features/menu/format-money";
-import type { PublicMenuProduct } from "@/features/menu/menu.repository";
+import type { PublicMenuProduct } from "@/features/menu/menu.types";
 
 type ProductCardProps = {
   product: PublicMenuProduct;
+  onAdd?: (product: PublicMenuProduct) => void;
 };
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, onAdd }: ProductCardProps) {
   return (
     <article className="flex gap-3 rounded-xl border border-stone-800 bg-stone-900/80 p-3 shadow-sm shadow-black/20">
       <div
@@ -33,9 +34,20 @@ export function ProductCard({ product }: ProductCardProps) {
           </p>
         ) : null}
 
-        <p className="mt-auto pt-1 text-sm font-semibold text-orange-300">
-          {formatMoney(product.priceCents)}
-        </p>
+        <div className="mt-auto flex items-center justify-between gap-3 pt-1">
+          <p className="text-sm font-semibold text-orange-300">
+            {formatMoney(product.priceCents)}
+          </p>
+          {onAdd ? (
+            <button
+              type="button"
+              onClick={() => onAdd(product)}
+              className="rounded-lg bg-orange-500 px-3 py-2 text-xs font-semibold text-stone-950"
+            >
+              Adicionar
+            </button>
+          ) : null}
+        </div>
       </div>
     </article>
   );
