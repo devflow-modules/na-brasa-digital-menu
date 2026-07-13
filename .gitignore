@@ -1,5 +1,10 @@
 # Environment
 .env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
 .env*.local
 
 # Dependencies
