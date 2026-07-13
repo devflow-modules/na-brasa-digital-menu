@@ -17,7 +17,7 @@ type OrderDetailCardProps = {
 
 export function OrderDetailCard({ order }: OrderDetailCardProps) {
   return (
-    <div className="flex flex-col gap-6">
+    <div data-testid="admin-order-detail" className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-orange-300/80">

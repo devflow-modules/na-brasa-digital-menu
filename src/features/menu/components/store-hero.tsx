@@ -12,7 +12,10 @@ export function StoreHero({ store }: StoreHeroProps) {
     "Lanches artesanais e espetinhos feitos na brasa.";
 
   return (
-    <header className="border-b border-orange-500/20 bg-gradient-to-b from-stone-950 via-stone-900 to-orange-950/40 px-4 pb-8 pt-10 sm:px-6">
+    <header
+      data-testid="store-hero"
+      className="border-b border-orange-500/20 bg-gradient-to-b from-stone-950 via-stone-900 to-orange-950/40 px-4 pb-8 pt-10 sm:px-6"
+    >
       <div className="mx-auto flex w-full max-w-lg flex-col gap-4">
         <p className="text-xs font-medium uppercase tracking-[0.22em] text-orange-300/80">
           Cardápio online

@@ -142,6 +142,7 @@ export function AddToCartPanel({
 
         <button
           type="button"
+          data-testid="add-to-cart-button"
           onClick={() =>
             onConfirm({
               quantity,

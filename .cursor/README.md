@@ -39,6 +39,12 @@ Sequências recomendadas: feature, bugfix, release, checagem de produção.
 
 Prompts reutilizáveis. Cole no chat ou referencie o arquivo ao pedir uma tarefa.
 
+### Playwright MCP (opcional, local)
+
+Para automação de browser assistida no Cursor, veja o exemplo em `mcp.playwright.example.json` e o guia em `docs/testing.md`.
+
+Não é obrigatório para `pnpm build` nem para a suíte `pnpm test:e2e`.
+
 ## PRs pequenas
 
 1. Uma intenção por PR (feature, fix ou docs — não misturar)

@@ -13,6 +13,7 @@ export function LogoutButton({ className }: LogoutButtonProps) {
   return (
     <button
       type="button"
+      data-testid="admin-logout-button"
       disabled={isPending}
       onClick={() => {
         startTransition(async () => {

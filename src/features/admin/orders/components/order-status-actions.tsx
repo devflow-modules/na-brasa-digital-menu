@@ -27,11 +27,17 @@ export function OrderStatusActions({
 
   if (actions.length === 0) {
     return (
-      <section className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4">
+      <section
+        data-testid="order-status-actions"
+        className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
+      >
         <h2 className="text-sm font-semibold text-orange-50">
           Ações do pedido
         </h2>
-        <p className="mt-3 text-sm text-stone-400">
+        <p
+          data-testid="order-status-actions-empty"
+          className="mt-3 text-sm text-stone-400"
+        >
           Pedido finalizado. Nenhuma ação disponível.
         </p>
       </section>
@@ -60,7 +66,10 @@ export function OrderStatusActions({
   const dangerActions = actions.filter((action) => action.variant === "danger");
 
   return (
-    <section className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4">
+    <section
+      data-testid="order-status-actions"
+      className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
+    >
       <h2 className="text-sm font-semibold text-orange-50">Ações do pedido</h2>
 
       <div className="mt-4 flex flex-col gap-2">
@@ -68,6 +77,7 @@ export function OrderStatusActions({
           <button
             key={action.nextStatus}
             type="button"
+            data-testid={`order-status-action-${action.nextStatus}`}
             disabled={isPending}
             onClick={() => onUpdate(action.nextStatus)}
             className={`inline-flex h-11 items-center justify-center rounded-xl px-4 text-sm font-semibold disabled:opacity-60 ${
@@ -84,6 +94,7 @@ export function OrderStatusActions({
           <button
             key={action.nextStatus}
             type="button"
+            data-testid={`order-status-action-${action.nextStatus}`}
             disabled={isPending}
             onClick={() => onUpdate(action.nextStatus)}
             className="inline-flex h-11 items-center justify-center rounded-xl border border-red-500/40 bg-red-500/10 px-4 text-sm font-semibold text-red-100 disabled:opacity-60"

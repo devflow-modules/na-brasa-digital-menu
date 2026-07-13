@@ -200,6 +200,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
         <button
           type="submit"
+          data-testid="checkout-submit-button"
           disabled={isPending || cart.items.length === 0}
           className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
         >
