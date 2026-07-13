@@ -1,0 +1,16 @@
+---
+description: Prisma 6, migrations, seeds e snapshots
+globs: prisma/**/*,src/server/repositories/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Database
+
+- Prisma **6** + PostgreSQL; client só no server.
+- Migrations **pequenas** e reversíveis quando possível; uma intenção por migration.
+- Nunca alterar schema sem migration correspondente.
+- Seeds **fictícios** e idempotentes; sem dados reais de clientes.
+- `OrderItem` (e similares) devem guardar **snapshot** (nome, preço, etc.) no momento do pedido.
+- Enums claros para status de pedido, pagamento (mesmo que V1 seja só “combinar no WhatsApp”) e origem.
+- Índices quando houver filtro/listagem real (ex.: pedidos por status/data).
+- Não apagar dados de produção/local sem comando explícito do usuário.

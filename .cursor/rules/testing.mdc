@@ -1,0 +1,14 @@
+---
+description: Prioridades de teste e o que evitar
+globs: **/*.{test,spec}.{ts,tsx},**/__tests__/**/*
+alwaysApply: false
+---
+
+# Testing
+
+- Priorizar fluxos críticos: total do pedido, validação Zod, formatter da mensagem WhatsApp, persistência do pedido.
+- Testar repositories/services quando existirem (unit/integration enxutos).
+- Evitar testes frágeis de layout/CSS/snapshots visuais sem valor.
+- Preferir asserts em comportamento e dados, não em markup detalhado.
+- Ao corrigir bug, adicionar regressão quando for barato e estável.
+- Não exigir cobertura cosmética; cobrir o que quebra dinheiro/pedido/WhatsApp.

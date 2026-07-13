@@ -1,0 +1,15 @@
+---
+description: UI mobile-first, carrinho e checkout
+globs: src/app/**/*.{ts,tsx},src/components/**/*.{ts,tsx},src/features/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Frontend
+
+- Mobile-first: layout e touch targets pensados para celular primeiro.
+- UX rápida para pedir: poucos passos, hierarquia clara, feedback imediato.
+- Carrinho legível (itens, quantidades, total); checkout curto e óbvio.
+- Acessibilidade básica: labels, contraste, foco, botões com nome acessível.
+- Evite estado global prematuro; prefira estado local. Context só quando prop drilling atrapalhar de verdade.
+- Tailwind + componentes reutilizáveis em `components/ui` e `components/layout`.
+- Client Components apenas onde houver interação; o restante fica Server Component.

@@ -1,0 +1,14 @@
+---
+description: README, docs de produto e honestidade de roadmap
+globs: README.md,docs/**/*,.cursor/**/*.md,.env.example
+alwaysApply: false
+---
+
+# Documentation
+
+- Atualizar README/docs quando mudar fluxo de uso, setup ou scripts.
+- Documentar envs em `.env.example` + README (sem segredos).
+- Registrar decisões relevantes (ADR via `commands/create-adr.md` quando a escolha for duradoura).
+- Separar claramente **V1 (existe)** de **roadmap (futuro)**.
+- Não prometer iFood, WhatsApp API ou pagamento online se não estiver implementado.
+- Docs em português do Brasil para produto/operação; inglês em nomes técnicos de código.
