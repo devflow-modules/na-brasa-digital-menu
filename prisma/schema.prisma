@@ -7,4 +7,187 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Business models will be added in a later PR.
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  OUT_FOR_DELIVERY
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryType {
+  PICKUP
+  DELIVERY
+}
+
+enum PaymentMethod {
+  CASH
+  PIX
+  CARD
+}
+
+enum OrderSource {
+  DIRECT
+  IFOOD
+  OTHER
+}
+
+model Store {
+  id                       String     @id @default(cuid())
+  name                     String
+  slug                     String     @unique
+  description              String?
+  whatsapp                 String
+  address                  String?
+  openingHours             String?
+  isOpen                   Boolean    @default(true)
+  pickupEnabled            Boolean    @default(true)
+  deliveryEnabled          Boolean    @default(false)
+  deliveryFeeCents         Int        @default(0)
+  minimumOrderAmountCents  Int        @default(0)
+  createdAt                DateTime   @default(now())
+  updatedAt                DateTime   @updatedAt
+
+  categories Category[]
+  products   Product[]
+  addons     Addon[]
+  orders     Order[]
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  products Product[]
+
+  @@index([storeId, sortOrder])
+  @@index([storeId, active])
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  storeId     String
+  categoryId  String
+  name        String
+  description String?
+  priceCents  Int
+  imageUrl    String?
+  active      Boolean  @default(true)
+  featured    Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store         Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category      Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  productAddons ProductAddon[]
+  orderItems    OrderItem[]
+
+  @@index([storeId, categoryId])
+  @@index([storeId, active])
+  @@index([storeId, sortOrder])
+}
+
+model Addon {
+  id          String   @id @default(cuid())
+  storeId     String
+  name        String
+  description String?
+  priceCents  Int
+  active      Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  store              Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  productAddons      ProductAddon[]
+  orderItemAddons    OrderItemAddon[]
+
+  @@index([storeId, active])
+  @@index([storeId, sortOrder])
+}
+
+model ProductAddon {
+  productId String
+  addonId   String
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  addon   Addon   @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@id([productId, addonId])
+  @@index([addonId])
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  storeId           String
+  code              String        @unique
+  customerName      String
+  customerPhone     String
+  deliveryType      DeliveryType
+  deliveryAddress   String?
+  paymentMethod     PaymentMethod
+  changeForCents    Int?
+  notes             String?
+  subtotalCents     Int
+  deliveryFeeCents  Int           @default(0)
+  totalCents        Int
+  status            OrderStatus   @default(PENDING)
+  source            OrderSource   @default(DIRECT)
+  whatsappMessage   String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  store Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  items OrderItem[]
+
+  @@index([storeId, createdAt])
+  @@index([storeId, status])
+  @@index([source])
+}
+
+model OrderItem {
+  id                         String   @id @default(cuid())
+  orderId                    String
+  productId                  String?
+  productNameSnapshot        String
+  productDescriptionSnapshot String?
+  quantity                   Int
+  unitPriceCents             Int
+  notes                      String?
+  totalCents                 Int
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  order  Order            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product?        @relation(fields: [productId], references: [id], onDelete: SetNull)
+  addons OrderItemAddon[]
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model OrderItemAddon {
+  id               String   @id @default(cuid())
+  orderItemId      String
+  addonId          String?
+  addonNameSnapshot String
+  addonPriceCents  Int
+  createdAt        DateTime @default(now())
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  addon     Addon?    @relation(fields: [addonId], references: [id], onDelete: SetNull)
+
+  @@index([orderItemId])
+  @@index([addonId])
+}
