@@ -1,0 +1,13 @@
+# Local secrets — never upload to Vercel via CLI
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+*.env
+
+# Playwright artifacts
+playwright-report/
+test-results/
+blob-report/

@@ -17,6 +17,8 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
   - [ ] E2E Tests
 - [ ] Banco remoto criado (Neon recomendado ou Supabase Postgres)
 - [ ] Envs configuradas na Vercel (Production) — ver [deployment.md](deployment.md)
+- [ ] Envs **não** dependem de upload do `.env` local (usar painel / `vercel env add`)
+- [ ] `.vercelignore` presente no repo (bloqueia `.env` / `*.env` no CLI)
 - [ ] Seed/cardápio revisado (fictício ajustado **ou** plano de cadastro real)
 - [ ] WhatsApp da loja **confirmado** (número oficial, não placeholder)
 - [ ] Credenciais admin definidas (`ADMIN_EMAIL`, `ADMIN_PASSWORD` forte, `ADMIN_JWT_SECRET` forte)
@@ -62,6 +64,7 @@ Se qualquer item falhar → **NO-GO**.
 ## 5. Segurança
 
 - [ ] Nenhum segredo real no repositório / PRs / screenshots
+- [ ] `.env` local não é a fonte das envs de produção (Vercel env vars)
 - [ ] Cookie admin HttpOnly (não há token em `localStorage`)
 - [ ] `ADMIN_PASSWORD` forte
 - [ ] `ADMIN_JWT_SECRET` longo e aleatório

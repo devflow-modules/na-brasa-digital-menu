@@ -121,12 +121,69 @@ Não trate o seed de desenvolvimento como dados oficiais do cliente.
 
 ## Deploy na Vercel (passo a passo)
 
-1. New Project → importe `na-brasa-digital-menu`
+1. New Project → importe `na-brasa-digital-menu` **ou** use `pnpm dlx vercel` (projeto já pode existir: `na-brasa-cardapio`)
 2. Framework: Next.js (auto)
-3. Configure as envs de Production
-4. Deploy a partir de `main`
+3. Configure as envs de Production **no painel ou via CLI** (não dependa do `.env` local)
+4. Deploy a partir de `main` / `pnpm dlx vercel --prod`
 5. Anote a URL `*.vercel.app` e alinhe `NEXT_PUBLIC_APP_URL`
 6. Domínio customizado: depois da validação com o dono (fora deste guia operacional mínimo)
+
+### Não enviar `.env` no upload do CLI
+
+O `.vercelignore` do repositório impede o upload de arquivos locais sensíveis (`.env`, `.env.local`, `*.env`, artifacts do Playwright).
+
+Produção deve usar **somente** variáveis configuradas na Vercel (Settings → Environment Variables ou `vercel env add`).
+`NODE_ENV` **não** deve ser definido manualmente — a Vercel define `production` no runtime.
+
+Se um deploy via CLI mostrou `Environments: .env` no build, isso indica que um `.env` local pode ter sido usado. Ações:
+
+1. Confirmar que `.vercelignore` está no repositório
+2. Configurar todas as envs de Production na Vercel
+3. Redeploy (`pnpm dlx vercel --prod`)
+4. Se o `.env` local tinha secrets reais, **rotacionar** senha/JWT/banco conforme necessário
+
+### Configurar envs via CLI (Production)
+
+```bash
+pnpm dlx vercel env add DATABASE_URL production
+pnpm dlx vercel env add ADMIN_EMAIL production
+pnpm dlx vercel env add ADMIN_PASSWORD production
+pnpm dlx vercel env add ADMIN_JWT_SECRET production
+pnpm dlx vercel env add ADMIN_SESSION_COOKIE production
+pnpm dlx vercel env add NEXT_PUBLIC_APP_URL production
+pnpm dlx vercel env add NEXT_PUBLIC_STORE_SLUG production
+```
+
+Valores esperados (não commitar):
+
+| Variável | Produção |
+| --- | --- |
+| `DATABASE_URL` | Neon com `sslmode=require` |
+| `ADMIN_EMAIL` | e-mail admin real |
+| `ADMIN_PASSWORD` | senha forte |
+| `ADMIN_JWT_SECRET` | aleatório 32+ chars |
+| `ADMIN_SESSION_COOKIE` | `na-brasa-admin-session` |
+| `NEXT_PUBLIC_APP_URL` | `https://na-brasa-cardapio.vercel.app` |
+| `NEXT_PUBLIC_STORE_SLUG` | `na-brasa` |
+
+### Redeploy
+
+```bash
+pnpm dlx vercel --prod
+```
+
+### Migrations no Neon (local, sem commitar a URL)
+
+PowerShell:
+
+```powershell
+$env:DATABASE_URL="COLE_AQUI_A_URL_DO_NEON"
+pnpm prisma migrate deploy
+# opcional bootstrap controlado:
+# pnpm prisma db seed
+```
+
+Após seed: validar Store `na-brasa` e trocar WhatsApp placeholder (`5513999999999`) pelo número oficial antes da validação com o cliente.
 
 Não é obrigatório usar Vercel CLI. Não há workflow GitHub Actions de deploy nesta preparação.
 
