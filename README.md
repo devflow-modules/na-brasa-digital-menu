@@ -90,8 +90,8 @@ Detalhes de operação: [docs/operations.md](docs/operations.md).
 
 ### Pré-requisitos
 
-- Node.js 20+
-- pnpm
+- Node.js 22+ (CI usa Node 22; pnpm 11 exige ≥ 22.13)
+- pnpm 11
 - PostgreSQL
 
 ### Passos
@@ -142,7 +142,7 @@ Checks:
 3. `pnpm typecheck`
 4. `pnpm build`
 
-Node **20** + pnpm **11** no runner. Envs fake só para o CI (sem Postgres real, sem migrate/seed).
+Node **22** + pnpm **11** no runner (pnpm 11 não roda em Node 20). Envs fake só para o CI (sem Postgres real, sem migrate/seed).
 
 Playwright E2E **não** entra neste workflow — continue rodando localmente (`pnpm test:e2e`). Detalhes em [docs/testing.md](docs/testing.md).
 

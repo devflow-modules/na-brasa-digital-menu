@@ -18,8 +18,8 @@ Browser: **Chromium** apenas.
 
 ## Pré-requisitos
 
-- Node.js 20+
-- pnpm
+- Node.js 22+ (pnpm 11 exige ≥ 22.13)
+- pnpm 11
 - PostgreSQL local (não use banco de produção)
 - `.env` a partir de `.env.example` com:
   - `DATABASE_URL`
