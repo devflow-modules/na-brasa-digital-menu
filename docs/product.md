@@ -106,4 +106,10 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 - Login valida `ADMIN_EMAIL` / `ADMIN_PASSWORD` (env) no server.
 - Sessão: JWT assinado (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção.
 - Logout limpa o cookie e volta para `/admin/login`.
-- Esta PR não inclui listagem de pedidos nem gestão de cardápio.
+
+## Admin (pedidos)
+
+- `/admin` lista os últimos 50 pedidos (read-only), com cards de resumo.
+- `/admin/pedidos/[id]` mostra detalhe: cliente, itens/adicionais, totais, endereço, pagamento e `whatsappMessage`.
+- Cards usam dia local do servidor (`setHours(0,0,0,0)`); receita de hoje exclui `CANCELLED`.
+- Sem alteração de status, CRUD de cardápio ou APIs públicas nesta etapa.

@@ -3,7 +3,11 @@
 import { useTransition } from "react";
 import { logoutAdminAction } from "@/features/admin/auth/actions/logout-action";
 
-export function LogoutButton() {
+type LogoutButtonProps = {
+  className?: string;
+};
+
+export function LogoutButton({ className }: LogoutButtonProps) {
   const [isPending, startTransition] = useTransition();
 
   return (
@@ -29,7 +33,10 @@ export function LogoutButton() {
           }
         });
       }}
-      className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-300 bg-white px-4 text-sm font-medium text-stone-800 hover:bg-stone-50 disabled:opacity-60"
+      className={`inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium disabled:opacity-60 ${
+        className ??
+        "border-stone-300 bg-white text-stone-800 hover:bg-stone-50"
+      }`}
     >
       {isPending ? "Saindo..." : "Sair"}
     </button>
