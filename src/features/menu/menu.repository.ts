@@ -1,42 +1,18 @@
 import { prisma } from "@/lib/prisma";
+import type {
+  PublicMenu,
+  PublicMenuCategory,
+  PublicMenuProduct,
+  PublicMenuStore,
+} from "@/features/menu/menu.types";
 
-export type PublicMenuProduct = {
-  id: string;
-  name: string;
-  description: string | null;
-  priceCents: number;
-  imageUrl: string | null;
-  featured: boolean;
-  sortOrder: number;
-};
-
-export type PublicMenuCategory = {
-  id: string;
-  name: string;
-  description: string | null;
-  sortOrder: number;
-  products: PublicMenuProduct[];
-};
-
-export type PublicMenuStore = {
-  id: string;
-  name: string;
-  slug: string;
-  description: string | null;
-  isOpen: boolean;
-  pickupEnabled: boolean;
-  deliveryEnabled: boolean;
-  deliveryFeeCents: number;
-  minimumOrderAmountCents: number;
-  openingHours: string | null;
-  address: string | null;
-};
-
-export type PublicMenu = {
-  store: PublicMenuStore;
-  categories: PublicMenuCategory[];
-  featuredProducts: PublicMenuProduct[];
-};
+export type {
+  PublicMenu,
+  PublicMenuAddon,
+  PublicMenuCategory,
+  PublicMenuProduct,
+  PublicMenuStore,
+} from "@/features/menu/menu.types";
 
 export async function getPublicMenuBySlug(
   slug: string,
@@ -74,6 +50,23 @@ export async function getPublicMenuBySlug(
               imageUrl: true,
               featured: true,
               sortOrder: true,
+              productAddons: {
+                where: {
+                  addon: {
+                    active: true,
+                  },
+                },
+                select: {
+                  addon: {
+                    select: {
+                      id: true,
+                      name: true,
+                      priceCents: true,
+                      sortOrder: true,
+                    },
+                  },
+                },
+              },
             },
           },
         },
@@ -85,35 +78,48 @@ export async function getPublicMenuBySlug(
     return null;
   }
 
-  const categories = store.categories
+  const categories: PublicMenuCategory[] = store.categories
     .filter((category) => category.products.length > 0)
     .map((category) => ({
       id: category.id,
       name: category.name,
       description: category.description,
       sortOrder: category.sortOrder,
-      products: category.products,
+      products: category.products.map((product) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        priceCents: product.priceCents,
+        imageUrl: product.imageUrl,
+        featured: product.featured,
+        sortOrder: product.sortOrder,
+        addons: product.productAddons
+          .map((link) => link.addon)
+          .sort((a, b) => a.sortOrder - b.sortOrder),
+      })),
     }));
 
-  const featuredProducts = categories
+  const featuredProducts: PublicMenuProduct[] = categories
     .flatMap((category) => category.products)
     .filter((product) => product.featured)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
+  const publicStore: PublicMenuStore = {
+    id: store.id,
+    name: store.name,
+    slug: store.slug,
+    description: store.description,
+    isOpen: store.isOpen,
+    pickupEnabled: store.pickupEnabled,
+    deliveryEnabled: store.deliveryEnabled,
+    deliveryFeeCents: store.deliveryFeeCents,
+    minimumOrderAmountCents: store.minimumOrderAmountCents,
+    openingHours: store.openingHours,
+    address: store.address,
+  };
+
   return {
-    store: {
-      id: store.id,
-      name: store.name,
-      slug: store.slug,
-      description: store.description,
-      isOpen: store.isOpen,
-      pickupEnabled: store.pickupEnabled,
-      deliveryEnabled: store.deliveryEnabled,
-      deliveryFeeCents: store.deliveryFeeCents,
-      minimumOrderAmountCents: store.minimumOrderAmountCents,
-      openingHours: store.openingHours,
-      address: store.address,
-    },
+    store: publicStore,
     categories,
     featuredProducts,
   };

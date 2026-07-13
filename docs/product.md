@@ -77,4 +77,10 @@ Nas próximas PRs, o server recalcula totais — não confiar em preço vindo do
 
 - Rota `/na-brasa` renderiza `Store`, categorias e produtos ativos do banco (Server Component + Prisma no server).
 - Exibe status aberto/fechado, retirada/entrega, taxa e pedido mínimo quando aplicável.
-- Carrinho, checkout e WhatsApp ficam para a próxima PR.
+
+## Carrinho local
+
+- O cliente monta o pedido no navegador (estado + `localStorage`).
+- Adicionais entram no total do item: `(preço do produto + soma dos adicionais) × quantidade`.
+- Preços no carrinho são snapshots client-side; na PR de checkout/pedido o **server recalcula** tudo.
+- Checkout, persistência de pedido e WhatsApp ficam para a próxima PR.

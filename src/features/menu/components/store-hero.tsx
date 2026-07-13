@@ -1,5 +1,5 @@
 import { formatMoney } from "@/features/menu/format-money";
-import type { PublicMenuStore } from "@/features/menu/menu.repository";
+import type { PublicMenuStore } from "@/features/menu/menu.types";
 import { StoreStatusBadge } from "@/features/menu/components/store-status-badge";
 
 type StoreHeroProps = {

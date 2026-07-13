@@ -1,11 +1,18 @@
 import { ProductCard } from "@/features/menu/components/product-card";
-import type { PublicMenuCategory } from "@/features/menu/menu.repository";
+import type {
+  PublicMenuCategory,
+  PublicMenuProduct,
+} from "@/features/menu/menu.types";
 
 type CategorySectionProps = {
   category: PublicMenuCategory;
+  onAddProduct?: (product: PublicMenuProduct) => void;
 };
 
-export function CategorySection({ category }: CategorySectionProps) {
+export function CategorySection({
+  category,
+  onAddProduct,
+}: CategorySectionProps) {
   return (
     <section className="flex flex-col gap-3" aria-labelledby={`category-${category.id}`}>
       <div className="flex flex-col gap-1">
@@ -23,7 +30,7 @@ export function CategorySection({ category }: CategorySectionProps) {
       <ul className="flex flex-col gap-3">
         {category.products.map((product) => (
           <li key={product.id}>
-            <ProductCard product={product} />
+            <ProductCard product={product} onAdd={onAddProduct} />
           </li>
         ))}
       </ul>
