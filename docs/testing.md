@@ -120,30 +120,46 @@ Notas:
 - Não commitar tokens/configs pessoais do Cursor
 - Preferir Chromium local; não usar conta/produção do cliente
 
-## CI vs E2E local
+## CI básico vs E2E no CI
 
-O workflow GitHub Actions `Quality Checks` (`.github/workflows/quality.yml`) valida automaticamente em PRs/`push` para `main`:
+### Quality Checks (leve)
 
-- `pnpm prisma generate`
-- `pnpm lint`
-- `pnpm typecheck`
-- `pnpm build`
+Arquivo: [`.github/workflows/quality.yml`](../.github/workflows/quality.yml)
 
-Nesta etapa o CI **não** sobe Postgres, **não** aplica migrations/seed e **não** executa Playwright.
+- Gatilhos: `pull_request` / `push` em `main`
+- Sem Postgres
+- Roda: `prisma generate` → lint → typecheck → build
 
-E2E continua **local/manual**:
+### E2E Tests (pesado)
+
+Arquivo: [`.github/workflows/e2e.yml`](../.github/workflows/e2e.yml)
+
+- Gatilhos: `pull_request` / `push` em `main`
+- Service: **Postgres 16** (`na_brasa_e2e` em `localhost:5432`)
+- Node **22** + pnpm **11** (Node 20 incompatível com pnpm 11)
+- Passos: install → `prisma generate` → `migrate deploy` → `db seed` → Playwright Chromium → `pnpm test:e2e`
+- `E2E_ALLOW_DB_CLEANUP=true` no job (cleanup só de pedidos com prefixo `E2E`)
+- `NODE_ENV=test` (não production)
+- App sobe pelo `webServer` do Playwright (`pnpm dev`)
+- Em falha: upload de `playwright-report/` e `test-results/` (retenção 7 dias)
+
+Envs do CI são **fake** (sem Neon/Supabase, sem secrets reais).
+
+### Reproduzir localmente (equivalente ao CI)
 
 ```bash
+# Postgres local apontando em DATABASE_URL no .env
+pnpm install
+pnpm prisma generate
+pnpm prisma migrate deploy   # ou: pnpm prisma migrate dev
 pnpm prisma db seed
-pnpm test:e2e
+pnpm exec playwright install chromium
+E2E_ALLOW_DB_CLEANUP=true pnpm test:e2e
 ```
-
-Futuro (fora deste escopo): workflow E2E com service Postgres + Playwright no CI.
 
 ## Limitações
 
 - Sem Firefox/WebKit nesta suíte E2E
-- Sem Playwright no CI (ainda)
-- Sem Playwright Cloud
+- Sem Playwright Cloud / multi-browser
 - Status E2E cobre fluxo PICKUP até COMPLETED (não cobre OUT_FOR_DELIVERY nesta suíte)
 - Pedidos de status/dashboard são criados via helper Prisma (integração UI nos cliques de status e auth)

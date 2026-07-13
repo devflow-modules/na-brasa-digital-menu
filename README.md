@@ -130,21 +130,16 @@ Guia completo: [docs/testing.md](docs/testing.md).
 
 ### CI (GitHub Actions)
 
-O workflow [`.github/workflows/quality.yml`](.github/workflows/quality.yml) roda em:
+Há dois workflows separados (PR / push em `main`), ambos com Node **22** + pnpm **11** e envs fake:
 
-- `pull_request` para `main`
-- `push` para `main`
+| Workflow | Arquivo | O que valida |
+| --- | --- | --- |
+| **Quality Checks** | [`.github/workflows/quality.yml`](.github/workflows/quality.yml) | `prisma generate`, lint, typecheck, build (sem banco) |
+| **E2E Tests** | [`.github/workflows/e2e.yml`](.github/workflows/e2e.yml) | Postgres 16 + migrate + seed + Playwright Chromium |
 
-Checks:
+O E2E sobe o app via `playwright.config.ts` (`pnpm dev` em `http://127.0.0.1:3000`), usa cleanup só para pedidos `E2E*` e sobe artifacts (`playwright-report/`, `test-results/`) só em falha.
 
-1. `pnpm prisma generate`
-2. `pnpm lint`
-3. `pnpm typecheck`
-4. `pnpm build`
-
-Node **22** + pnpm **11** no runner (pnpm 11 não roda em Node 20). Envs fake só para o CI (sem Postgres real, sem migrate/seed).
-
-Playwright E2E **não** entra neste workflow — continue rodando localmente (`pnpm test:e2e`). Detalhes em [docs/testing.md](docs/testing.md).
+Guia completo: [docs/testing.md](docs/testing.md).
 
 ### Produção (após configurar envs)
 
