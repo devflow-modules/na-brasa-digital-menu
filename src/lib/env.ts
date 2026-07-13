@@ -6,6 +6,13 @@ const envSchema = z.object({
   ADMIN_PASSWORD: z
     .string()
     .min(8, "ADMIN_PASSWORD must be at least 8 characters"),
+  ADMIN_JWT_SECRET: z
+    .string()
+    .min(16, "ADMIN_JWT_SECRET must be at least 16 characters"),
+  ADMIN_SESSION_COOKIE: z
+    .string()
+    .min(1, "ADMIN_SESSION_COOKIE is required")
+    .default("na-brasa-admin-session"),
   NEXT_PUBLIC_APP_URL: z.string().url("NEXT_PUBLIC_APP_URL must be a valid URL"),
   NEXT_PUBLIC_STORE_SLUG: z
     .string()
@@ -19,6 +26,8 @@ function createEnv(): Env {
     DATABASE_URL: process.env.DATABASE_URL,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL,
     ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+    ADMIN_JWT_SECRET: process.env.ADMIN_JWT_SECRET,
+    ADMIN_SESSION_COOKIE: process.env.ADMIN_SESSION_COOKIE,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_STORE_SLUG: process.env.NEXT_PUBLIC_STORE_SLUG,
   });

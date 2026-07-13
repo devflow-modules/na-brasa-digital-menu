@@ -17,6 +17,7 @@ Cardápio digital para o carrinho de lanches **Na Brasa**: lanches artesanais e 
 - Prisma + PostgreSQL
 - Zod
 - React Hook Form
+- jose (JWT)
 - pnpm
 
 ## Arquitetura (V1)
@@ -24,7 +25,7 @@ Cardápio digital para o carrinho de lanches **Na Brasa**: lanches artesanais e 
 - Next.js fullstack (sem Express separado)
 - Sem React Native
 - PWA-ready no futuro
-- Sem autenticação completa nesta fundação
+- Auth admin simples via JWT em cookie HttpOnly (sem provedor externo)
 
 ## Começando
 
@@ -75,12 +76,19 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 | `/` | Redireciona para `/na-brasa` |
 | `/na-brasa` | Cardápio público + carrinho local |
 | `/na-brasa/checkout` | Checkout → cria pedido no server → abre WhatsApp (`wa.me`) |
-| `/admin` | Placeholder do painel (sem auth ainda) |
+| `/admin` | Painel protegido (placeholder; requer login) |
+| `/admin/login` | Login admin (cookie HttpOnly + JWT) |
 
 ### Fluxo atual do cliente
 
 ```text
 /na-brasa → monta carrinho local → /na-brasa/checkout → pedido salvo → wa.me
+```
+
+### Fluxo admin
+
+```text
+/admin → (sem sessão) /admin/login → cookie HttpOnly → /admin
 ```
 
 ## Roadmap MVP
@@ -91,8 +99,9 @@ WhatsApp no seed é **placeholder** (`5513999999999`), não número real.
 4. **Carrinho** — estado do pedido no cliente
 5. **Checkout (form)** — captura e valida dados do cliente
 6. **Pedido + WhatsApp** — persistência, totais no server e link `wa.me` ✅
-7. **Admin** — painel básico com auth
-8. **PWA / polish** — melhorias mobile e deploy Vercel
+7. **Admin auth** — login/sessão para proteger o painel
+8. **Admin pedidos/cardápio** — listagem e gestão
+9. **PWA / polish** — melhorias mobile e deploy Vercel
 
 ## Estrutura
 
@@ -114,6 +123,8 @@ Veja `.env.example`:
 - `DATABASE_URL`
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
+- `ADMIN_JWT_SECRET`
+- `ADMIN_SESSION_COOKIE`
 - `NEXT_PUBLIC_APP_URL`
 - `NEXT_PUBLIC_STORE_SLUG`
 
