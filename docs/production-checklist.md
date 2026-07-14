@@ -2,7 +2,7 @@
 
 Checklist **GO / NO-GO** para o primeiro deploy real controlado.
 
-Guias: [deployment.md](deployment.md) · [operations.md](operations.md) · [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · [testing.md](testing.md)
+Guias: [deployment.md](deployment.md) · [operations.md](operations.md) · [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · [testing.md](testing.md) · Dados reais do piloto Na Braza: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md)
 
 Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de clientes em validação.
 
