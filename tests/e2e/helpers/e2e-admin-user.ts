@@ -109,3 +109,65 @@ export async function ensureInactiveE2eUser(options?: {
 
   return { email, password };
 }
+
+export type E2eStoreUserCredentials = {
+  name: string;
+  email: string;
+  password: string;
+  role: typeof UserRole.STORE_OWNER | typeof UserRole.OPERATOR;
+};
+
+/**
+ * Ensures an active store-scoped user for negative /master access tests.
+ * Never logs the password.
+ */
+export async function ensureE2eStoreUser(options?: {
+  email?: string;
+  password?: string;
+  role?: typeof UserRole.STORE_OWNER | typeof UserRole.OPERATOR;
+}): Promise<E2eStoreUserCredentials & { userId: string; storeId: string }> {
+  const prisma = getPrisma();
+  const storeSlug = process.env.NEXT_PUBLIC_STORE_SLUG?.trim() || "na-brasa";
+  const store = await prisma.store.findUnique({ where: { slug: storeSlug } });
+
+  if (!store) {
+    throw new Error(
+      `Store "${storeSlug}" not found. Run pnpm prisma db seed before E2E.`,
+    );
+  }
+
+  const credentials: E2eStoreUserCredentials = {
+    name: "E2E Store Operator",
+    email: (options?.email ?? "e2e-store-operator@example.com").toLowerCase(),
+    password: options?.password ?? "store-operator-password",
+    role: options?.role ?? UserRole.OPERATOR,
+  };
+
+  const passwordHash = await bcrypt.hash(credentials.password, BCRYPT_ROUNDS);
+
+  const user = await prisma.user.upsert({
+    where: { email: credentials.email },
+    create: {
+      name: credentials.name,
+      email: credentials.email,
+      passwordHash,
+      role: credentials.role,
+      storeId: store.id,
+      isActive: true,
+    },
+    update: {
+      name: credentials.name,
+      passwordHash,
+      role: credentials.role,
+      storeId: store.id,
+      isActive: true,
+    },
+    select: { id: true },
+  });
+
+  return {
+    ...credentials,
+    userId: user.id,
+    storeId: store.id,
+  };
+}

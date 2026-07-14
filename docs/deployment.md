@@ -63,11 +63,12 @@ Placeholders locais (sem secrets reais): [`.env.example`](../.env.example).
 ### Auth (database-backed)
 
 - Login em `/admin/login` valida `User` no banco (`email` + `passwordHash` com `bcryptjs.compare`).
-- Sessão JWT (cookie HttpOnly) inclui `userId`, `name`, `email`, `role`, `storeId`.
+- Sessão JWT (cookie HttpOnly, path `/`) inclui `userId`, `name`, `email`, `role`, `storeId`.
 - Usuário `isActive === false` não autentica (mensagem genérica).
-- `MASTER` pode acessar `/admin` **temporariamente** até existir `/master` ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md)).
+- **`/master`**: apenas `MASTER` (`requireMasterSession`). Sem sessão → login; outras roles → `notFound()`.
+- `/admin` = painel da loja; `MASTER` ainda pode abrir `/admin` de forma **transicional**.
 - Ambiente novo: `pnpm prisma migrate deploy` + seed com `MASTER_ADMIN_*` preenchidos.
-- Store-scoping estrito de pedidos/usuários de loja vem em PR futura.
+- Store-scoping estrito de `/admin` e CRUD master = PRs futuras.
 
 ### Como validar `DATABASE_URL`
 
