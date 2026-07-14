@@ -7,11 +7,13 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [P
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
-2. Entre com o e-mail e a senha configurados nas variáveis de ambiente (`ADMIN_EMAIL` / `ADMIN_PASSWORD`)
+2. Entre com o **e-mail e senha do usuário** cadastrado no banco (ex.: `MASTER` criado via seed `MASTER_ADMIN_*`)
 3. Após o login, você é levado ao dashboard `/admin`
 4. Use **Sair** (logout) ao terminar o turno, principalmente em aparelho compartilhado
 
 A sessão fica em cookie **HttpOnly** (não aparece em `localStorage`). Em produção o cookie só trafega em HTTPS (`Secure`).
+
+Nota: usuários `MASTER` usam `/admin` de forma **transicional** até existir o painel `/master`.
 
 ## Como receber pedidos
 
@@ -74,17 +76,8 @@ O MVP **não** envia mensagem automática pela API do WhatsApp: só abre o link 
 - Não compartilhe a senha do admin em chats ou prints
 - Não deixe a sessão aberta em celular de terceiros
 - Pedidos têm dados pessoais (nome, telefone, endereço) — trate o painel como área restrita
-- Credenciais ficam só nas envs do servidor (Vercel), nunca no código
-
-## Limitações atuais do MVP
-
-- Sem CRUD de cardápio no painel (mudanças de cardápio são via banco/seed por enquanto)
-- Sem upload de imagens
-- Sem notificações em tempo real (sem WebSocket/polling) — atualize a página
-- Sem WhatsApp Cloud API / chatbot
-- Sem pagamento online
-- Sem múltiplos usuários admin
-- Sem histórico/auditoria de mudanças de status
-- Sem campo de motivo de cancelamento
+- Credenciais de login ficam no **banco** (`User`); secrets de sessão (`ADMIN_JWT_SECRET`) só nas envs do servidor
+- Sem múltiplos painéis ainda: `MASTER` e usuários de loja compartilham `/admin` temporariamente
+- Sem CRUD de usuários no painel (bootstrap via seed `MASTER_ADMIN_*`)
 
 Para colocar o ambiente no ar: [deployment.md](deployment.md).

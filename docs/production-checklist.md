@@ -21,8 +21,9 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] `.vercelignore` presente no repo (bloqueia `.env` / `*.env` no CLI)
 - [ ] Seed/cardápio revisado (fictício ajustado **ou** plano de cadastro real)
 - [ ] WhatsApp da loja **confirmado** (número oficial, não placeholder)
-- [ ] Credenciais admin **atuais** (env) definidas (`ADMIN_EMAIL`, `ADMIN_PASSWORD` forte, `ADMIN_JWT_SECRET` forte) — login ainda via env até a PR de auth no banco ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md))
-- [ ] (Opcional bootstrap) `MASTER_ADMIN_NAME` / `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` fortes se for criar usuário `MASTER` via seed
+- [ ] Credenciais de sessão: `ADMIN_JWT_SECRET` forte + `ADMIN_SESSION_COOKIE`
+- [ ] Usuário admin no banco: seed com `MASTER_ADMIN_NAME` / `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` (ou User criado manualmente)
+- [ ] `ADMIN_EMAIL` / `ADMIN_PASSWORD` **não** são mais necessários no runtime (podem ser removidos da Vercel após cutover)
 - [ ] `NEXT_PUBLIC_APP_URL` planejado (URL Vercel HTTPS)
 - [ ] `NEXT_PUBLIC_STORE_SLUG=na-brasa` (ou slug acordado)
 
@@ -68,8 +69,9 @@ Se qualquer item falhar → **NO-GO**.
 - [ ] Nenhum segredo real no repositório / PRs / screenshots
 - [ ] `.env` local não é a fonte das envs de produção (Vercel env vars)
 - [ ] Cookie admin HttpOnly (não há token em `localStorage`)
-- [ ] `ADMIN_PASSWORD` forte
+- [ ] Login via `User` no banco (não `ADMIN_EMAIL`/`ADMIN_PASSWORD` runtime)
 - [ ] `ADMIN_JWT_SECRET` longo e aleatório
+- [ ] Senha do usuário admin forte (apenas hash no banco)
 - [ ] Banco remoto sem exposição pública desnecessária
 - [ ] Consciência de PII nos pedidos (nome, telefone, endereço)
 - [ ] Testes automatizados / CI não usam dados reais de clientes

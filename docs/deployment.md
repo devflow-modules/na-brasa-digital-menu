@@ -48,20 +48,26 @@ Alternativa de banco: **Supabase Postgres** — mesmo fluxo, só muda o provedor
 | Variável | Obrigatória | Produção |
 | --- | --- | --- |
 | `DATABASE_URL` | Sim | Connection string do **banco remoto** (Neon/Supabase). Não use localhost. |
-| `ADMIN_EMAIL` | Sim *(login atual)* | E-mail do operador via **env** (não commitado). **Deprecated** após migração do login para usuários no banco ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md)). |
-| `ADMIN_PASSWORD` | Sim *(login atual)* | Senha **forte** (mín. 8; preferir longa e única). Mesma deprecação do e-mail acima. |
-| `ADMIN_JWT_SECRET` | Sim | Segredo **longo e aleatório** de sessão (mín. 16; preferir 32+). Continua como env técnica após auth no banco. |
-| `ADMIN_SESSION_COOKIE` | Sim | Ex.: `na-brasa-admin-session`. Continua como env técnica de cookie. |
-| `MASTER_ADMIN_NAME` | Não *(seed)* | Nome do usuário `MASTER` no bootstrap. Só no seed; não hardcode. |
-| `MASTER_ADMIN_EMAIL` | Não *(seed)* | E-mail unique do `MASTER`. Se faltar qualquer `MASTER_ADMIN_*`, o seed pula o usuário e segue. |
-| `MASTER_ADMIN_PASSWORD` | Não *(seed)* | Senha forte do `MASTER` (hash com `bcryptjs`). Nunca logar nem commitar. |
-| `NEXT_PUBLIC_APP_URL` | Sim | URL **final** HTTPS do deploy (ex.: `https://seu-app.vercel.app`) |
+| `ADMIN_JWT_SECRET` | Sim | Segredo **longo e aleatório** de sessão JWT (mín. 16; preferir 32+). |
+| `ADMIN_SESSION_COOKIE` | Sim | Ex.: `na-brasa-admin-session`. Nome do cookie HttpOnly. |
+| `MASTER_ADMIN_NAME` | Seed | Nome do `MASTER` no bootstrap. Não é lido pelo login runtime. |
+| `MASTER_ADMIN_EMAIL` | Seed | E-mail do `MASTER`. Sem as três `MASTER_ADMIN_*`, o seed não cria usuário e `/admin` fica sem login. |
+| `MASTER_ADMIN_PASSWORD` | Seed | Senha forte do `MASTER` (hash `bcryptjs` no banco). Nunca logar nem commitar. |
+| `NEXT_PUBLIC_APP_URL` | Sim | URL **final** HTTPS do deploy |
 | `NEXT_PUBLIC_STORE_SLUG` | Sim | `na-brasa` (deve existir no banco) |
 | `NODE_ENV` | Automático | Vercel define `production`; cookie admin usa `Secure` |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Não | **Deprecated** — removidos do runtime de `/admin/login`. Auth é via tabela `User`. |
 
 Placeholders locais (sem secrets reais): [`.env.example`](../.env.example).
 
-Auth em transição ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md)): o runtime de `/admin/login` ainda valida `ADMIN_EMAIL` / `ADMIN_PASSWORD`. A tabela `User` + enum `UserRole` já existem no schema; o login via banco e o painel `/master` vêm em PRs seguintes.
+### Auth (database-backed)
+
+- Login em `/admin/login` valida `User` no banco (`email` + `passwordHash` com `bcryptjs.compare`).
+- Sessão JWT (cookie HttpOnly) inclui `userId`, `name`, `email`, `role`, `storeId`.
+- Usuário `isActive === false` não autentica (mensagem genérica).
+- `MASTER` pode acessar `/admin` **temporariamente** até existir `/master` ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md)).
+- Ambiente novo: `pnpm prisma migrate deploy` + seed com `MASTER_ADMIN_*` preenchidos.
+- Store-scoping estrito de pedidos/usuários de loja vem em PR futura.
 
 ### Como validar `DATABASE_URL`
 
@@ -79,7 +85,8 @@ Se a connection string estiver errada, o comando falha imediatamente — corrija
 
 - Nunca commitar `.env` / valores reais
 - Não colar senha/JWT em issues, prints ou seeds
-- Rotacionar `ADMIN_PASSWORD` / `ADMIN_JWT_SECRET` se houver vazamento
+- Rotacionar `ADMIN_JWT_SECRET` (e senha do `User` no banco) se houver vazamento
+- Remover `ADMIN_EMAIL` / `ADMIN_PASSWORD` das envs de produção após o cutover (já não são usadas no login)
 - Pedidos contêm PII — restringir acesso ao painel e ao banco
 
 ## Comandos
@@ -159,12 +166,13 @@ Se um deploy via CLI mostrou `Environments: .env` no build, isso indica que um `
 
 ```bash
 pnpm dlx vercel env add DATABASE_URL production
-pnpm dlx vercel env add ADMIN_EMAIL production
-pnpm dlx vercel env add ADMIN_PASSWORD production
 pnpm dlx vercel env add ADMIN_JWT_SECRET production
 pnpm dlx vercel env add ADMIN_SESSION_COOKIE production
 pnpm dlx vercel env add NEXT_PUBLIC_APP_URL production
 pnpm dlx vercel env add NEXT_PUBLIC_STORE_SLUG production
+# Bootstrap (seed) — not required on Vercel runtime if you seed from a setup machine:
+# MASTER_ADMIN_NAME / MASTER_ADMIN_EMAIL / MASTER_ADMIN_PASSWORD
+
 ```
 
 Valores esperados (não commitar):
@@ -172,12 +180,11 @@ Valores esperados (não commitar):
 | Variável | Produção |
 | --- | --- |
 | `DATABASE_URL` | Neon com `sslmode=require` |
-| `ADMIN_EMAIL` | e-mail admin real |
-| `ADMIN_PASSWORD` | senha forte |
 | `ADMIN_JWT_SECRET` | aleatório 32+ chars |
 | `ADMIN_SESSION_COOKIE` | `na-brasa-admin-session` |
 | `NEXT_PUBLIC_APP_URL` | `https://na-brasa-cardapio.vercel.app` |
 | `NEXT_PUBLIC_STORE_SLUG` | `na-brasa` |
+| `MASTER_ADMIN_*` | só na máquina/sessão de seed (cria `User` MASTER) |
 
 ### Redeploy
 
@@ -236,7 +243,7 @@ Qualquer falha → **NO-GO** (não divulgar o link).
 | --- | --- |
 | Build ok, `/na-brasa` vazio/erro | Store `na-brasa` no banco? `NEXT_PUBLIC_STORE_SLUG`? Migrations aplicadas? |
 | WhatsApp abre número errado | Campo `Store.whatsapp` (não deixar placeholder do seed) |
-| Login admin falha | `ADMIN_EMAIL` / `ADMIN_PASSWORD` nas envs de Production; redeploy após mudar envs |
+| Login admin falha | Existe `User` ativo no banco? Seed com `MASTER_ADMIN_*`? Senha correta? `ADMIN_JWT_SECRET` definido? |
 | Cookie / sessão estranha | HTTPS? `NODE_ENV=production`? `NEXT_PUBLIC_APP_URL` com `https://`? |
 | Pedido não aparece no admin | Mesmo `DATABASE_URL` do app? Pedido criou no banco? |
 | CI verde, produção quebrada | Envs reais vs fake; URL do app; migrate no remoto |

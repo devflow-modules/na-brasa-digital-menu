@@ -24,6 +24,8 @@ function getPrisma(): PrismaClient {
   return globalForPrisma.e2ePrisma;
 }
 
+export { getPrisma };
+
 function assertCleanupAllowed(): void {
   if (process.env.NODE_ENV === "production") {
     throw new Error("E2E DB cleanup is blocked when NODE_ENV=production");

@@ -103,9 +103,11 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 ## Admin (auth)
 
 - `/admin` é área restrita: sem sessão válida, redireciona para `/admin/login`.
-- Login valida `ADMIN_EMAIL` / `ADMIN_PASSWORD` (env) no server.
-- Sessão: JWT assinado (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção.
+- Login autentica `User` no banco (`email` + `passwordHash` com bcrypt); usuários inativos são rejeitados.
+- Sessão: JWT (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção, com claims `userId`, `name`, `email`, `role`, `storeId`.
+- `MASTER` acessa `/admin` temporariamente até existir `/master` (ADR 0002).
 - Logout limpa o cookie e volta para `/admin/login`.
+- Bootstrap do primeiro usuário: seed com `MASTER_ADMIN_*` (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
 
 ## Admin (pedidos)
 

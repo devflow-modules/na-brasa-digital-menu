@@ -18,8 +18,6 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: ci-password-only
       ADMIN_JWT_SECRET: ci-secret-at-least-32-characters-long
       ADMIN_SESSION_COOKIE: na-brasa-admin-session
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000

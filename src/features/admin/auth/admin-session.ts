@@ -4,7 +4,10 @@ import {
   signAdminToken,
   verifyAdminToken,
 } from "@/features/admin/auth/admin-jwt";
-import type { AdminSessionPayload } from "@/features/admin/auth/types";
+import type {
+  AdminSessionPayload,
+  AuthenticatedAdminUser,
+} from "@/features/admin/auth/types";
 
 function getSessionCookieName(): string {
   return process.env.ADMIN_SESSION_COOKIE?.trim() || "na-brasa-admin-session";
@@ -31,8 +34,10 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
   return verifyAdminToken(token);
 }
 
-export async function createAdminSession(email: string): Promise<void> {
-  const token = await signAdminToken(email);
+export async function createAdminSession(
+  user: AuthenticatedAdminUser,
+): Promise<void> {
+  const token = await signAdminToken(user);
   const cookieStore = await cookies();
 
   cookieStore.set(
