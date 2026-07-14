@@ -56,6 +56,16 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 4. Adicional inativo não aparece no modal público; desvinculado também não.
 5. Checkout rejeita adicional inválido com mensagem amigável no server.
 
+## Configurações da loja (`/admin/configuracoes`)
+
+1. No dashboard `/admin`, use **Configurações** (visível para todas as roles que podem ver pedidos/cardápio conforme matriz).
+2. Dono/gerente editam WhatsApp, endereço, taxa de entrega (R$ na tela, centavos no banco), retirada/entrega e texto de horário.
+3. Operador **não** altera dados estruturais, mas pode **abrir ou fechar** a loja para pedidos (`isOpen`).
+4. Cozinha só visualiza.
+5. Mudanças refletem no cardápio público e no checkout após salvar (revalidate).
+6. Com a loja fechada, o cliente ainda vê o cardápio, mas não consegue finalizar pedido.
+7. E2E/smoke: testes que alteram a Store **restauram** WhatsApp, flags e `isOpen` ao final — não deixe a Na Brasa fechada após rodar testes em banco compartilhado.
+
 ## Painel Master (`/master`)
 
 1. Faça login em `/admin/login` com usuário role `MASTER`

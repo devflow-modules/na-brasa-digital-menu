@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
+  canReadStoreSettings,
+  canToggleStoreOpen,
   canTransitionOrderStatus,
+  canUpdateStoreSettings,
   getAdminPermissions,
   hasAdminPermission,
 } from "@/features/admin/auth/admin-permissions";
@@ -77,9 +80,9 @@ describe("admin-permissions matrix", () => {
   });
 
   it("getAdminPermissions returns expected sizes", () => {
-    assert.equal(getAdminPermissions("MASTER").length, 20);
-    assert.equal(getAdminPermissions("OPERATOR").length, 9);
-    assert.equal(getAdminPermissions("KITCHEN").length, 5);
+    assert.equal(getAdminPermissions("MASTER").length, 23);
+    assert.equal(getAdminPermissions("OPERATOR").length, 11);
+    assert.equal(getAdminPermissions("KITCHEN").length, 6);
   });
 
   it("menu permissions by role", () => {
@@ -102,5 +105,20 @@ describe("admin-permissions matrix", () => {
     assert.equal(hasAdminPermission("OPERATOR", "menu.addon.linkProduct"), false);
     assert.equal(hasAdminPermission("KITCHEN", "menu.addon.read"), true);
     assert.equal(hasAdminPermission("KITCHEN", "menu.addon.update"), false);
+  });
+
+  it("store settings permissions by role", () => {
+    for (const role of ["MASTER", "STORE_OWNER", "MANAGER"] as const) {
+      assert.equal(canReadStoreSettings(role), true);
+      assert.equal(canUpdateStoreSettings(role), true);
+      assert.equal(canToggleStoreOpen(role), true);
+      assert.equal(hasAdminPermission(role, "store.settings.update"), true);
+    }
+    assert.equal(canReadStoreSettings("OPERATOR"), true);
+    assert.equal(canUpdateStoreSettings("OPERATOR"), false);
+    assert.equal(canToggleStoreOpen("OPERATOR"), true);
+    assert.equal(canReadStoreSettings("KITCHEN"), true);
+    assert.equal(canUpdateStoreSettings("KITCHEN"), false);
+    assert.equal(canToggleStoreOpen("KITCHEN"), false);
   });
 });

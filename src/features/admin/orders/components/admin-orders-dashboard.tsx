@@ -13,6 +13,7 @@ type AdminOrdersDashboardProps = {
   isMasterTransitional?: boolean;
   menuNavHref?: string | null;
   menuNavLabel?: string | null;
+  settingsNavHref?: string | null;
   orders: AdminOrderListItem[];
   summary: AdminOrdersSummary;
 };
@@ -23,6 +24,7 @@ export function AdminOrdersDashboard({
   isMasterTransitional = false,
   menuNavHref = null,
   menuNavLabel = null,
+  settingsNavHref = null,
   orders,
   summary,
 }: AdminOrdersDashboardProps) {
@@ -54,6 +56,15 @@ export function AdminOrdersDashboard({
           ) : null}
         </div>
         <div className="flex flex-col items-end gap-2">
+          {settingsNavHref ? (
+            <Link
+              href={settingsNavHref}
+              data-testid="admin-settings-nav-link"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-600 bg-stone-900 px-4 text-sm font-semibold text-stone-100 hover:bg-stone-800"
+            >
+              Configurações
+            </Link>
+          ) : null}
           {menuNavHref && menuNavLabel ? (
             <Link
               href={menuNavHref}

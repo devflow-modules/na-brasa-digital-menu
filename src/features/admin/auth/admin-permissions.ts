@@ -29,7 +29,10 @@ export type AdminPermission =
   | "menu.addon.update"
   | "menu.addon.toggleActive"
   | "menu.addon.linkProduct"
-  | "menu.addon.unlinkProduct";
+  | "menu.addon.unlinkProduct"
+  | "store.settings.read"
+  | "store.settings.update"
+  | "store.settings.toggleOpen";
 
 const ORDER_PERMISSIONS = [
   "orders.read",
@@ -60,16 +63,23 @@ const ADDON_PERMISSIONS = [
   "menu.addon.unlinkProduct",
 ] as const satisfies readonly AdminPermission[];
 
-const ORDER_MENU_AND_ADDON_PERMISSIONS: readonly AdminPermission[] = [
+const STORE_SETTINGS_PERMISSIONS = [
+  "store.settings.read",
+  "store.settings.update",
+  "store.settings.toggleOpen",
+] as const satisfies readonly AdminPermission[];
+
+const ORDER_MENU_ADDON_AND_STORE_PERMISSIONS: readonly AdminPermission[] = [
   ...ORDER_PERMISSIONS,
   ...MENU_PERMISSIONS,
   ...ADDON_PERMISSIONS,
+  ...STORE_SETTINGS_PERMISSIONS,
 ];
 
 const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
-  MASTER: ORDER_MENU_AND_ADDON_PERMISSIONS,
-  STORE_OWNER: ORDER_MENU_AND_ADDON_PERMISSIONS,
-  MANAGER: ORDER_MENU_AND_ADDON_PERMISSIONS,
+  MASTER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
+  STORE_OWNER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
+  MANAGER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
   OPERATOR: [
     "orders.read",
     "orders.status.confirm",
@@ -80,6 +90,8 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
     "menu.read",
     "menu.product.toggleAvailability",
     "menu.addon.read",
+    "store.settings.read",
+    "store.settings.toggleOpen",
   ],
   KITCHEN: [
     "orders.read",
@@ -87,6 +99,7 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
     "orders.status.ready",
     "menu.read",
     "menu.addon.read",
+    "store.settings.read",
   ],
 };
 
@@ -181,6 +194,22 @@ export function canManageMenuAddons(role: UserRole): boolean {
     canToggleMenuAddonActive(role) ||
     canLinkMenuAddonToProduct(role)
   );
+}
+
+export function canReadStoreSettings(role: UserRole): boolean {
+  return hasAdminPermission(role, "store.settings.read");
+}
+
+export function canUpdateStoreSettings(role: UserRole): boolean {
+  return hasAdminPermission(role, "store.settings.update");
+}
+
+export function canToggleStoreOpen(role: UserRole): boolean {
+  return hasAdminPermission(role, "store.settings.toggleOpen");
+}
+
+export function canManageStoreSettings(role: UserRole): boolean {
+  return canUpdateStoreSettings(role) || canToggleStoreOpen(role);
 }
 
 export function getAdminMenuNavLabel(role: UserRole): string {

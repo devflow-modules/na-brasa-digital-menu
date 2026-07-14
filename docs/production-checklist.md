@@ -69,6 +69,7 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] (usuário de loja com `storeId`) `/admin` só mostra pedidos da própria Store
 - [ ] (opcional) `/admin/cardapio` — listar; OPERATOR só `available`; KITCHEN só leitura; `active` oculta do público
 - [ ] (opcional) `/admin/cardapio/adicionais` — CRUD/vínculos (MANAGER+); OPERATOR/KITCHEN só leitura
+- [ ] (opcional) `/admin/configuracoes` — MANAGER edita taxa/endereço; OPERATOR só abrir/fechar; loja aberta após smoke
 - [ ] (usuário inativo) login rejeitado
 Se qualquer item falhar → **NO-GO**.
 

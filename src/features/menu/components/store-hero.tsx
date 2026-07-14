@@ -44,10 +44,16 @@ export function StoreHero({ store }: StoreHeroProps) {
         </div>
 
         <dl className="grid gap-2 text-sm text-stone-300">
+          {store.address ? (
+            <div>
+              <dt className="sr-only">Endereço</dt>
+              <dd data-testid="store-address">{store.address}</dd>
+            </div>
+          ) : null}
           {store.openingHours ? (
             <div>
               <dt className="sr-only">Horário</dt>
-              <dd>{store.openingHours}</dd>
+              <dd data-testid="store-opening-hours">{store.openingHours}</dd>
             </div>
           ) : null}
           {store.deliveryEnabled && store.deliveryFeeCents > 0 ? (
