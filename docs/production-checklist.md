@@ -63,6 +63,7 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] Concluir **ou** cancelar o pedido teste
 - [ ] (MASTER) Abrir `/master` — ver loja `na-brasa` e cards de resumo
 - [ ] (usuário de loja) Confirmar que `/master` **não** abre
+- [ ] (usuário de loja com `storeId`) `/admin` só mostra pedidos da própria Store
 
 Se qualquer item falhar → **NO-GO**.
 

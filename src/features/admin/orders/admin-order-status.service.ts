@@ -10,8 +10,13 @@ export type UpdateOrderStatusResult =
   | { ok: true; status: AdminOrderStatus }
   | { ok: false; message: string };
 
+/**
+ * Updates order status within a specific store scope.
+ * Caller must resolve storeId from session (never from client input).
+ */
 export async function updateAdminOrderStatus(
   rawInput: unknown,
+  storeId: string,
 ): Promise<UpdateOrderStatusResult> {
   const parsed = updateOrderStatusSchema.safeParse(rawInput);
 
@@ -20,9 +25,10 @@ export async function updateAdminOrderStatus(
   }
 
   const { orderId, nextStatus } = parsed.data;
-  const order = await findOrderStatusForUpdate(orderId);
+  const order = await findOrderStatusForUpdate(orderId, storeId);
 
   if (!order) {
+    // Generic — do not reveal whether the order exists in another store.
     return { ok: false, message: "Pedido não encontrado." };
   }
 
@@ -33,9 +39,12 @@ export async function updateAdminOrderStatus(
   }
 
   try {
-    const updated = await updateOrderStatus(orderId, nextStatus);
+    const updated = await updateOrderStatus(orderId, storeId, nextStatus);
     return { ok: true, status: updated.status };
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "ORDER_NOT_IN_STORE") {
+      return { ok: false, message: "Pedido não encontrado." };
+    }
     console.error("[updateAdminOrderStatus] failed to update order status");
     return {
       ok: false,

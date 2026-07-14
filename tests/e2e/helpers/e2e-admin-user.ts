@@ -125,20 +125,37 @@ export async function ensureE2eStoreUser(options?: {
   email?: string;
   password?: string;
   role?: typeof UserRole.STORE_OWNER | typeof UserRole.OPERATOR;
-}): Promise<E2eStoreUserCredentials & { userId: string; storeId: string }> {
+  storeSlug?: string;
+  /** When true, force storeId null (invalid store user fixture). */
+  withoutStoreId?: boolean;
+}): Promise<
+  E2eStoreUserCredentials & { userId: string; storeId: string | null }
+> {
   const prisma = getPrisma();
-  const storeSlug = process.env.NEXT_PUBLIC_STORE_SLUG?.trim() || "na-brasa";
-  const store = await prisma.store.findUnique({ where: { slug: storeSlug } });
+  const storeSlug =
+    options?.storeSlug ??
+    process.env.NEXT_PUBLIC_STORE_SLUG?.trim() ??
+    "na-brasa";
 
-  if (!store) {
-    throw new Error(
-      `Store "${storeSlug}" not found. Run pnpm prisma db seed before E2E.`,
-    );
+  let storeId: string | null = null;
+  if (!options?.withoutStoreId) {
+    const store = await prisma.store.findUnique({ where: { slug: storeSlug } });
+    if (!store) {
+      throw new Error(
+        `Store "${storeSlug}" not found. Run pnpm prisma db seed before E2E.`,
+      );
+    }
+    storeId = store.id;
   }
 
   const credentials: E2eStoreUserCredentials = {
     name: "E2E Store Operator",
-    email: (options?.email ?? "e2e-store-operator@example.com").toLowerCase(),
+    email: (
+      options?.email ??
+      (options?.withoutStoreId
+        ? "e2e-store-orphan@example.com"
+        : `e2e-store-${storeSlug}@example.com`)
+    ).toLowerCase(),
     password: options?.password ?? "store-operator-password",
     role: options?.role ?? UserRole.OPERATOR,
   };
@@ -152,14 +169,14 @@ export async function ensureE2eStoreUser(options?: {
       email: credentials.email,
       passwordHash,
       role: credentials.role,
-      storeId: store.id,
+      storeId,
       isActive: true,
     },
     update: {
       name: credentials.name,
       passwordHash,
       role: credentials.role,
-      storeId: store.id,
+      storeId,
       isActive: true,
     },
     select: { id: true },
@@ -168,6 +185,6 @@ export async function ensureE2eStoreUser(options?: {
   return {
     ...credentials,
     userId: user.id,
-    storeId: store.id,
+    storeId,
   };
 }

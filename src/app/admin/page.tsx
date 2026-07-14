@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { getAdminSession } from "@/features/admin/auth/admin-session";
+import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
 import {
   getAdminOrdersSummary,
   listRecentAdminOrders,
@@ -10,24 +9,22 @@ import { AdminOrdersDashboard } from "@/features/admin/orders/components/admin-o
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Pedidos — Admin Na Brasa",
-  description: "Dashboard de pedidos do painel Na Brasa.",
+  title: "Pedidos — Admin",
+  description: "Dashboard de pedidos do painel da loja.",
 };
 
 export default async function AdminPage() {
-  const session = await getAdminSession();
+  const context = await requireAdminStoreContext();
 
-  if (!session) {
-    redirect("/admin/login");
-  }
-
-  const orders = await listRecentAdminOrders();
-  const summary = await getAdminOrdersSummary(orders.length);
+  const orders = await listRecentAdminOrders(context.storeId);
+  const summary = await getAdminOrdersSummary(context.storeId, orders.length);
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-100">
       <AdminOrdersDashboard
-        sessionEmail={session.email}
+        sessionEmail={context.session.email}
+        storeName={context.storeName}
+        isMasterTransitional={context.isMaster}
         orders={orders}
         summary={summary}
       />

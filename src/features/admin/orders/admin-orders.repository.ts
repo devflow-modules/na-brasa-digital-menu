@@ -18,9 +18,11 @@ export function getStartOfLocalDay(now = new Date()): Date {
 }
 
 export async function listRecentAdminOrders(
+  storeId: string,
   limit = RECENT_ORDERS_LIMIT,
 ): Promise<AdminOrderListItem[]> {
   const orders = await prisma.order.findMany({
+    where: { storeId },
     take: limit,
     orderBy: { createdAt: "desc" },
     select: {
@@ -40,19 +42,21 @@ export async function listRecentAdminOrders(
 }
 
 export async function getAdminOrdersSummary(
+  storeId: string,
   displayedCount: number,
 ): Promise<AdminOrdersSummary> {
   const startOfDay = getStartOfLocalDay();
 
   const [ordersToday, pendingCount, revenueToday] = await Promise.all([
     prisma.order.count({
-      where: { createdAt: { gte: startOfDay } },
+      where: { storeId, createdAt: { gte: startOfDay } },
     }),
     prisma.order.count({
-      where: { status: "PENDING" },
+      where: { storeId, status: "PENDING" },
     }),
     prisma.order.aggregate({
       where: {
+        storeId,
         createdAt: { gte: startOfDay },
         status: { not: "CANCELLED" },
       },
@@ -70,9 +74,10 @@ export async function getAdminOrdersSummary(
 
 export async function getAdminOrderById(
   id: string,
+  storeId: string,
 ): Promise<AdminOrderDetail | null> {
-  const order = await prisma.order.findUnique({
-    where: { id },
+  const order = await prisma.order.findFirst({
+    where: { id, storeId },
     select: {
       id: true,
       code: true,
@@ -119,25 +124,39 @@ export type AdminOrderStatusRecord = {
   id: string;
   status: AdminOrderDetail["status"];
   deliveryType: AdminOrderDetail["deliveryType"];
+  storeId: string;
 };
 
 export async function findOrderStatusForUpdate(
   orderId: string,
+  storeId: string,
 ): Promise<AdminOrderStatusRecord | null> {
-  return prisma.order.findUnique({
-    where: { id: orderId },
+  return prisma.order.findFirst({
+    where: { id: orderId, storeId },
     select: {
       id: true,
       status: true,
       deliveryType: true,
+      storeId: true,
     },
   });
 }
 
 export async function updateOrderStatus(
   orderId: string,
+  storeId: string,
   nextStatus: AdminOrderDetail["status"],
 ): Promise<AdminOrderStatusRecord> {
+  // Guard again at write time so we never update across stores.
+  const owned = await prisma.order.findFirst({
+    where: { id: orderId, storeId },
+    select: { id: true },
+  });
+
+  if (!owned) {
+    throw new Error("ORDER_NOT_IN_STORE");
+  }
+
   return prisma.order.update({
     where: { id: orderId },
     data: { status: nextStatus },
@@ -145,6 +164,7 @@ export async function updateOrderStatus(
       id: true,
       status: true,
       deliveryType: true,
+      storeId: true,
     },
   });
 }

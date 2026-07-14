@@ -13,7 +13,15 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [P
 
 A sessão fica em cookie **HttpOnly** (não aparece em `localStorage`). Em produção o cookie só trafega em HTTPS (`Secure`).
 
-Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O acesso de `MASTER` ao `/admin` ainda é **transicional**.
+Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O acesso de `MASTER` ao `/admin` ainda é **transicional** e fica limitado à Store de `NEXT_PUBLIC_STORE_SLUG`.
+
+## Isolamento por loja no `/admin`
+
+- Pedidos, cards e detalhe são filtrados pelo `storeId` da sessão.
+- Usuários `STORE_OWNER` / `MANAGER` / `OPERATOR` / `KITCHEN` **precisam** ter `storeId` no banco.
+- Sem `storeId`, o acesso ao `/admin` é bloqueado.
+- Pedido de outra loja retorna 404 (não revela existência).
+- Permissões finas por role (ex.: só cozinha avançar status) ainda são futuras.
 
 ## Painel Master (`/master`)
 
