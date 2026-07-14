@@ -2,7 +2,24 @@
 
 Guia para o dono/operador usar o painel no dia a dia.
 
-Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Produto](product.md) · [Release notes](release-notes/mvp-v0.1.0.md)
+Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Produto](product.md) · [Release notes](release-notes/mvp-v0.1.0.md) · [Dados do piloto Na Braza](client/na-braza-pilot-data.md)
+
+## Dados reais da loja (Na Braza)
+
+Fonte: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md). Slug técnico permanece `na-brasa`; rota pública `/na-brasa`.
+
+- Nome exibido: **Na Braza**
+- WhatsApp de pedidos: **5513981091971** (13 98109-1971)
+- Endereço: Barão de Ramalho, 155 — Macuco — Santos/SP
+- Horário (texto no cardápio): segunda a domingo 17:30–00:00; em chuva forte não abre
+- Taxa base de entrega (piloto): R$ 6,00 · pedido mínimo entrega: R$ 30,00
+- Retirada e entrega habilitadas no piloto
+
+Em banco **já existente** (produção ou dev compartilhado), aplicar settings manualmente com `DATABASE_URL` correto:
+
+`pnpm store:apply-na-braza-settings`
+
+Não altera cardápio, pedidos nem usuários.
 
 ## Como o dono opera o painel
 

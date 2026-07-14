@@ -6,10 +6,19 @@ Dados recebidos via Forms, prints do iFood e confirmações diretas do cliente.
 
 Status geral:
 
-- Store data: ready to apply
-- Menu data: ready for pilot
+- Store data: ready to apply (seed + `pnpm store:apply-na-braza-settings` — ver PR `chore(client-data): apply Na Braza store settings`)
+- Menu data: ready for pilot, **not applied yet**
 - Admin users: partially ready
-- Production data: not changed by this document
+- Production data: not changed until the manual script is run
+
+## Implementation tracking
+
+| Area | Status |
+| --- | --- |
+| Store settings (code/seed/script) | In PR `chore(client-data): apply Na Braza store settings` |
+| Store settings (production DB) | Pending manual `pnpm store:apply-na-braza-settings` after merge |
+| Pilot menu | Pending separate PR |
+| Lucas `STORE_OWNER` | Pending separate PR |
 
 ## Sources
 
