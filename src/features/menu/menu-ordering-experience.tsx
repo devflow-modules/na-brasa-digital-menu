@@ -31,27 +31,41 @@ export function MenuOrderingExperience({
   return (
     <>
       <div
-        className={`mx-auto flex w-full max-w-lg flex-col gap-8 px-4 py-8 sm:px-6 ${
-          hasCartItems ? "pb-72" : ""
+        className={`mx-auto flex w-full max-w-lg flex-col gap-10 px-4 py-8 sm:px-6 ${
+          hasCartItems ? "pb-80" : "pb-10"
         }`}
       >
         {!hasProducts ? (
-          <p className="rounded-xl border border-dashed border-stone-700 bg-stone-900/50 px-4 py-8 text-center text-sm text-stone-300">
-            Cardápio em atualização.
-          </p>
+          <div
+            data-testid="menu-empty-state"
+            className="rounded-2xl border border-dashed border-stone-700 bg-stone-900/50 px-4 py-10 text-center"
+          >
+            <p className="text-base font-medium text-stone-200">
+              Cardápio em atualização
+            </p>
+            <p className="mt-2 text-sm text-stone-400">
+              Volte em breve — estamos organizando os itens para você pedir pelo
+              WhatsApp.
+            </p>
+          </div>
         ) : (
           <>
             {featuredProducts.length > 0 ? (
               <section
-                className="flex flex-col gap-3"
+                className="flex flex-col gap-4"
                 aria-labelledby="featured-heading"
               >
-                <h2
-                  id="featured-heading"
-                  className="text-lg font-semibold tracking-tight text-orange-50"
-                >
-                  Destaques
-                </h2>
+                <div className="flex flex-col gap-1">
+                  <h2
+                    id="featured-heading"
+                    className="text-xl font-semibold tracking-tight text-orange-50"
+                  >
+                    Destaques
+                  </h2>
+                  <p className="text-sm text-stone-400">
+                    Os favoritos da casa — prontos para adicionar ao pedido.
+                  </p>
+                </div>
                 <ul className="flex flex-col gap-3">
                   {featuredProducts.map((product) => (
                     <li key={`featured-${product.id}`}>
@@ -65,13 +79,42 @@ export function MenuOrderingExperience({
               </section>
             ) : null}
 
-            {categories.map((category) => (
-              <CategorySection
-                key={category.id}
-                category={category}
-                onAddProduct={setSelectedProduct}
-              />
-            ))}
+            <section
+              className="flex flex-col gap-6"
+              aria-labelledby="menu-catalog-heading"
+            >
+              <div className="flex flex-col gap-1 border-b border-stone-800 pb-4">
+                <h2
+                  id="menu-catalog-heading"
+                  data-testid="menu-catalog-heading"
+                  className="text-2xl font-semibold tracking-tight text-orange-50"
+                >
+                  Cardápio
+                </h2>
+                <p className="text-sm leading-relaxed text-stone-400">
+                  Navegue pelas categorias e monte seu pedido com calma.
+                </p>
+              </div>
+
+              {categories.map((category) => (
+                <CategorySection
+                  key={category.id}
+                  category={category}
+                  onAddProduct={setSelectedProduct}
+                />
+              ))}
+            </section>
+
+            {!hasCartItems && storeIsOpen ? (
+              <p
+                data-testid="cart-empty-hint"
+                className="rounded-xl border border-stone-800 bg-stone-900/50 px-4 py-3 text-center text-sm text-stone-400"
+              >
+                Toque em <span className="font-medium text-stone-200">Adicionar</span>{" "}
+                para montar seu pedido. Você revisa tudo antes de enviar no
+                WhatsApp.
+              </p>
+            ) : null}
           </>
         )}
       </div>

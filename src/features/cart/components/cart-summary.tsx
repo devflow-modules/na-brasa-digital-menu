@@ -24,28 +24,33 @@ export function CartSummary({
     return null;
   }
 
+  const itemLabel =
+    cart.totalQuantity === 1 ? "1 item" : `${cart.totalQuantity} itens`;
+
   return (
     <div
       data-testid="cart-summary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-orange-500/20 bg-stone-950/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-orange-500/30 bg-stone-950/98 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md"
     >
       <div className="mx-auto flex w-full max-w-lg flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs uppercase tracking-wide text-stone-400">
-              Seu carrinho
+            <p className="text-xs font-semibold uppercase tracking-wide text-orange-300/90">
+              Seu pedido
             </p>
-            <p className="text-sm text-stone-200">
-              {cart.totalQuantity}{" "}
-              {cart.totalQuantity === 1 ? "item" : "itens"}
+            <p className="text-sm text-stone-300">{itemLabel}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-stone-500">
+              Total estimado
+            </p>
+            <p
+              data-testid="cart-subtotal"
+              className="text-xl font-bold tabular-nums text-orange-300"
+            >
+              {formatMoney(cart.subtotalCents)}
             </p>
           </div>
-          <p
-            data-testid="cart-subtotal"
-            className="text-lg font-semibold text-orange-300"
-          >
-            {formatMoney(cart.subtotalCents)}
-          </p>
         </div>
 
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
@@ -61,17 +66,23 @@ export function CartSummary({
         </div>
 
         {!storeIsOpen ? (
-          <p
+          <div
             data-testid="checkout-cta-closed"
-            className="flex h-12 w-full items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-sm font-medium text-amber-100"
+            className="flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl border border-amber-500/45 bg-amber-500/10 px-3 py-2.5 text-center"
+            role="status"
           >
-            Loja fechada — checkout indisponível
-          </p>
+            <span className="text-sm font-semibold text-amber-100">
+              Loja fechada — checkout indisponível
+            </span>
+            <span className="text-xs text-amber-100/80">
+              Os itens ficam salvos aqui até a loja reabrir.
+            </span>
+          </div>
         ) : (
           <Link
             href="/na-brasa/checkout"
             data-testid="checkout-cta"
-            className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950"
+            className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-bold text-stone-950 shadow-md shadow-orange-950/40 ring-1 ring-orange-400/30"
           >
             Continuar para checkout
           </Link>
