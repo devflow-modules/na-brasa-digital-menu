@@ -2,7 +2,7 @@
 
 Guia dos testes E2E (Playwright) e do Playwright MCP no Cursor.
 
-Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Operação](operations.md)
+Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Operação](operations.md) · [Política MCP](development/mcp-usage.md)
 
 ## Escopo coberto
 
