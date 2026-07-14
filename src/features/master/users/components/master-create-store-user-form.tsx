@@ -52,6 +52,8 @@ export function MasterCreateStoreUserForm({
   return (
     <form
       data-testid="master-create-store-user-form"
+      method="post"
+      action="#"
       onSubmit={onSubmit}
       className="flex flex-col gap-4 rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
     >
