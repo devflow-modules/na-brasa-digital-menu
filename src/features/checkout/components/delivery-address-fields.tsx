@@ -25,19 +25,21 @@ export function DeliveryAddressFields({
   }
 
   return (
-    <label className="flex flex-col gap-1.5 text-sm text-stone-300">
-      Endereço de entrega
-      <textarea
-        rows={3}
-        placeholder="Rua, número, bairro, ponto de referência"
-        {...register("deliveryAddress")}
-        className="rounded-xl border border-stone-700 bg-stone-900 px-3 py-2 text-stone-100 outline-none ring-orange-500/40 focus:ring-2"
-      />
-      {errors.deliveryAddress ? (
-        <span className="text-xs text-red-400">
-          {errors.deliveryAddress.message}
-        </span>
-      ) : null}
-    </label>
+    <div className="rounded-2xl border border-stone-800 bg-stone-900/50 p-4">
+      <label className="flex flex-col gap-1.5 text-sm text-stone-300">
+        Endereço de entrega
+        <textarea
+          rows={3}
+          placeholder="Rua, número, bairro, complemento e ponto de referência"
+          {...register("deliveryAddress")}
+          className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100 outline-none ring-orange-500/40 focus:ring-2"
+        />
+        {errors.deliveryAddress ? (
+          <span className="text-xs text-red-400">
+            {errors.deliveryAddress.message}
+          </span>
+        ) : null}
+      </label>
+    </div>
   );
 }

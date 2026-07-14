@@ -20,7 +20,7 @@ export default async function CheckoutPage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
+    <main className="min-h-screen bg-stone-950 text-stone-100 antialiased">
       <CheckoutForm store={store} />
     </main>
   );

@@ -17,14 +17,26 @@ export function CheckoutCartSummary({
   const estimatedTotalCents =
     cart.subtotalCents + (showDeliveryFee ? deliveryFeeCents : 0);
 
+  const itemLabel =
+    cart.totalQuantity === 1
+      ? "1 item no pedido"
+      : `${cart.totalQuantity} itens no pedido`;
+
   return (
-    <section className="flex flex-col gap-3 rounded-xl border border-stone-800 bg-stone-900/70 p-4">
+    <section
+      data-testid="checkout-order-summary"
+      className="flex flex-col gap-4 rounded-2xl border border-stone-800 bg-stone-900/80 p-4 shadow-sm shadow-black/20"
+    >
       <div>
-        <h2 className="text-base font-semibold text-orange-50">
-          Resumo do pedido
+        <h2 className="text-lg font-semibold text-orange-50">
+          Confira seu pedido
         </h2>
-        <p className="mt-1 text-xs text-stone-400">
-          Totais estimados no cliente. O server recalcula ao finalizar o pedido.
+        <p className="mt-1 text-sm text-stone-400">{itemLabel}</p>
+        <p className="mt-2 text-xs leading-relaxed text-stone-500">
+          O servidor recalcula os valores ao finalizar.
+        </p>
+        <p className="mt-2 text-xs font-medium text-orange-200/90">
+          O pedido será enviado para confirmação no WhatsApp.
         </p>
       </div>
 
@@ -44,31 +56,36 @@ export function CheckoutCartSummary({
                 </p>
               ) : null}
             </div>
-            <p className="shrink-0 text-sm font-semibold text-orange-300">
+            <p className="shrink-0 text-sm font-semibold tabular-nums text-orange-300">
               {formatMoney(item.totalCents)}
             </p>
           </li>
         ))}
       </ul>
 
-      <dl className="flex flex-col gap-1.5 text-sm">
+      <dl className="flex flex-col gap-2 text-sm">
         <div className="flex items-center justify-between gap-3 text-stone-300">
           <dt>Subtotal</dt>
-          <dd>{formatMoney(cart.subtotalCents)}</dd>
+          <dd className="tabular-nums">{formatMoney(cart.subtotalCents)}</dd>
         </div>
         {showDeliveryFee ? (
           <div className="flex items-center justify-between gap-3 text-stone-300">
-            <dt>Entrega</dt>
-            <dd>
+            <dt>Taxa de entrega</dt>
+            <dd className="tabular-nums">
               {deliveryFeeCents > 0
                 ? formatMoney(deliveryFeeCents)
                 : "Grátis"}
             </dd>
           </div>
         ) : null}
-        <div className="flex items-center justify-between gap-3 pt-1 text-base font-semibold text-orange-200">
+        <div className="flex items-center justify-between gap-3 border-t border-stone-800 pt-2 text-base font-bold text-orange-200">
           <dt>Total estimado</dt>
-          <dd>{formatMoney(estimatedTotalCents)}</dd>
+          <dd
+            data-testid="checkout-estimated-total"
+            className="tabular-nums text-lg text-orange-300"
+          >
+            {formatMoney(estimatedTotalCents)}
+          </dd>
         </div>
       </dl>
     </section>
