@@ -5,13 +5,14 @@ type StoreStatusBadgeProps = {
 export function StoreStatusBadge({ isOpen }: StoreStatusBadgeProps) {
   return (
     <span
+      data-testid="store-status-badge"
       className={
         isOpen
-          ? "inline-flex items-center rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-300 ring-1 ring-emerald-400/30"
-          : "inline-flex items-center rounded-full bg-stone-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-stone-300 ring-1 ring-stone-400/30"
+          ? "inline-flex items-center rounded-full bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-emerald-400/40"
+          : "inline-flex items-center rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-100 ring-1 ring-amber-400/40"
       }
     >
-      {isOpen ? "Aberto agora" : "Fechado no momento"}
+      {isOpen ? "Aberto para pedidos" : "Fechado no momento"}
     </span>
   );
 }

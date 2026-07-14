@@ -8,7 +8,7 @@ type PublicMenuPageProps = {
 
 export function PublicMenuPage({ menu }: PublicMenuPageProps) {
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
+    <main className="min-h-screen bg-stone-950 text-stone-100 antialiased">
       <StoreHero store={menu.store} />
       <MenuOrderingExperience
         storeIsOpen={menu.store.isOpen}
