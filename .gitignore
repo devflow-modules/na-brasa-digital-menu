@@ -36,6 +36,9 @@
 *.pem
 Thumbs.db
 
+# Cursor local MCP (optional; see .cursor/mcp.playwright.example.json)
+.cursor/mcp.json
+
 # Debug
 npm-debug.log*
 yarn-debug.log*
