@@ -13,9 +13,13 @@ import type {
 
 type MenuOrderingExperienceProps = {
   menu: Pick<PublicMenu, "categories" | "featuredProducts">;
+  storeIsOpen: boolean;
 };
 
-export function MenuOrderingExperience({ menu }: MenuOrderingExperienceProps) {
+export function MenuOrderingExperience({
+  menu,
+  storeIsOpen,
+}: MenuOrderingExperienceProps) {
   const { categories, featuredProducts } = menu;
   const { cart, addItem, setItemQuantity, removeItem } = useCart();
   const [selectedProduct, setSelectedProduct] =
@@ -74,6 +78,7 @@ export function MenuOrderingExperience({ menu }: MenuOrderingExperienceProps) {
 
       <CartSummary
         cart={cart}
+        storeIsOpen={storeIsOpen}
         onIncrease={(itemId) => {
           const item = cart.items.find((entry) => entry.id === itemId);
           if (!item) return;

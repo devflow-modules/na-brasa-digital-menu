@@ -7,6 +7,7 @@ import type { CartState } from "@/features/cart/types";
 
 type CartSummaryProps = {
   cart: CartState;
+  storeIsOpen?: boolean;
   onIncrease: (itemId: string) => void;
   onDecrease: (itemId: string) => void;
   onRemove: (itemId: string) => void;
@@ -14,6 +15,7 @@ type CartSummaryProps = {
 
 export function CartSummary({
   cart,
+  storeIsOpen = true,
   onIncrease,
   onDecrease,
   onRemove,
@@ -58,13 +60,22 @@ export function CartSummary({
           ))}
         </div>
 
-        <Link
-          href="/na-brasa/checkout"
-          data-testid="checkout-cta"
-          className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950"
-        >
-          Continuar para checkout
-        </Link>
+        {!storeIsOpen ? (
+          <p
+            data-testid="checkout-cta-closed"
+            className="flex h-12 w-full items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-sm font-medium text-amber-100"
+          >
+            Loja fechada — checkout indisponível
+          </p>
+        ) : (
+          <Link
+            href="/na-brasa/checkout"
+            data-testid="checkout-cta"
+            className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950"
+          >
+            Continuar para checkout
+          </Link>
+        )}
       </div>
     </div>
   );

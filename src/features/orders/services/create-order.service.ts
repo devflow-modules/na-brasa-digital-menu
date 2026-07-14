@@ -66,16 +66,20 @@ export async function createOrder(
     return { ok: false, message: "Loja não encontrada." };
   }
 
+  if (!store.isOpen) {
+    return { ok: false, message: "A loja está fechada no momento." };
+  }
+
   if (!store.whatsapp?.trim()) {
     return { ok: false, message: "WhatsApp da loja não configurado." };
   }
 
   if (input.deliveryType === "PICKUP" && !store.pickupEnabled) {
-    return { ok: false, message: "Retirada não está disponível." };
+    return { ok: false, message: "Retirada indisponível no momento." };
   }
 
   if (input.deliveryType === "DELIVERY" && !store.deliveryEnabled) {
-    return { ok: false, message: "Entrega não está disponível." };
+    return { ok: false, message: "Entrega indisponível no momento." };
   }
 
   const productIds = [...new Set(input.items.map((item) => item.productId))];

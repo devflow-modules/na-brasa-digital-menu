@@ -20,6 +20,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-menu-management.spec.ts` | `/admin/cardapio`: CRUD simples, toggles, escopo por Store, publicação (`active`) |
 | `tests/e2e/product-availability.spec.ts` | `active` vs `available`: badge público, bloqueio carrinho/checkout, permissões OPERATOR |
 | `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: CRUD, vínculos, público, permissões, order validation |
+| `tests/e2e/admin-store-settings.spec.ts` | `/admin/configuracoes`: permissões, público, loja fechada, entrega/retirada, escopo Store, WhatsApp; **restaura** settings da loja seed |
 
 Browser: **Chromium** apenas.
 

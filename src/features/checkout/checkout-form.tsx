@@ -136,8 +136,12 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
       </div>
 
       {!store.isOpen ? (
-        <p className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100">
-          A loja está fechada no momento. Você ainda pode preparar o pedido.
+        <p
+          data-testid="checkout-store-closed-banner"
+          className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+        >
+          A loja está fechada no momento. Você pode voltar ao cardápio, mas não é
+          possível finalizar pedidos agora.
         </p>
       ) : null}
 
@@ -201,7 +205,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
         <button
           type="submit"
           data-testid="checkout-submit-button"
-          disabled={isPending || cart.items.length === 0}
+          disabled={isPending || cart.items.length === 0 || !store.isOpen}
           className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
         >
           {isPending

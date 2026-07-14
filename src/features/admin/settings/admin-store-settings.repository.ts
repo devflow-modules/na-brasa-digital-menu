@@ -1,0 +1,62 @@
+import { prisma } from "@/lib/prisma";
+import type { AdminStoreSettings } from "@/features/admin/settings/admin-store-settings.types";
+
+const storeSettingsSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  whatsapp: true,
+  address: true,
+  openingHours: true,
+  isOpen: true,
+  pickupEnabled: true,
+  deliveryEnabled: true,
+  deliveryFeeCents: true,
+} as const;
+
+export async function getAdminStoreSettings(
+  storeId: string,
+): Promise<AdminStoreSettings | null> {
+  return prisma.store.findUnique({
+    where: { id: storeId },
+    select: storeSettingsSelect,
+  });
+}
+
+export async function updateAdminStoreSettings(
+  storeId: string,
+  input: {
+    whatsapp: string;
+    address: string | null;
+    openingHours: string | null;
+    deliveryFeeCents: number;
+    pickupEnabled: boolean;
+    deliveryEnabled: boolean;
+    isOpen: boolean;
+  },
+): Promise<boolean> {
+  const result = await prisma.store.updateMany({
+    where: { id: storeId },
+    data: {
+      whatsapp: input.whatsapp,
+      address: input.address,
+      openingHours: input.openingHours,
+      deliveryFeeCents: input.deliveryFeeCents,
+      pickupEnabled: input.pickupEnabled,
+      deliveryEnabled: input.deliveryEnabled,
+      isOpen: input.isOpen,
+    },
+  });
+  return result.count === 1;
+}
+
+export async function setAdminStoreOpen(
+  storeId: string,
+  isOpen: boolean,
+): Promise<boolean> {
+  const result = await prisma.store.updateMany({
+    where: { id: storeId },
+    data: { isOpen },
+  });
+  return result.count === 1;
+}

@@ -130,6 +130,25 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 - `/admin/pedidos/[id]` mostra detalhe: cliente, itens/adicionais, totais, endereço, pagamento e `whatsappMessage`.
 - Cards usam dia local do servidor (`setHours(0,0,0,0)`); receita de hoje exclui `CANCELLED`.
 - Link para `/admin/cardapio` no dashboard (gerenciar ou ver conforme a role).
+- Link **Configurações** (`/admin/configuracoes`) para quem tem `store.settings.read`.
+
+## Configurações da loja (`/admin/configuracoes`)
+
+- Edita dados operacionais da Store efetiva (store-scoped): WhatsApp, endereço, taxa de entrega, retirada/entrega habilitadas, texto de horário e **loja aberta** (`Store.isOpen`).
+- Campos já existentes no Prisma (`whatsapp`, `address`, `openingHours`, `deliveryFeeCents`, `pickupEnabled`, `deliveryEnabled`, `isOpen`) — sem migration nesta etapa.
+- **Dados estruturais** (WhatsApp, endereço, taxa, flags de entrega/retirada, horário): dono/gerente (`STORE_OWNER` / `MANAGER` / `MASTER` transicional).
+- **Status operacional** (abrir/fechar loja): dono/gerente **e** `OPERATOR`; `KITCHEN` só visualiza.
+- Reflexo no público `/{slug}`: endereço, horário, badge aberto/fechado; taxa de entrega no checkout vem do server.
+- Loja fechada: cardápio continua visível; checkout e criação de pedido bloqueados no server com mensagem amigável.
+- Entrega/retirada desabilitadas: checkout e `createOrder` rejeitam o tipo correspondente no server.
+
+| Role | Ver | Editar dados estruturais | Abrir/fechar loja |
+| --- | --- | --- | --- |
+| `MASTER` | sim | sim | sim |
+| `STORE_OWNER` | sim | sim | sim |
+| `MANAGER` | sim | sim | sim |
+| `OPERATOR` | sim | não | sim |
+| `KITCHEN` | sim | não | não |
 
 ## Gestão de cardápio (`/admin/cardapio`)
 
