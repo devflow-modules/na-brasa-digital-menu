@@ -1,9 +1,11 @@
-import { PrismaClient, type Prisma } from "@prisma/client";
+import { PrismaClient, UserRole } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 const STORE_SLUG = "na-brasa";
 const WHATSAPP_PLACEHOLDER = "5513999999999";
+const BCRYPT_ROUNDS = 10;
 
 const categories = [
   {
@@ -160,10 +162,24 @@ const addons = [
   },
 ] as const;
 
-async function upsertStore() {
-  return prisma.store.upsert({
+/**
+ * Bootstrap Store only — never overwrites operational fields on an existing row.
+ * Placeholder WhatsApp / address / fees apply only on first create.
+ */
+async function ensureStore() {
+  const existing = await prisma.store.findUnique({
     where: { slug: STORE_SLUG },
-    create: {
+  });
+
+  if (existing) {
+    console.log(
+      `[seed] Store "${STORE_SLUG}" already exists — preserving operational data (whatsapp, address, fees, hours, flags).`,
+    );
+    return { store: existing, created: false };
+  }
+
+  const store = await prisma.store.create({
+    data: {
       name: "Na Brasa",
       slug: STORE_SLUG,
       description:
@@ -177,23 +193,67 @@ async function upsertStore() {
       deliveryFeeCents: 500,
       minimumOrderAmountCents: 2000,
     },
-    update: {
-      name: "Na Brasa",
-      description:
-        "Carrinho de lanches artesanais e espetinhos feitos na brasa.",
-      whatsapp: WHATSAPP_PLACEHOLDER,
-      address: "Ponto fixo — endereço fictício para desenvolvimento",
-      openingHours: "Ter–Dom 18:00–23:30",
-      isOpen: true,
-      pickupEnabled: true,
-      deliveryEnabled: true,
-      deliveryFeeCents: 500,
-      minimumOrderAmountCents: 2000,
-    },
   });
+
+  console.log(
+    `[seed] Store "${STORE_SLUG}" created (bootstrap placeholders). Update real WhatsApp/address/fees in the database before client use.`,
+  );
+  return { store, created: true };
 }
 
-async function upsertCategories(storeId: string) {
+/**
+ * Optional, idempotent MASTER user bootstrap (ADR 0002).
+ * Requires MASTER_ADMIN_NAME, MASTER_ADMIN_EMAIL, MASTER_ADMIN_PASSWORD.
+ * Never logs the password. Does not use ADMIN_EMAIL / ADMIN_PASSWORD.
+ */
+async function upsertMasterUser(): Promise<{ seeded: boolean; email?: string }> {
+  const name = process.env.MASTER_ADMIN_NAME?.trim();
+  const email = process.env.MASTER_ADMIN_EMAIL?.trim().toLowerCase();
+  const password = process.env.MASTER_ADMIN_PASSWORD;
+
+  const missing: string[] = [];
+  if (!name) missing.push("MASTER_ADMIN_NAME");
+  if (!email) missing.push("MASTER_ADMIN_EMAIL");
+  if (!password) missing.push("MASTER_ADMIN_PASSWORD");
+
+  if (missing.length > 0) {
+    console.warn(
+      `[seed] Skipping MASTER user bootstrap — missing env(s): ${missing.join(", ")}. Catalog seed continues.`,
+    );
+    return { seeded: false };
+  }
+
+  const passwordHash = await bcrypt.hash(password!, BCRYPT_ROUNDS);
+
+  const user = await prisma.user.upsert({
+    where: { email: email! },
+    create: {
+      name: name!,
+      email: email!,
+      passwordHash,
+      role: UserRole.MASTER,
+      storeId: null,
+      isActive: true,
+    },
+    update: {
+      name: name!,
+      passwordHash,
+      role: UserRole.MASTER,
+      storeId: null,
+      isActive: true,
+    },
+    select: { email: true, role: true },
+  });
+
+  console.log(`[seed] MASTER user upserted (email set, password not logged).`);
+  return { seeded: true, email: user.email };
+}
+
+/**
+ * Idempotent catalog bootstrap: create missing categories only.
+ * Does not overwrite description/sortOrder/active of existing rows.
+ */
+async function ensureCategories(storeId: string) {
   const byName = new Map<string, { id: string; name: string }>();
 
   for (const category of categories) {
@@ -201,32 +261,31 @@ async function upsertCategories(storeId: string) {
       where: { storeId, name: category.name },
     });
 
-    const record = existing
-      ? await prisma.category.update({
-          where: { id: existing.id },
-          data: {
-            description: category.description,
-            sortOrder: category.sortOrder,
-            active: true,
-          },
-        })
-      : await prisma.category.create({
-          data: {
-            storeId,
-            name: category.name,
-            description: category.description,
-            sortOrder: category.sortOrder,
-            active: true,
-          },
-        });
+    if (existing) {
+      byName.set(category.name, existing);
+      continue;
+    }
 
+    const record = await prisma.category.create({
+      data: {
+        storeId,
+        name: category.name,
+        description: category.description,
+        sortOrder: category.sortOrder,
+        active: true,
+      },
+    });
     byName.set(category.name, record);
   }
 
   return byName;
 }
 
-async function upsertAddons(storeId: string) {
+/**
+ * Idempotent catalog bootstrap: create missing addons only.
+ * Does not overwrite price/description of existing addons.
+ */
+async function ensureAddons(storeId: string) {
   const byName = new Map<string, { id: string; name: string }>();
 
   for (const addon of addons) {
@@ -234,34 +293,32 @@ async function upsertAddons(storeId: string) {
       where: { storeId, name: addon.name },
     });
 
-    const record = existing
-      ? await prisma.addon.update({
-          where: { id: existing.id },
-          data: {
-            description: addon.description,
-            priceCents: addon.priceCents,
-            sortOrder: addon.sortOrder,
-            active: true,
-          },
-        })
-      : await prisma.addon.create({
-          data: {
-            storeId,
-            name: addon.name,
-            description: addon.description,
-            priceCents: addon.priceCents,
-            sortOrder: addon.sortOrder,
-            active: true,
-          },
-        });
+    if (existing) {
+      byName.set(addon.name, existing);
+      continue;
+    }
 
+    const record = await prisma.addon.create({
+      data: {
+        storeId,
+        name: addon.name,
+        description: addon.description,
+        priceCents: addon.priceCents,
+        sortOrder: addon.sortOrder,
+        active: true,
+      },
+    });
     byName.set(addon.name, record);
   }
 
   return byName;
 }
 
-async function upsertProducts(
+/**
+ * Idempotent catalog bootstrap: create missing products + their addon links only.
+ * Existing products (and their ProductAddon links) are left unchanged.
+ */
+async function ensureProducts(
   storeId: string,
   categoriesByName: Map<string, { id: string; name: string }>,
   addonsByName: Map<string, { id: string; name: string }>,
@@ -276,32 +333,22 @@ async function upsertProducts(
       where: { storeId, name: product.name },
     });
 
-    const data: Prisma.ProductUpdateInput = {
-      category: { connect: { id: category.id } },
-      description: product.description,
-      priceCents: product.priceCents,
-      featured: product.featured ?? false,
-      sortOrder: product.sortOrder,
-      active: true,
-    };
+    if (existing) {
+      continue;
+    }
 
-    const record = existing
-      ? await prisma.product.update({
-          where: { id: existing.id },
-          data,
-        })
-      : await prisma.product.create({
-          data: {
-            storeId,
-            categoryId: category.id,
-            name: product.name,
-            description: product.description,
-            priceCents: product.priceCents,
-            featured: product.featured ?? false,
-            sortOrder: product.sortOrder,
-            active: true,
-          },
-        });
+    const record = await prisma.product.create({
+      data: {
+        storeId,
+        categoryId: category.id,
+        name: product.name,
+        description: product.description,
+        priceCents: product.priceCents,
+        featured: product.featured ?? false,
+        sortOrder: product.sortOrder,
+        active: true,
+      },
+    });
 
     const desiredAddonIds = (product.addonNames ?? [])
       .map((name) => {
@@ -310,30 +357,11 @@ async function upsertProducts(
           throw new Error(`Addon not found: ${name}`);
         }
         return addon.id;
-      })
-      .sort();
-
-    const currentLinks = await prisma.productAddon.findMany({
-      where: { productId: record.id },
-      select: { addonId: true },
-    });
-    const currentAddonIds = currentLinks.map((link) => link.addonId).sort();
-
-    const toRemove = currentAddonIds.filter((id) => !desiredAddonIds.includes(id));
-    const toAdd = desiredAddonIds.filter((id) => !currentAddonIds.includes(id));
-
-    if (toRemove.length > 0) {
-      await prisma.productAddon.deleteMany({
-        where: {
-          productId: record.id,
-          addonId: { in: toRemove },
-        },
       });
-    }
 
-    if (toAdd.length > 0) {
+    if (desiredAddonIds.length > 0) {
       await prisma.productAddon.createMany({
-        data: toAdd.map((addonId) => ({
+        data: desiredAddonIds.map((addonId) => ({
           productId: record.id,
           addonId,
         })),
@@ -344,16 +372,20 @@ async function upsertProducts(
 }
 
 async function main() {
-  console.log("Seeding Na Brasa (idempotent)...");
+  console.log("Seeding Na Brasa (idempotent, production-safe bootstrap)...");
 
-  const store = await upsertStore();
-  const categoriesByName = await upsertCategories(store.id);
-  const addonsByName = await upsertAddons(store.id);
-  await upsertProducts(store.id, categoriesByName, addonsByName);
+  const master = await upsertMasterUser();
+  const { store, created: storeCreated } = await ensureStore();
+  const categoriesByName = await ensureCategories(store.id);
+  const addonsByName = await ensureAddons(store.id);
+  await ensureProducts(store.id, categoriesByName, addonsByName);
 
   const summary = {
     store: store.slug,
-    whatsappPlaceholder: store.whatsapp,
+    storeCreated,
+    storeDataPreserved: !storeCreated,
+    whatsappIsPlaceholder: store.whatsapp === WHATSAPP_PLACEHOLDER,
+    masterUserSeeded: master.seeded,
     categories: await prisma.category.count({ where: { storeId: store.id } }),
     products: await prisma.product.count({ where: { storeId: store.id } }),
     addons: await prisma.addon.count({ where: { storeId: store.id } }),
@@ -361,6 +393,7 @@ async function main() {
       where: { product: { storeId: store.id } },
     }),
     orders: await prisma.order.count({ where: { storeId: store.id } }),
+    users: await prisma.user.count(),
   };
 
   console.log("Seed completed:", summary);
