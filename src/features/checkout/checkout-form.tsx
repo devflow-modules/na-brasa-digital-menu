@@ -106,8 +106,16 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
   if (emptyCart) {
     return (
-      <div className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 px-4 py-16 text-center">
-        <p className="text-base text-stone-200">Seu carrinho está vazio.</p>
+      <div
+        data-testid="checkout-empty-cart"
+        className="mx-auto flex w-full max-w-lg flex-col items-center gap-4 px-4 py-16 text-center"
+      >
+        <p className="text-lg font-medium text-stone-200">
+          Seu carrinho está vazio
+        </p>
+        <p className="text-sm text-stone-400">
+          Volte ao cardápio e adicione itens antes de finalizar pelo WhatsApp.
+        </p>
         <Link
           href="/na-brasa"
           className="inline-flex h-11 items-center justify-center rounded-xl bg-orange-500 px-5 text-sm font-semibold text-stone-950"
@@ -120,28 +128,35 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-8 sm:px-6">
-      <div className="flex items-center justify-between gap-3">
+      <header className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-wide text-orange-300/80">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300/90">
             Checkout
           </p>
-          <h1 className="text-2xl font-semibold text-orange-50">{store.name}</h1>
+          <h1 className="mt-1 text-2xl font-semibold text-orange-50">
+            {store.name}
+          </h1>
+          <p className="mt-1 text-sm text-stone-400">
+            Último passo antes do WhatsApp
+          </p>
         </div>
         <Link
           href="/na-brasa"
-          className="text-sm font-medium text-stone-300 underline-offset-2 hover:text-orange-300 hover:underline"
+          data-testid="checkout-back-to-menu"
+          className="shrink-0 text-sm font-medium text-orange-200 underline-offset-2 hover:text-orange-100 hover:underline"
         >
-          Voltar
+          ← Voltar ao cardápio
         </Link>
-      </div>
+      </header>
 
       {!store.isOpen ? (
         <p
           data-testid="checkout-store-closed-banner"
-          className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-100"
+          className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-50"
+          role="alert"
         >
-          A loja está fechada no momento. Você pode voltar ao cardápio, mas não é
-          possível finalizar pedidos agora.
+          <span className="font-semibold">A loja está fechada no momento.</span>{" "}
+          Você pode voltar ao cardápio, mas não é possível enviar pedidos agora.
         </p>
       ) : null}
 
@@ -155,7 +170,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-6"
+        className="flex flex-col gap-5"
         noValidate
       >
         <CustomerFields register={register} errors={errors} />
@@ -166,6 +181,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
           watch={watch}
           pickupEnabled={store.pickupEnabled}
           deliveryEnabled={store.deliveryEnabled}
+          deliveryFeeCents={store.deliveryFeeCents}
         />
 
         <DeliveryAddressFields
@@ -181,18 +197,20 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
           setValue={setValue}
         />
 
-        <label className="flex flex-col gap-1.5 text-sm text-stone-300">
-          Observações
-          <textarea
-            rows={3}
-            placeholder="Sem cebola, ponto de referência, etc."
-            {...register("notes")}
-            className="rounded-xl border border-stone-700 bg-stone-900 px-3 py-2 text-stone-100 outline-none ring-orange-500/40 focus:ring-2"
-          />
-          {errors.notes ? (
-            <span className="text-xs text-red-400">{errors.notes.message}</span>
-          ) : null}
-        </label>
+        <div className="rounded-2xl border border-stone-800 bg-stone-900/50 p-4">
+          <label className="flex flex-col gap-1.5 text-sm text-stone-300">
+            Observações do pedido
+            <textarea
+              rows={3}
+              placeholder="Exemplo: sem cebola, ponto da carne, referência para entrega."
+              {...register("notes")}
+              className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100 outline-none ring-orange-500/40 focus:ring-2"
+            />
+            {errors.notes ? (
+              <span className="text-xs text-red-400">{errors.notes.message}</span>
+            ) : null}
+          </label>
+        </div>
 
         {store.minimumOrderAmountCents > 0 &&
         cart.items.length > 0 &&
@@ -202,16 +220,20 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
           </p>
         ) : null}
 
-        <button
-          type="submit"
-          data-testid="checkout-submit-button"
-          disabled={isPending || cart.items.length === 0 || !store.isOpen}
-          className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
-        >
-          {isPending
-            ? "Finalizando pedido..."
-            : "Finalizar pedido no WhatsApp"}
-        </button>
+        <div className="flex flex-col gap-2">
+          <p className="text-center text-xs leading-relaxed text-stone-500">
+            Ao continuar, seu pedido será salvo e você será redirecionado para o
+            WhatsApp.
+          </p>
+          <button
+            type="submit"
+            data-testid="checkout-submit-button"
+            disabled={isPending || cart.items.length === 0 || !store.isOpen}
+            className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-bold text-stone-950 shadow-md shadow-orange-950/30 ring-1 ring-orange-400/25 disabled:opacity-60"
+          >
+            {isPending ? "Enviando pedido..." : "Enviar pedido pelo WhatsApp"}
+          </button>
+        </div>
 
         {errorMessage ? (
           <p

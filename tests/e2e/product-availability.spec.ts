@@ -136,7 +136,7 @@ test.describe("product active vs available", () => {
 
     const customerName = uniqueCustomerName("Unavailable Checkout");
     await page.getByLabel("Nome").fill(customerName);
-    await page.getByLabel("WhatsApp / telefone").fill(e2ePhone);
+    await page.getByLabel("WhatsApp para contato").fill(e2ePhone);
     await page.getByText("Retirada", { exact: true }).click();
     await page.getByText("Pix", { exact: true }).click();
     await page.getByTestId("checkout-submit-button").click();

@@ -5,6 +5,7 @@ import type {
   UseFormRegister,
   UseFormWatch,
 } from "react-hook-form";
+import { formatMoney } from "@/features/menu/format-money";
 import type { CheckoutFormValues } from "@/features/checkout/checkout-schema";
 
 type DeliveryTypeFieldProps = {
@@ -13,6 +14,7 @@ type DeliveryTypeFieldProps = {
   watch: UseFormWatch<CheckoutFormValues>;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
+  deliveryFeeCents: number;
 };
 
 export function DeliveryTypeField({
@@ -21,22 +23,28 @@ export function DeliveryTypeField({
   watch,
   pickupEnabled,
   deliveryEnabled,
+  deliveryFeeCents,
 }: DeliveryTypeFieldProps) {
   const deliveryType = watch("deliveryType");
 
+  const deliveryFeeHint =
+    deliveryFeeCents > 0
+      ? `Taxa ${formatMoney(deliveryFeeCents)}`
+      : "Sem taxa";
+
   return (
-    <fieldset className="flex flex-col gap-3">
-      <legend className="text-sm font-semibold text-orange-50">
-        Como prefere receber?
+    <fieldset className="flex flex-col gap-4 rounded-2xl border border-stone-800 bg-stone-900/50 p-4">
+      <legend className="px-1 text-base font-semibold text-orange-50">
+        Como você quer receber?
       </legend>
 
       <div className="grid grid-cols-2 gap-2">
         <label
-          className={`flex cursor-pointer items-center justify-center rounded-xl border px-3 py-3 text-sm font-medium ${
+          className={`flex min-h-[4.5rem] cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-3 text-center ${
             deliveryType === "PICKUP"
-              ? "border-orange-400 bg-orange-500/15 text-orange-100"
-              : "border-stone-700 bg-stone-900 text-stone-300"
-          } ${!pickupEnabled ? "cursor-not-allowed opacity-40" : ""}`}
+              ? "border-orange-400 bg-orange-500/15 text-orange-100 ring-1 ring-orange-400/30"
+              : "border-stone-700 bg-stone-950 text-stone-300"
+          } ${!pickupEnabled ? "cursor-not-allowed opacity-50" : ""}`}
         >
           <input
             type="radio"
@@ -45,15 +53,18 @@ export function DeliveryTypeField({
             className="sr-only"
             {...register("deliveryType")}
           />
-          Retirada
+          <span className="text-sm font-semibold">Retirada</span>
+          <span className="text-[11px] text-stone-400">
+            {pickupEnabled ? "Buscar no local" : "Indisponível"}
+          </span>
         </label>
 
         <label
-          className={`flex cursor-pointer items-center justify-center rounded-xl border px-3 py-3 text-sm font-medium ${
+          className={`flex min-h-[4.5rem] cursor-pointer flex-col items-center justify-center gap-0.5 rounded-xl border px-2 py-3 text-center ${
             deliveryType === "DELIVERY"
-              ? "border-orange-400 bg-orange-500/15 text-orange-100"
-              : "border-stone-700 bg-stone-900 text-stone-300"
-          } ${!deliveryEnabled ? "cursor-not-allowed opacity-40" : ""}`}
+              ? "border-orange-400 bg-orange-500/15 text-orange-100 ring-1 ring-orange-400/30"
+              : "border-stone-700 bg-stone-950 text-stone-300"
+          } ${!deliveryEnabled ? "cursor-not-allowed opacity-50" : ""}`}
         >
           <input
             type="radio"
@@ -62,7 +73,12 @@ export function DeliveryTypeField({
             className="sr-only"
             {...register("deliveryType")}
           />
-          Entrega
+          <span className="text-sm font-semibold">Entrega</span>
+          <span className="text-[11px] text-stone-400">
+            {deliveryEnabled
+              ? `Receber em casa · ${deliveryFeeHint}`
+              : "Indisponível"}
+          </span>
         </label>
       </div>
 
