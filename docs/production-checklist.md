@@ -60,7 +60,9 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] Ver pedido no dashboard `/admin`
 - [ ] Abrir `/admin/pedidos/[id]`
 - [ ] Mudar status (ex.: Pendente → Confirmado)
-- [ ] Concluir **ou** cancelar o pedido teste
+- [ ] Concluir **ou** cancelar o pedido teste (com role que permita cancelar: OWNER/MANAGER/MASTER)
+- [ ] (opcional) Com usuário `OPERATOR`: confirmar que **não** vê cancelar
+- [ ] (opcional) Com usuário `KITCHEN`: ver só preparar/pronto nos status adequados
 - [ ] (MASTER) Abrir `/master` — ver loja `na-brasa` e cards de resumo
 - [ ] (MASTER) Abrir **Gerenciar usuários** da loja — listar/criar usuário de loja
 - [ ] (usuário de loja) Confirmar que `/master` **não** abre

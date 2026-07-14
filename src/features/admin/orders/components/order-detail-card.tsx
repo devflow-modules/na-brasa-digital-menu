@@ -1,3 +1,4 @@
+import type { UserRole } from "@prisma/client";
 import Link from "next/link";
 import {
   formatDateTime,
@@ -13,9 +14,10 @@ import { OrderStatusActions } from "@/features/admin/orders/components/order-sta
 
 type OrderDetailCardProps = {
   order: AdminOrderDetail;
+  role: UserRole;
 };
 
-export function OrderDetailCard({ order }: OrderDetailCardProps) {
+export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
   return (
     <div data-testid="admin-order-detail" className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -37,6 +39,7 @@ export function OrderDetailCard({ order }: OrderDetailCardProps) {
         orderId={order.id}
         status={order.status}
         deliveryType={order.deliveryType}
+        role={role}
       />
 
       <section className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4">

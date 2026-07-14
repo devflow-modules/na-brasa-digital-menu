@@ -11,7 +11,11 @@ export async function updateOrderStatusAction(
   input: unknown,
 ): Promise<UpdateOrderStatusResult> {
   const context = await requireAdminStoreContext();
-  const result = await updateAdminOrderStatus(input, context.storeId);
+  const result = await updateAdminOrderStatus(
+    input,
+    context.storeId,
+    context.role,
+  );
 
   if (!result.ok) {
     return result;

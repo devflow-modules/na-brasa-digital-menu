@@ -21,7 +21,22 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 - Usuários `STORE_OWNER` / `MANAGER` / `OPERATOR` / `KITCHEN` **precisam** ter `storeId` no banco.
 - Sem `storeId`, o acesso ao `/admin` é bloqueado.
 - Pedido de outra loja retorna 404 (não revela existência).
-- Permissões finas por role (ex.: só cozinha avançar status) ainda são futuras.
+- Ações de status dependem da **role** do usuário (além da transição válida do fluxo).
+
+## Permissões por role no `/admin`
+
+| Role | Ver pedidos | Confirmar | Preparar / pronto | Despachar / concluir | Cancelar |
+| --- | --- | --- | --- | --- | --- |
+| `MASTER` | sim (transicional) | sim | sim | sim | sim |
+| `STORE_OWNER` | sim | sim | sim | sim | sim |
+| `MANAGER` | sim | sim | sim | sim | sim |
+| `OPERATOR` | sim | sim | sim | sim | não |
+| `KITCHEN` | sim | não | sim | não | não |
+
+- Roles de loja acessam `/admin` da própria Store.
+- Permissões são aplicadas **server-side** (role da sessão); a UI só esconde botões não permitidos.
+- `MASTER` continua com acesso transicional ao `/admin`.
+- A matriz pode evoluir por cliente/plano no futuro.
 
 ## Painel Master (`/master`)
 
@@ -60,8 +75,8 @@ Pedidos novos entram com status **Pendente** (`PENDING`).
 
 1. Em `/admin`, veja a lista (últimos pedidos) e os resumos do dia
 2. Toque/clique no pedido para abrir `/admin/pedidos/[id]`
-3. No detalhe, use os botões de ação para avançar (ou cancelar, quando permitido)
-4. Só aparecem ações **válidas** para o status e o tipo de entrega atuais; o servidor rejeita transição inválida
+3. No detalhe, use os botões de ação para avançar (ou cancelar, quando permitido pela sua role)
+4. Só aparecem ações **válidas** para o status, o tipo de entrega e a **role** atuais; o servidor rejeita transição ou permissão inválida
 
 Não há atualização automática em tempo real: atualize a página para ver pedidos novos ou mudanças de outra aba.
 

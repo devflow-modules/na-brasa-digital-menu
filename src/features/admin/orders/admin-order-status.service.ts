@@ -1,3 +1,8 @@
+import type { UserRole } from "@prisma/client";
+import {
+  ADMIN_PERMISSION_DENIED_MESSAGE,
+  canTransitionOrderStatus,
+} from "@/features/admin/auth/admin-permissions";
 import { isTransitionAllowed } from "@/features/admin/orders/admin-order-status-transitions";
 import { updateOrderStatusSchema } from "@/features/admin/orders/admin-order-status.schema";
 import {
@@ -12,11 +17,12 @@ export type UpdateOrderStatusResult =
 
 /**
  * Updates order status within a specific store scope.
- * Caller must resolve storeId from session (never from client input).
+ * Caller must resolve storeId and role from session (never from client input).
  */
 export async function updateAdminOrderStatus(
   rawInput: unknown,
   storeId: string,
+  role: UserRole,
 ): Promise<UpdateOrderStatusResult> {
   const parsed = updateOrderStatusSchema.safeParse(rawInput);
 
@@ -32,10 +38,19 @@ export async function updateAdminOrderStatus(
     return { ok: false, message: "Pedido não encontrado." };
   }
 
-  if (
-    !isTransitionAllowed(order.status, nextStatus, order.deliveryType)
-  ) {
+  if (!isTransitionAllowed(order.status, nextStatus, order.deliveryType)) {
     return { ok: false, message: "Transição de status não permitida." };
+  }
+
+  if (
+    !canTransitionOrderStatus(
+      role,
+      order.status,
+      nextStatus,
+      order.deliveryType,
+    )
+  ) {
+    return { ok: false, message: ADMIN_PERMISSION_DENIED_MESSAGE };
   }
 
   try {

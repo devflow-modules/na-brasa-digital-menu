@@ -110,21 +110,28 @@ export async function ensureInactiveE2eUser(options?: {
   return { email, password };
 }
 
+export type E2eStoreUserRole =
+  | typeof UserRole.STORE_OWNER
+  | typeof UserRole.MANAGER
+  | typeof UserRole.OPERATOR
+  | typeof UserRole.KITCHEN;
+
 export type E2eStoreUserCredentials = {
   name: string;
   email: string;
   password: string;
-  role: typeof UserRole.STORE_OWNER | typeof UserRole.OPERATOR;
+  role: E2eStoreUserRole;
 };
 
 /**
- * Ensures an active store-scoped user for negative /master access tests.
+ * Ensures an active store-scoped user for /admin and /master tests.
  * Never logs the password.
  */
 export async function ensureE2eStoreUser(options?: {
   email?: string;
   password?: string;
-  role?: typeof UserRole.STORE_OWNER | typeof UserRole.OPERATOR;
+  role?: E2eStoreUserRole;
+  name?: string;
   storeSlug?: string;
   /** When true, force storeId null (invalid store user fixture). */
   withoutStoreId?: boolean;
@@ -148,16 +155,19 @@ export async function ensureE2eStoreUser(options?: {
     storeId = store.id;
   }
 
+  const role = options?.role ?? UserRole.OPERATOR;
+  const roleSlug = role.toLowerCase().replaceAll("_", "-");
+
   const credentials: E2eStoreUserCredentials = {
-    name: "E2E Store Operator",
+    name: options?.name ?? `E2E Store ${role}`,
     email: (
       options?.email ??
       (options?.withoutStoreId
         ? "e2e-store-orphan@example.com"
-        : `e2e-store-${storeSlug}@example.com`)
+        : `e2e-store-${roleSlug}-${storeSlug}@example.com`)
     ).toLowerCase(),
-    password: options?.password ?? "store-operator-password",
-    role: options?.role ?? UserRole.OPERATOR,
+    password: options?.password ?? `store-${roleSlug}-password`,
+    role,
   };
 
   const passwordHash = await bcrypt.hash(credentials.password, BCRYPT_ROUNDS);
