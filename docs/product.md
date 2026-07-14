@@ -129,7 +129,22 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 - `/admin` lista os últimos 50 pedidos (read-only), com cards de resumo.
 - `/admin/pedidos/[id]` mostra detalhe: cliente, itens/adicionais, totais, endereço, pagamento e `whatsappMessage`.
 - Cards usam dia local do servidor (`setHours(0,0,0,0)`); receita de hoje exclui `CANCELLED`.
-- Sem CRUD de cardápio ou APIs públicas nesta etapa.
+- Link para `/admin/cardapio` no dashboard (gerenciar ou ver conforme a role).
+
+## Gestão de cardápio (`/admin/cardapio`)
+
+- Lista categorias e produtos da Store efetiva (store-scoped).
+- Preços em **centavos** no banco; formulários aceitam reais e convertem no server.
+- **Disponibilidade** no cardápio público usa `Product.active` (sem coluna separada nesta etapa).
+- Sem upload de imagem, sem delete físico e sem addons avançados.
+
+| Role | Ver | Criar/editar produto | Categorias | Disponível/indisponível | Ativar/desativar |
+| --- | --- | --- | --- | --- | --- |
+| `MASTER` | sim | sim | sim | sim | sim |
+| `STORE_OWNER` | sim | sim | sim | sim | sim |
+| `MANAGER` | sim | sim | sim | sim | sim |
+| `OPERATOR` | sim | não | não | sim | não |
+| `KITCHEN` | sim | não | não | não | não |
 
 ## Gestão de status
 
