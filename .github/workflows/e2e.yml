@@ -33,10 +33,11 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/na_brasa_e2e
-      ADMIN_EMAIL: admin@example.com
-      ADMIN_PASSWORD: ci-password-only
       ADMIN_JWT_SECRET: ci-secret-at-least-32-characters-long
       ADMIN_SESSION_COOKIE: na-brasa-admin-session
+      MASTER_ADMIN_NAME: E2E Master
+      MASTER_ADMIN_EMAIL: admin@example.com
+      MASTER_ADMIN_PASSWORD: ci-password-only
       NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
       NEXT_PUBLIC_STORE_SLUG: na-brasa
       NODE_ENV: test

@@ -20,7 +20,17 @@ export function requireTestEnv(name: string): string {
   return value;
 }
 
+/** @deprecated Prefer getE2eAdminCredentials from ./e2e-admin-user */
 export function getAdminCredentials() {
+  const masterEmail = process.env.MASTER_ADMIN_EMAIL?.trim();
+  const masterPassword = process.env.MASTER_ADMIN_PASSWORD;
+  if (masterEmail && masterPassword) {
+    return {
+      email: masterEmail.toLowerCase(),
+      password: masterPassword,
+    };
+  }
+
   return {
     email: requireTestEnv("ADMIN_EMAIL"),
     password: requireTestEnv("ADMIN_PASSWORD"),
@@ -29,4 +39,8 @@ export function getAdminCredentials() {
 
 export function getStoreSlug(): string {
   return process.env.NEXT_PUBLIC_STORE_SLUG?.trim() || "na-brasa";
+}
+
+export function getSessionCookieName(): string {
+  return process.env.ADMIN_SESSION_COOKIE?.trim() || "na-brasa-admin-session";
 }

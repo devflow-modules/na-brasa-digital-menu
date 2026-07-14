@@ -10,7 +10,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | --- | --- |
 | `tests/e2e/public-menu.spec.ts` | Cardápio, carrinho, persistência local, CTA checkout |
 | `tests/e2e/checkout-order.spec.ts` | Checkout → Order PENDING → `wa.me` → limpa carrinho |
-| `tests/e2e/admin-auth.spec.ts` | Redirect, login inválido/válido, logout |
+| `tests/e2e/admin-auth.spec.ts` | Redirect, senha inválida, user inativo, login DB, claims JWT, logout |
 | `tests/e2e/admin-orders.spec.ts` | Lista + detalhe de pedido E2E |
 | `tests/e2e/admin-status.spec.ts` | PICKUP: PENDING → … → COMPLETED |
 
@@ -23,19 +23,21 @@ Browser: **Chromium** apenas.
 - PostgreSQL local (não use banco de produção)
 - `.env` a partir de `.env.example` com:
   - `DATABASE_URL`
-  - `ADMIN_EMAIL`
-  - `ADMIN_PASSWORD`
   - `ADMIN_JWT_SECRET`
   - `ADMIN_SESSION_COOKIE`
+  - `MASTER_ADMIN_NAME` / `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` (preferido para login E2E via seed)
+  - ou, como fixture local: `ADMIN_EMAIL` / `ADMIN_PASSWORD` (só para o helper E2E criar `User` no banco — **não** usados pelo runtime)
   - `NEXT_PUBLIC_APP_URL`
   - `NEXT_PUBLIC_STORE_SLUG`
-- Loja seedada:
+- Loja + usuário admin seedados:
 
 ```bash
 pnpm prisma generate
 pnpm prisma migrate dev
 pnpm prisma db seed
 ```
+
+Os helpers E2E também fazem upsert de um `MASTER` de teste (`ensureE2eAdminUser`) antes do login.
 
 Opcional: `.env.test.local` (não commitado; já coberto por `.env*.local` no `.gitignore`) para sobrescrever envs só nos testes.
 

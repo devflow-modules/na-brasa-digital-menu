@@ -159,22 +159,26 @@ Veja `.env.example`. Obrigatórias / usadas pelo app:
 | Variável | Uso |
 | --- | --- |
 | `DATABASE_URL` | PostgreSQL (Prisma) |
-| `ADMIN_EMAIL` | E-mail do login admin |
-| `ADMIN_PASSWORD` | Senha do admin (mín. 8 chars; use senha forte em produção) |
-| `ADMIN_JWT_SECRET` | Segredo JWT (mín. 16 chars; use valor longo e aleatório) |
+| `ADMIN_JWT_SECRET` | Segredo JWT da sessão admin (mín. 16; preferir 32+) |
 | `ADMIN_SESSION_COOKIE` | Nome do cookie de sessão |
+| `MASTER_ADMIN_NAME` | Seed: nome do usuário `MASTER` |
+| `MASTER_ADMIN_EMAIL` | Seed: e-mail do `MASTER` (login admin) |
+| `MASTER_ADMIN_PASSWORD` | Seed: senha do `MASTER` (hash no banco; nunca commitar) |
 | `NEXT_PUBLIC_APP_URL` | URL pública do app (ex.: `https://seu-dominio.vercel.app`) |
 | `NEXT_PUBLIC_STORE_SLUG` | Slug da loja (`na-brasa`) |
-| `NODE_ENV` | Definido pelo runtime (`development` / `production`); em produção o cookie admin usa `Secure` |
+| `NODE_ENV` | Definido pelo runtime; em produção o cookie admin usa `Secure` |
 
-Não versionar `.env` com credenciais reais. Nunca commitar `ADMIN_PASSWORD` ou `ADMIN_JWT_SECRET` reais.
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` estão **deprecated** (não autenticam mais o `/admin`).
+
+Não versionar `.env` com credenciais reais. Nunca commitar `MASTER_ADMIN_PASSWORD` ou `ADMIN_JWT_SECRET` reais.
 
 ### Segurança (resumo)
 
 - Sessão admin: JWT em cookie **HttpOnly** (não fica em `localStorage`)
+- Login via tabela `User` (bcrypt); sem senha padrão hardcoded
 - Pedidos contêm PII (nome, telefone, endereço) — proteger o painel
 - Envs nunca devem ser commitadas
-- `ADMIN_PASSWORD` forte; `ADMIN_JWT_SECRET` longo e aleatório
+- `ADMIN_JWT_SECRET` longo e aleatório; senha do admin forte no bootstrap
 
 Mais detalhes: [docs/deployment.md](docs/deployment.md).
 

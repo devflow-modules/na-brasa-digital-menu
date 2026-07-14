@@ -2,10 +2,6 @@ import { z } from "zod";
 
 const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  ADMIN_EMAIL: z.string().email("ADMIN_EMAIL must be a valid email"),
-  ADMIN_PASSWORD: z
-    .string()
-    .min(8, "ADMIN_PASSWORD must be at least 8 characters"),
   ADMIN_JWT_SECRET: z
     .string()
     .min(16, "ADMIN_JWT_SECRET must be at least 16 characters"),
@@ -17,6 +13,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_STORE_SLUG: z
     .string()
     .min(1, "NEXT_PUBLIC_STORE_SLUG is required"),
+  // Deprecated: no longer used for /admin login runtime (database User instead).
+  ADMIN_EMAIL: z.string().email().optional(),
+  ADMIN_PASSWORD: z.string().min(8).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -24,12 +23,12 @@ export type Env = z.infer<typeof envSchema>;
 function createEnv(): Env {
   const parsed = envSchema.safeParse({
     DATABASE_URL: process.env.DATABASE_URL,
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL,
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
     ADMIN_JWT_SECRET: process.env.ADMIN_JWT_SECRET,
     ADMIN_SESSION_COOKIE: process.env.ADMIN_SESSION_COOKIE,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_STORE_SLUG: process.env.NEXT_PUBLIC_STORE_SLUG,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL || undefined,
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || undefined,
   });
 
   if (!parsed.success) {
