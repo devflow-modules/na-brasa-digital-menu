@@ -66,6 +66,42 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 6. Com a loja fechada, o cliente ainda vê o cardápio, mas não consegue finalizar pedido.
 7. E2E/smoke: testes que alteram a Store **restauram** WhatsApp, flags e `isOpen` ao final — não deixe a Na Brasa fechada após rodar testes em banco compartilhado.
 
+## Pilot operation
+
+Rotina recomendada para o Na Brasa no piloto (sem feature nova — uso do que já existe).
+
+### Abertura e fechamento
+
+1. Login como `MANAGER`, `STORE_OWNER` ou `OPERATOR` (conforme permissão).
+2. Abra `/admin/configuracoes`.
+3. **Abrir loja:** `OPERATOR` usa o botão abrir/fechar; dono/gerente pode usar o mesmo toggle ou o checkbox “Loja aberta” + salvar.
+4. **Fechar loja:** mesmo fluxo — cardápio público continua visível, mas checkout e novos pedidos ficam bloqueados no server.
+5. Ao fim do turno, confira que a loja está no estado desejado (geralmente **aberta** se ainda aceita pedidos pelo link).
+
+### Cardápio e disponibilidade
+
+1. `/admin/cardapio` — criar/editar produtos e categorias (dono/gerente).
+2. **Indisponível no momento:** `OPERATOR` ou dono/gerente marca `available=false` (produto visível, sem pedido).
+3. **Ocultar do público:** dono/gerente marca `active=false` (some do `/na-brasa`).
+
+### Adicionais
+
+1. `/admin/cardapio/adicionais` — criar, editar, ativar/desativar, vincular a produtos (dono/gerente).
+2. Inativo ou desvinculado não entra no pedido (validação no server).
+
+### Pedidos
+
+1. `/admin` — lista e resumo; toque no pedido para detalhe.
+2. Avance status conforme a role (retirada vs entrega).
+3. Compare com a mensagem no WhatsApp do cliente quando necessário.
+
+### Se algo sair errado nas configurações
+
+1. Volte como `MANAGER`/`STORE_OWNER` em `/admin/configuracoes`.
+2. Restaure WhatsApp, endereço, horário, taxa, entrega/retirada e **loja aberta**.
+3. Confira `/na-brasa` em aba anônima ou outro aparelho.
+4. Em emergência, feche a loja (`isOpen=false`) para parar novos pedidos enquanto corrige.
+
 ## Painel Master (`/master`)
 
 1. Faça login em `/admin/login` com usuário role `MASTER`
@@ -155,7 +191,7 @@ O MVP **não** envia mensagem automática pela API do WhatsApp: só abre o link 
 - `MASTER` prefere `/master`; acesso a `/admin` ainda é transicional
 - Usuários de loja são gerenciados em `/master/stores/[storeId]/users`
 - Reset de senha ainda não existe no painel
-- Sem CRUD de lojas / cardápio no master nesta etapa
+- Sem CRUD de **lojas** no `/master` nesta etapa (cardápio é em `/admin/cardapio`)
 - Bootstrap inicial do MASTER continua via seed `MASTER_ADMIN_*`
 
 Para colocar o ambiente no ar: [deployment.md](deployment.md).

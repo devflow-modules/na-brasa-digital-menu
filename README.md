@@ -2,6 +2,28 @@
 
 Cardápio digital para o carrinho de lanches **Na Brasa**: lanches artesanais e espetinhos, com pedidos salvos no painel e finalização via WhatsApp.
 
+## Current status
+
+**v0.1.0-pilot ready** — validated for controlled pilot with the Na Brasa owner.
+
+Core capabilities:
+
+- public menu (`/na-brasa`), cart, checkout
+- WhatsApp order handoff (`wa.me`)
+- admin orders and status workflow
+- role-based access (store-scoped `/admin`)
+- menu and catalog management (`/admin/cardapio`)
+- addons (`/admin/cardapio/adicionais`)
+- Store settings (`/admin/configuracoes`)
+- platform user management (`/master`)
+- E2E tests, CI, and production deploy (Vercel + PostgreSQL)
+
+Release notes: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) · [CHANGELOG](CHANGELOG.md)
+
+## Product positioning
+
+Na Brasa Digital Menu is the first tenant/client implementation of **DevFlow Menu**, a white-label online menu and WhatsApp order platform for small food businesses. This repository is the Na Brasa deployment; capabilities are documented for pilot operation, not as a generic SaaS product yet.
+
 ## Visão geral do MVP
 
 O MVP operacional permite:
@@ -19,7 +41,8 @@ Documentação relacionada:
 - [Production checklist](docs/production-checklist.md)
 - [Operação](docs/operations.md)
 - [Testes E2E](docs/testing.md)
-- [Release notes MVP v0.1.0](docs/release-notes/mvp-v0.1.0.md)
+- [Release notes v0.1.0-pilot](docs/releases/v0.1.0-pilot.md)
+- [Release notes MVP v0.1.0 (histórico)](docs/release-notes/mvp-v0.1.0.md)
 
 ## Stack
 
@@ -49,6 +72,11 @@ Documentação relacionada:
 | `/admin/login` | Login (cookie HttpOnly + JWT) |
 | `/admin` | Dashboard de pedidos (protegido) |
 | `/admin/pedidos/[id]` | Detalhe + ações de status (protegido) |
+| `/admin/cardapio` | Gestão de categorias e produtos |
+| `/admin/cardapio/adicionais` | Gestão de adicionais e vínculos |
+| `/admin/configuracoes` | Configurações operacionais da loja |
+| `/master` | Painel plataforma (somente `MASTER`) |
+| `/master/stores/[storeId]/users` | Usuários da loja |
 
 ## Fluxo do cliente
 
@@ -184,13 +212,14 @@ Mais detalhes: [docs/deployment.md](docs/deployment.md).
 
 ## Production readiness
 
-O MVP está em **Production Validation Candidate**: pronto para deploy controlado (Vercel + Neon/Supabase), smoke real e validação com o dono **antes** de divulgar o link aos clientes.
+O projeto está em **v0.1.0-pilot**: deploy em produção validado com smoke de Store Settings (GO). Próximo passo é aceite do cliente com dados reais e divulgação controlada do link.
 
 | Documento | Uso |
 | --- | --- |
-| [docs/deployment.md](docs/deployment.md) | Vercel + Neon, envs, migrate/seed, rollback, troubleshooting |
-| [docs/production-checklist.md](docs/production-checklist.md) | Checklist GO/NO-GO (pré-deploy → smoke → dono) |
-| [docs/release-notes/mvp-v0.1.0.md](docs/release-notes/mvp-v0.1.0.md) | Features, CI, limitações, gate antes de publicar |
+| [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) | Escopo do piloto, smoke validado, limitações |
+| [docs/deployment.md](docs/deployment.md) | Vercel + Neon, envs, migrate/seed, rollback |
+| [docs/production-checklist.md](docs/production-checklist.md) | GO/NO-GO, aceite do cliente, smoke piloto |
+| [docs/release-notes/mvp-v0.1.0.md](docs/release-notes/mvp-v0.1.0.md) | Notas históricas do MVP inicial |
 
 ### CI atual
 
@@ -240,20 +269,22 @@ prisma/          # schema Prisma
 docs/            # produto, deploy, operação, release notes
 ```
 
-## Limitações conhecidas do MVP
+## Limitações conhecidas (piloto)
 
-- Sem CRUD de cardápio no admin
-- Sem upload de imagens
-- Sem notificações em tempo real (WebSocket/polling)
 - Sem WhatsApp Cloud API
 - Sem pagamento online
-- Sem múltiplos admins
-- Sem histórico/auditoria de status
-- Sem motivo de cancelamento
+- Sem zonas de entrega / múltiplas áreas
+- Sem horário por dia da semana (apenas texto livre em `openingHours`)
+- Sem reset de senha no painel
+- Sem upload de imagens no admin
+- Sem notificações em tempo real (WebSocket/polling)
+- Sem CRUD de lojas no `/master` (apenas usuários por loja)
+- Sem histórico/auditoria de status na UI
+- Sem motivo de cancelamento estruturado
 
-## Roadmap (próximos passos)
+## Roadmap (pós-piloto)
 
-1. Deploy controlado + checklist GO ([production-checklist.md](docs/production-checklist.md))
-2. Validação com o dono e ajuste de cardápio/WhatsApp reais
+1. Aceite do cliente e dados reais finais ([production-checklist.md](docs/production-checklist.md))
+2. Tag `v0.1.0-pilot` e divulgação controlada (link / QR)
 3. Domínio customizado (quando priorizado)
-4. CRUD de cardápio / PWA / polish mobile
+4. Melhorias pós-feedback (notificações, pagamento, WhatsApp API — fora do piloto atual)
