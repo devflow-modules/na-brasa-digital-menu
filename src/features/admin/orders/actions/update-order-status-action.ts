@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAdminSession } from "@/features/admin/auth/admin-session";
+import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
 import {
   updateAdminOrderStatus,
   type UpdateOrderStatusResult,
@@ -10,13 +10,8 @@ import {
 export async function updateOrderStatusAction(
   input: unknown,
 ): Promise<UpdateOrderStatusResult> {
-  const session = await getAdminSession();
-
-  if (!session) {
-    return { ok: false, message: "Sessão expirada. Faça login novamente." };
-  }
-
-  const result = await updateAdminOrderStatus(input);
+  const context = await requireAdminStoreContext();
+  const result = await updateAdminOrderStatus(input, context.storeId);
 
   if (!result.ok) {
     return result;

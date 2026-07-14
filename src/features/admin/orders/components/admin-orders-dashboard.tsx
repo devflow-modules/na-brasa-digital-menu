@@ -8,29 +8,45 @@ import { OrdersSummaryCards } from "@/features/admin/orders/components/orders-su
 
 type AdminOrdersDashboardProps = {
   sessionEmail: string;
+  storeName: string;
+  isMasterTransitional?: boolean;
   orders: AdminOrderListItem[];
   summary: AdminOrdersSummary;
 };
 
 export function AdminOrdersDashboard({
   sessionEmail,
+  storeName,
+  isMasterTransitional = false,
   orders,
   summary,
 }: AdminOrdersDashboardProps) {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6">
+    <div
+      data-testid="admin-orders-dashboard"
+      className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-6"
+    >
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-wide text-orange-300/80">
-            Área restrita
+            Área restrita · Store-scoped
           </p>
           <h1 className="mt-1 text-2xl font-semibold text-orange-50 sm:text-3xl">
-            Pedidos Na Brasa
+            Pedidos — {storeName}
           </h1>
           <p className="mt-2 text-sm text-stone-400">
-            Visualização read-only dos pedidos recebidos pelo cardápio.
+            Pedidos da sua loja recebidos pelo cardápio.
           </p>
           <p className="mt-2 text-xs text-stone-500">Sessão: {sessionEmail}</p>
+          {isMasterTransitional ? (
+            <p
+              data-testid="admin-master-transitional-note"
+              className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100/90"
+            >
+              Acesso MASTER ao /admin é transicional — use /master para operação
+              da plataforma.
+            </p>
+          ) : null}
         </div>
         <LogoutButton className="border-stone-700 bg-stone-900 text-stone-100 hover:bg-stone-800" />
       </header>

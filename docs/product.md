@@ -106,9 +106,13 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 - Login autentica `User` no banco (`email` + `passwordHash` com bcrypt); usuários inativos são rejeitados.
 - Sessão: JWT (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção, path `/`, claims `userId`, `name`, `email`, `role`, `storeId`.
 - **`/master`**: painel da DevFlow Labs — somente `role === MASTER` (`requireMasterSession`). Sem sessão → `/admin/login`; não-MASTER → `notFound()`.
-- `/admin` é o painel da loja/cliente; acesso de `MASTER` ao `/admin` ainda é **transicional**.
+- `/admin` é o painel da loja/cliente (**store-scoped** via `requireAdminStoreContext`):
+  - roles de loja usam `session.storeId`;
+  - `MASTER` resolve Store por `NEXT_PUBLIC_STORE_SLUG` (acesso **transicional**);
+  - pedido fora da Store → `notFound()` / “Pedido não encontrado.”
 - Logout limpa o cookie e volta para `/admin/login`.
 - Bootstrap do primeiro usuário: seed com `MASTER_ADMIN_*` (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
+- Permissões finas por role (KITCHEN vs OWNER) ainda são roadmap.
 
 ## Master (plataforma)
 
