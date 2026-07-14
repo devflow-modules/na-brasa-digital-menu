@@ -21,7 +21,8 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] `.vercelignore` presente no repo (bloqueia `.env` / `*.env` no CLI)
 - [ ] Seed/cardápio revisado (fictício ajustado **ou** plano de cadastro real)
 - [ ] WhatsApp da loja **confirmado** (número oficial, não placeholder)
-- [ ] Credenciais admin definidas (`ADMIN_EMAIL`, `ADMIN_PASSWORD` forte, `ADMIN_JWT_SECRET` forte)
+- [ ] Credenciais admin **atuais** (env) definidas (`ADMIN_EMAIL`, `ADMIN_PASSWORD` forte, `ADMIN_JWT_SECRET` forte) — login ainda via env até a PR de auth no banco ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md))
+- [ ] (Opcional bootstrap) `MASTER_ADMIN_NAME` / `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` fortes se for criar usuário `MASTER` via seed
 - [ ] `NEXT_PUBLIC_APP_URL` planejado (URL Vercel HTTPS)
 - [ ] `NEXT_PUBLIC_STORE_SLUG=na-brasa` (ou slug acordado)
 
@@ -39,10 +40,11 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 
 - [ ] `DATABASE_URL` da Vercel aponta ao banco remoto (não localhost; com SSL se exigido)
 - [ ] `pnpm prisma migrate deploy` executado contra o remoto
-- [ ] Seed/bootstrap controlado **somente se aplicável** (`pnpm prisma db seed`)
+- [ ] Seed/bootstrap controlado **somente se aplicável** (`pnpm prisma db seed`) — seed **não** sobrescreve Store/cardápio já existentes; só cria ausentes
 - [ ] Store `na-brasa` existe no banco
 - [ ] WhatsApp da loja validado no registro da Store (não `5513999999999` placeholder)
 - [ ] Cardápio ativo coerente com o que o dono espera mostrar
+- [ ] (Se `MASTER_ADMIN_*` usados) usuário `MASTER` existe no banco; senha **não** aparece em logs
 
 ## 4. Smoke test produção
 

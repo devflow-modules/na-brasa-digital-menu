@@ -48,15 +48,20 @@ Alternativa de banco: **Supabase Postgres** — mesmo fluxo, só muda o provedor
 | Variável | Obrigatória | Produção |
 | --- | --- | --- |
 | `DATABASE_URL` | Sim | Connection string do **banco remoto** (Neon/Supabase). Não use localhost. |
-| `ADMIN_EMAIL` | Sim | E-mail do operador (não commitado) |
-| `ADMIN_PASSWORD` | Sim | Senha **forte** (mín. 8 no schema; use senha longa e única) |
-| `ADMIN_JWT_SECRET` | Sim | Segredo **longo e aleatório** (mín. 16; preferir 32+ chars) |
-| `ADMIN_SESSION_COOKIE` | Sim | Ex.: `na-brasa-admin-session` |
+| `ADMIN_EMAIL` | Sim *(login atual)* | E-mail do operador via **env** (não commitado). **Deprecated** após migração do login para usuários no banco ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md)). |
+| `ADMIN_PASSWORD` | Sim *(login atual)* | Senha **forte** (mín. 8; preferir longa e única). Mesma deprecação do e-mail acima. |
+| `ADMIN_JWT_SECRET` | Sim | Segredo **longo e aleatório** de sessão (mín. 16; preferir 32+). Continua como env técnica após auth no banco. |
+| `ADMIN_SESSION_COOKIE` | Sim | Ex.: `na-brasa-admin-session`. Continua como env técnica de cookie. |
+| `MASTER_ADMIN_NAME` | Não *(seed)* | Nome do usuário `MASTER` no bootstrap. Só no seed; não hardcode. |
+| `MASTER_ADMIN_EMAIL` | Não *(seed)* | E-mail unique do `MASTER`. Se faltar qualquer `MASTER_ADMIN_*`, o seed pula o usuário e segue. |
+| `MASTER_ADMIN_PASSWORD` | Não *(seed)* | Senha forte do `MASTER` (hash com `bcryptjs`). Nunca logar nem commitar. |
 | `NEXT_PUBLIC_APP_URL` | Sim | URL **final** HTTPS do deploy (ex.: `https://seu-app.vercel.app`) |
 | `NEXT_PUBLIC_STORE_SLUG` | Sim | `na-brasa` (deve existir no banco) |
 | `NODE_ENV` | Automático | Vercel define `production`; cookie admin usa `Secure` |
 
 Placeholders locais (sem secrets reais): [`.env.example`](../.env.example).
+
+Auth em transição ([ADR 0002](adr/0002-database-backed-multi-admin-and-master-panel.md)): o runtime de `/admin/login` ainda valida `ADMIN_EMAIL` / `ADMIN_PASSWORD`. A tabela `User` + enum `UserRole` já existem no schema; o login via banco e o painel `/master` vêm em PRs seguintes.
 
 ### Como validar `DATABASE_URL`
 
@@ -109,13 +114,21 @@ Na Vercel o build padrão detecta Next.js; em geral **não** é necessário cust
 pnpm prisma db seed
 ```
 
-O seed é idempotente e cria loja `na-brasa` + cardápio **fictício** + WhatsApp placeholder `5513999999999`.
+O seed é um **bootstrap técnico** idempotente: cria loja `na-brasa` + cardápio **fictício** **somente quando ainda não existem**.
+
+- Store existente: **não** sobrescreve WhatsApp, endereço, horários, taxas, pedido mínimo ou flags operacionais.
+- Placeholder WhatsApp `5513999999999` aplica-se **apenas** na primeira criação da Store.
+- Categorias/produtos/adicionais existentes: **não** são reescritos (só cria ausentes).
+
+Se `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL` e `MASTER_ADMIN_PASSWORD` estiverem definidos na sessão, também faz upsert do usuário plataforma (`role = MASTER`, `storeId` null). Não usa `ADMIN_*` para isso e não há senha padrão.
 
 Em produção real:
 
-- Ajuste o seed **antes** de usar, **ou**
-- Rode só como bootstrap e corrija WhatsApp/endereço/taxas/cardápio no banco, **ou**
+- Prefira seed **só** no bootstrap inicial (ou banco vazio), **ou**
+- Cadastre/ajuste loja e cardápio real no banco após o bootstrap, **ou**
 - Pule o seed e cadastre a loja manualmente.
+- Para bootstrap do `MASTER`, defina as três envs `MASTER_ADMIN_*` com valores reais fortes (nunca placeholders inseguros em produção).
+- **Não** depende do seed para “atualizar” dados oficiais — ele não substitui configuração operacional já presente.
 
 Não trate o seed de desenvolvimento como dados oficiais do cliente.
 

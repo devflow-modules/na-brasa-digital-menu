@@ -1,6 +1,8 @@
 # Database — Na Brasa
 
-Modelo inicial de dados (Prisma 6 + PostgreSQL) para o cardápio online.
+Modelo de dados (Prisma 6 + PostgreSQL) para o cardápio online e fundação multi-admin.
+
+Decisão de produto/plataforma: [ADR 0002 — Database-backed multi-admin and master panel](adr/0002-database-backed-multi-admin-and-master-panel.md).
 
 ## Decisões
 
@@ -11,6 +13,7 @@ Modelo inicial de dados (Prisma 6 + PostgreSQL) para o cardápio online.
 | Snapshots em `OrderItem` / `OrderItemAddon` | Pedido histórico não muda se o cardápio mudar |
 | `OrderSource` | Diferencia pedido direto, iFood (futuro) e outros |
 | Totais em `Order` | `subtotalCents`, `deliveryFeeCents`, `totalCents` recalculados no server na criação |
+| `User` + `UserRole` no banco | Auth multi-cliente; `/admin` por loja e futuro `/master` (ADR 0002) |
 
 ## Entidades
 
@@ -18,6 +21,7 @@ Modelo inicial de dados (Prisma 6 + PostgreSQL) para o cardápio online.
 Store
   ├── Category
   ├── Product ──< ProductAddon >── Addon
+  ├── User (store-bound roles; MASTER may have storeId null)
   └── Order
         └── OrderItem
               └── OrderItemAddon
@@ -25,11 +29,27 @@ Store
 
 ### Catálogo
 
-- **Store** — loja (Na Brasa), WhatsApp, taxas e flags de retirada/entrega
+- **Store** — loja (Na Brasa é o 1º tenant), WhatsApp, taxas e flags de retirada/entrega
 - **Category** — categorias do cardápio (`sortOrder`, `active`)
 - **Product** — itens (`priceCents`, `featured`, `sortOrder`, `active`)
 - **Addon** — adicionais da loja
 - **ProductAddon** — vínculo N:N produto ↔ adicional
+
+### Usuários (fundação — ADR 0002)
+
+- **User** — `name`, `email` (unique), `passwordHash`, `role`, `isActive`, `storeId?`
+- **UserRole** — `MASTER` | `STORE_OWNER` | `MANAGER` | `OPERATOR` | `KITCHEN`
+
+Regras de produto (documentadas; constraints complexas role↔storeId **ainda não** no banco):
+
+| Role | `storeId` |
+| --- | --- |
+| `MASTER` | Pode ser `null` (DevFlow Labs / operação da plataforma) |
+| `STORE_OWNER`, `MANAGER`, `OPERATOR`, `KITCHEN` | Devem estar vinculados a uma `Store` (obrigatório nas PRs futuras de auth/admin) |
+
+Índices: `storeId`, `role`, `isActive`. Relação `Store.users` ↔ `User.store` (`onDelete: Restrict`).
+
+Login **atual** de `/admin` ainda usa `ADMIN_EMAIL` / `ADMIN_PASSWORD` (env). A migration desta foundation **não** troca o fluxo de autenticação.
 
 ### Pedidos
 
@@ -45,6 +65,7 @@ Store
 - `DeliveryType`: PICKUP, DELIVERY
 - `PaymentMethod`: CASH, PIX, CARD (sem gateway na V1)
 - `OrderSource`: DIRECT, IFOOD, OTHER
+- `UserRole`: MASTER, STORE_OWNER, MANAGER, OPERATOR, KITCHEN
 
 ## Seed
 
@@ -52,19 +73,25 @@ Store
 pnpm prisma:seed
 ```
 
-Seed idempotente em `prisma/seed.ts`:
+Seed **bootstrap técnico** idempotente e **seguro para produção** em `prisma/seed.ts`:
 
-- Store `na-brasa`
-- Categorias, produtos e adicionais fictícios
-- WhatsApp placeholder: `5513999999999`
-- Não cria pedidos reais
+- Store `na-brasa`: **cria só se não existir**. Se já existir, **não** sobrescreve WhatsApp, endereço, horários, taxas, pedido mínimo, flags (`isOpen`, retirada/entrega) nem outros campos operacionais.
+- Categorias / produtos / adicionais: **cria somente os que faltam** (por nome na loja). Linhas existentes **não** são regravadas (preços, descrições, vínculos `ProductAddon` reais permanecem).
+- WhatsApp placeholder `5513999999999` só na **primeira** criação da Store — não substitui WhatsApp real em re-seeds.
+- Não cria pedidos reais.
+- O summary do seed **não** imprime o número de WhatsApp (só flag `whatsappIsPlaceholder`).
+- **MASTER opcional:** se `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL` e `MASTER_ADMIN_PASSWORD` estiverem definidos, faz upsert do usuário `MASTER` (`storeId` null, hash via `bcryptjs`). Se faltar alguma env, avisa e segue o seed do cardápio. **Não** usa `ADMIN_EMAIL` / `ADMIN_PASSWORD` nem senha padrão hardcoded.
+
+Não use o seed para “sincronizar” cardápio oficial em produção; dados reais devem ser editados no banco (ou futuro CRUD), não reescritos por placeholders.
 
 ## Migration
 
 ```bash
-pnpm prisma migrate dev --name init_menu_order_models
+pnpm prisma migrate dev --name add_database_backed_users_roles
 ```
 
-## Fora desta modelagem
+(Histórico inicial do catálogo: `init_menu_order_models`.)
 
-UI pública, carrinho, checkout, WhatsApp link, admin, auth, iFood API, pagamento online.
+## Fora desta modelagem (ainda)
+
+UI de `/master`, CRUD de usuários, login via banco, store-scoping de `/admin`, iFood API, pagamento online.
