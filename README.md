@@ -1,10 +1,10 @@
-# Na Brasa — Cardápio Online
+# Na Braza — Cardápio Online
 
-Cardápio digital para o carrinho de lanches **Na Brasa**: lanches artesanais e espetinhos, com pedidos salvos no painel e finalização via WhatsApp.
+Cardápio digital para o carrinho de lanches **Na Braza**: lanches artesanais e espetinhos, com pedidos salvos no painel e finalização via WhatsApp.
 
 ## Current status
 
-**v0.1.0-pilot ready** — validated for controlled pilot with the Na Brasa owner.
+**v0.1.0-pilot ready** — validated for controlled pilot with the Na Braza owner.
 
 Core capabilities:
 
@@ -146,7 +146,7 @@ O seed cria a loja `na-brasa` com cardápio fictício e WhatsApp **placeholder**
 | `pnpm install` | Instala dependências |
 | `pnpm prisma generate` | Gera o Prisma Client |
 | `pnpm prisma migrate dev` | Cria/aplica migrations (dev) |
-| `pnpm prisma db seed` | Seed idempotente do Na Brasa |
+| `pnpm prisma db seed` | Seed idempotente da loja Na Braza (`slug` `na-brasa`) |
 | `pnpm dev` | Servidor de desenvolvimento |
 | `pnpm lint` | ESLint |
 | `pnpm typecheck` | TypeScript (`tsc --noEmit`) |

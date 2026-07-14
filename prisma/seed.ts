@@ -52,7 +52,7 @@ type SeedProduct = {
 
 const products: SeedProduct[] = [
   {
-    name: "Burger Na Brasa",
+    name: "Burger Na Braza",
     description: "Blend artesanal grelhado na brasa, queijo, alface e molho da casa.",
     categoryName: "Lanches Artesanais",
     priceCents: 2890,
@@ -156,7 +156,7 @@ const addons = [
   },
   {
     name: "Molho da casa",
-    description: "Molho especial Na Brasa.",
+    description: "Molho especial Na Braza.",
     priceCents: 200,
     sortOrder: 5,
   },
@@ -180,7 +180,7 @@ async function ensureStore() {
 
   const store = await prisma.store.create({
     data: {
-      name: "Na Brasa",
+      name: "Na Braza",
       slug: STORE_SLUG,
       description:
         "Carrinho de lanches artesanais e espetinhos feitos na brasa.",
@@ -373,7 +373,7 @@ async function ensureProducts(
 }
 
 async function main() {
-  console.log("Seeding Na Brasa (idempotent, production-safe bootstrap)...");
+  console.log("Seeding Na Braza (idempotent, production-safe bootstrap)...");
 
   const master = await upsertMasterUser();
   const { store, created: storeCreated } = await ensureStore();

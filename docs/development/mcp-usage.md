@@ -1,6 +1,6 @@
 # MCP — política de uso (Cursor)
 
-O Na Brasa usa MCP como **acelerador** para consulta de documentação e validação em browser. **Não** substitui CI, migrations, segredos nem infraestrutura de produção.
+O Na Braza usa MCP como **acelerador** para consulta de documentação e validação em browser. **Não** substitui CI, migrations, segredos nem infraestrutura de produção.
 
 Documentos relacionados: [Testing](testing.md) · [Operação](operations.md) · [Checklist de produção](production-checklist.md)
 

@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Na Brasa — Cardápio Online",
+  title: "Na Braza — Cardápio Online",
   description:
-    "Cardápio online do Na Brasa: lanches artesanais e espetinhos feitos na brasa.",
+    "Cardápio online do Na Braza: lanches artesanais e espetinhos feitos na brasa.",
 };
 
 export default function RootLayout({

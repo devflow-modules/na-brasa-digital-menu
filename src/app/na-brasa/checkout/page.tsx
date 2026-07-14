@@ -8,8 +8,8 @@ const STORE_SLUG = "na-brasa";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Checkout — Na Brasa",
-  description: "Informe seus dados para finalizar o pedido no Na Brasa.",
+  title: "Checkout — Na Braza",
+  description: "Informe seus dados para finalizar o pedido no Na Braza.",
 };
 
 export default async function CheckoutPage() {

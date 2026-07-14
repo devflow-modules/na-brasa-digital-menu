@@ -8,7 +8,7 @@ const STORE_SLUG = "na-brasa";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Na Brasa — Cardápio Online",
+  title: "Na Braza — Cardápio Online",
   description:
     "Lanches artesanais e espetinhos feitos na brasa. Peça direto pelo cardápio online.",
 };

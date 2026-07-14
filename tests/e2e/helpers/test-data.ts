@@ -41,6 +41,9 @@ export function getStoreSlug(): string {
   return process.env.NEXT_PUBLIC_STORE_SLUG?.trim() || "na-brasa";
 }
 
+/** Official customer-facing store name (slug remains `na-brasa`). */
+export const OFFICIAL_STORE_DISPLAY_NAME = "Na Braza";
+
 export function getSessionCookieName(): string {
   return process.env.ADMIN_SESSION_COOKIE?.trim() || "na-brasa-admin-session";
 }

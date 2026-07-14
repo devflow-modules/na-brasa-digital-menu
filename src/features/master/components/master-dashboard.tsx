@@ -34,7 +34,7 @@ export function MasterDashboard({
             Painel Master
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-stone-400">
-            Operação geral da plataforma. Na Brasa é o primeiro cliente/tenant
+            Operação geral da plataforma. Na Braza é o primeiro cliente/tenant
             real.
           </p>
           <p className="mt-2 text-sm text-stone-500">

@@ -6,8 +6,8 @@ import { getAdminSession } from "@/features/admin/auth/admin-session";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Login Admin — Na Brasa",
-  description: "Acesse o painel administrativo do Na Brasa.",
+  title: "Login Admin — Na Braza",
+  description: "Acesse o painel administrativo do Na Braza.",
 };
 
 export default async function AdminLoginPage() {
@@ -22,7 +22,7 @@ export default async function AdminLoginPage() {
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
         <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight text-stone-900">
-            Na Brasa Admin
+            Na Braza Admin
           </h1>
           <p className="mt-2 text-sm text-stone-600">
             Acesse o painel de pedidos

@@ -8,6 +8,7 @@ import { loadLocalEnvFile } from "./load-env";
 import {
   E2E_CUSTOMER_PREFIX,
   getStoreSlug,
+  OFFICIAL_STORE_DISPLAY_NAME,
   uniqueCustomerName,
 } from "./test-data";
 
@@ -25,6 +26,19 @@ function getPrisma(): PrismaClient {
 }
 
 export { getPrisma };
+
+/** Aligns E2E DB display name with official brand (does not run in production). */
+export async function ensureOfficialStoreDisplayNameForE2e(): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  await prisma.store.updateMany({
+    where: { slug: storeSlug },
+    data: { name: OFFICIAL_STORE_DISPLAY_NAME },
+  });
+}
 
 function assertCleanupAllowed(): void {
   if (process.env.NODE_ENV === "production") {

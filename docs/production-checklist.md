@@ -109,7 +109,7 @@ Detalhes: [deployment.md](deployment.md#rollback-manual-básico).
 
 ## Client acceptance checklist
 
-Checklist para o **dono do Na Brasa** após o piloto técnico (dados reais, não fictícios de E2E):
+Checklist para o **dono do Na Braza** após o piloto técnico (dados reais, não fictícios de E2E):
 
 - [ ] Dados da loja conferidos em `/admin/configuracoes`
 - [ ] WhatsApp oficial conferido (mensagem de teste chega no número certo)

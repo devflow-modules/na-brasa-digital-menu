@@ -6,7 +6,7 @@
 
 ## Context
 
-The project started as a single-store technical MVP for **Na Brasa**, with:
+The project started as a single-store technical MVP for **Na Braza**, with:
 
 - Public menu at `/na-brasa`
 - Cart → checkout → order persistence → WhatsApp redirect (`wa.me`)
@@ -19,7 +19,7 @@ https://na-brasa-cardapio.vercel.app
 
 Product direction has changed:
 
-- **Na Brasa** becomes the first real client/tenant, not the permanent product identity.
+- **Na Braza** becomes the first real client/tenant, not the permanent product identity.
 - The system evolves into a **white-label online menu platform**.
 - `/admin` is the **store/client** operational panel.
 - `/master` is the **DevFlow Labs** operational panel (platform operator).
@@ -111,7 +111,7 @@ This ADR does **not** implement functional code, Prisma schema changes, or auth 
 - Every store-facing query/mutation must enforce `storeId` isolation (authorization bugs become data leaks).
 - Temporary dual model during migration (env → DB) needs careful cutover.
 - Master seed secrets must stay out of git and out of logs.
-- Existing production Na Brasa admin flow must keep working during the incremental PRs.
+- Existing production Na Braza admin flow must keep working during the incremental PRs.
 
 ### Out of scope for this ADR
 
