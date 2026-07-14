@@ -13,6 +13,7 @@ export type PublicMenuProduct = {
   imageUrl: string | null;
   featured: boolean;
   sortOrder: number;
+  available: boolean;
   addons: PublicMenuAddon[];
 };
 

@@ -24,6 +24,7 @@ export type CatalogProductRecord = {
   description: string | null;
   priceCents: number;
   active: boolean;
+  available: boolean;
   productAddons: Array<{
     addon: {
       id: string;
@@ -68,6 +69,7 @@ export async function findActiveProductsForOrder(
       description: true,
       priceCents: true,
       active: true,
+      available: true,
       productAddons: {
         select: {
           addon: {

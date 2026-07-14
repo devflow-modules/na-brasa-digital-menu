@@ -31,7 +31,7 @@ Store
 
 - **Store** — loja (Na Brasa é o 1º tenant), WhatsApp, taxas e flags de retirada/entrega
 - **Category** — categorias do cardápio (`sortOrder`, `active`)
-- **Product** — itens (`priceCents`, `featured`, `sortOrder`, `active`)
+- **Product** — itens (`priceCents`, `featured`, `sortOrder`, `active`, `available`)
 - **Addon** — adicionais da loja
 - **ProductAddon** — vínculo N:N produto ↔ adicional
 

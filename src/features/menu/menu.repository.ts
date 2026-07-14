@@ -50,6 +50,7 @@ export async function getPublicMenuBySlug(
               imageUrl: true,
               featured: true,
               sortOrder: true,
+              available: true,
               productAddons: {
                 where: {
                   addon: {
@@ -93,6 +94,7 @@ export async function getPublicMenuBySlug(
         imageUrl: product.imageUrl,
         featured: product.featured,
         sortOrder: product.sortOrder,
+        available: product.available,
         addons: product.productAddons
           .map((link) => link.addon)
           .sort((a, b) => a.sortOrder - b.sortOrder),

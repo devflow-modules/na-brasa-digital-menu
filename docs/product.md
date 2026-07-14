@@ -54,7 +54,7 @@ O schema Prisma cobre catálogo e pedidos. Detalhes em `docs/database.md`.
 ### Catálogo
 
 - **Store** — loja `na-brasa` (WhatsApp, endereço, taxas)
-- **Category** / **Product** / **Addon** — cardápio com `active` e `sortOrder`
+- **Category** / **Product** / **Addon** — cardápio com `active`, `available` (produto) e `sortOrder`
 - **ProductAddon** — quais adicionais cada produto aceita
 
 ### Pedidos
@@ -135,10 +135,11 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 
 - Lista categorias e produtos da Store efetiva (store-scoped).
 - Preços em **centavos** no banco; formulários aceitam reais e convertem no server.
-- **Disponibilidade** no cardápio público usa `Product.active` (sem coluna separada nesta etapa).
+- **`Product.active`**: publicação no catálogo (`false` = oculto em `/{slug}`).
+- **`Product.available`**: disponibilidade operacional (`false` = aparece como indisponível, sem pedido).
 - Sem upload de imagem, sem delete físico e sem addons avançados.
 
-| Role | Ver | Criar/editar produto | Categorias | Disponível/indisponível | Ativar/desativar |
+| Role | Ver | Criar/editar produto | Categorias | Disponível/indisponível (`available`) | Publicar/ocultar (`active`) |
 | --- | --- | --- | --- | --- | --- |
 | `MASTER` | sim | sim | sim | sim | sim |
 | `STORE_OWNER` | sim | sim | sim | sim | sim |

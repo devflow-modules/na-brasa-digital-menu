@@ -148,7 +148,7 @@ export function ProductForm({
           defaultChecked={product?.active ?? true}
           className="size-4 rounded border-stone-600"
         />
-        Disponível no cardápio público
+        Publicado no cardápio (oculto se desmarcado)
       </label>
       <button
         type="submit"

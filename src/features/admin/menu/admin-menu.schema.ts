@@ -72,7 +72,12 @@ export const updateProductSchema = z.object({
   isActive: z.coerce.boolean(),
 });
 
-export const toggleProductSchema = z.object({
+export const toggleProductActiveSchema = z.object({
   productId: idSchema,
   active: z.coerce.boolean(),
+});
+
+export const toggleProductAvailabilitySchema = z.object({
+  productId: idSchema,
+  available: z.coerce.boolean(),
 });

@@ -5,6 +5,7 @@ export type AdminMenuProduct = {
   description: string | null;
   priceCents: number;
   active: boolean;
+  available: boolean;
   sortOrder: number;
 };
 

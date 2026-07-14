@@ -347,6 +347,7 @@ async function ensureProducts(
         featured: product.featured ?? false,
         sortOrder: product.sortOrder,
         active: true,
+        available: true,
       },
     });
 

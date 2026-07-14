@@ -43,9 +43,10 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 1. No dashboard `/admin`, use **Gerenciar cardápio** (ou **Ver cardápio** para perfis só leitura).
 2. Categorias e produtos são sempre da **sua Store** (`storeId` da sessão).
 3. Dono/gerente podem criar categoria, criar/editar produto e ativar/desativar.
-4. Operador pode marcar produto **disponível/indisponível** no cardápio público (campo `active`).
-5. Cozinha só visualiza o cardápio administrativo.
-6. Não há exclusão física nesta etapa — prefira desativar ou marcar indisponível.
+4. Operador pode marcar produto **disponível/indisponível** (`Product.available`); produto indisponível continua visível no cardápio público, mas não pode ser pedido.
+5. Dono/gerente podem **publicar/ocultar** produto (`Product.active`); oculto some do `/{slug}`.
+6. Cozinha só visualiza o cardápio administrativo.
+7. Não há exclusão física nesta etapa — prefira ocultar (`active`) ou marcar indisponível (`available`).
 
 ## Painel Master (`/master`)
 
