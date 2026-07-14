@@ -24,3 +24,7 @@ Use o agente certo no prompt (“atue como Frontend Engineer…”) ou combine: 
 - **Schema / seed** → Database Engineer
 - **Antes de merge sensível** → Security Reviewer + QA
 - **Antes de subir produção** → Release Manager + `workflows/production-check.md`
+
+## MCP e agentes
+
+- Política de uso de MCP (Context7, Playwright, o que evitar em produção): [`docs/development/mcp-usage.md`](../docs/development/mcp-usage.md).
