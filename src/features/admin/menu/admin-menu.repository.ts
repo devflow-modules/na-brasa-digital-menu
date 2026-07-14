@@ -26,6 +26,7 @@ export async function getAdminMenuCatalog(
           description: true,
           priceCents: true,
           active: true,
+          available: true,
           sortOrder: true,
         },
       },
@@ -68,6 +69,7 @@ export async function productBelongsToStore(
       description: true,
       priceCents: true,
       active: true,
+      available: true,
       sortOrder: true,
     },
   });
@@ -140,6 +142,7 @@ export async function createAdminProduct(
       priceCents: input.priceCents,
       sortOrder: input.sortOrder,
       active: input.isActive,
+      available: true,
     },
     select: {
       id: true,
@@ -148,6 +151,7 @@ export async function createAdminProduct(
       description: true,
       priceCents: true,
       active: true,
+      available: true,
       sortOrder: true,
     },
   });
@@ -192,6 +196,18 @@ export async function setAdminProductActive(
   const result = await prisma.product.updateMany({
     where: { id: productId, storeId },
     data: { active },
+  });
+  return result.count === 1;
+}
+
+export async function setAdminProductAvailable(
+  storeId: string,
+  productId: string,
+  available: boolean,
+): Promise<boolean> {
+  const result = await prisma.product.updateMany({
+    where: { id: productId, storeId },
+    data: { available },
   });
   return result.count === 1;
 }

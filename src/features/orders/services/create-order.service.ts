@@ -95,6 +95,13 @@ export async function createOrder(
       };
     }
 
+    if (!product.available) {
+      return {
+        ok: false,
+        message: "Produto indisponível no momento.",
+      };
+    }
+
     const addonsById = new Map(
       product.productAddons.map((link) => [link.addon.id, link.addon]),
     );

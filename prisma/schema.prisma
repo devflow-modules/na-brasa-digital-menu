@@ -113,6 +113,7 @@ model Product {
   priceCents  Int
   imageUrl    String?
   active      Boolean  @default(true)
+  available   Boolean  @default(true)
   featured    Boolean  @default(false)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())

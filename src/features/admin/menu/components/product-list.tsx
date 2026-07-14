@@ -33,9 +33,12 @@ export function ProductList({
   const canToggleAvailability = canToggleProductAvailability(role);
   const canToggleActive = canToggleProductActive(role);
 
-  function toggleAvailability(productId: string, active: boolean) {
+  function toggleAvailability(productId: string, available: boolean) {
     startTransition(async () => {
-      const result = await toggleProductAvailabilityAction({ productId, active });
+      const result = await toggleProductAvailabilityAction({
+        productId,
+        available,
+      });
       if (result.ok) {
         router.refresh();
       }
@@ -114,12 +117,16 @@ export function ProductList({
                         {formatAdminPriceCents(product.priceCents)}
                       </p>
                       <p
-                        data-testid={`admin-menu-product-status-${product.id}`}
+                        data-testid={`admin-menu-product-publication-${product.id}`}
                         className="mt-2 text-xs text-stone-500"
                       >
-                        {product.active
-                          ? "Disponível no cardápio"
-                          : "Indisponível no cardápio"}
+                        {product.active ? "Publicado" : "Oculto / inativo"}
+                      </p>
+                      <p
+                        data-testid={`admin-menu-product-availability-${product.id}`}
+                        className="mt-1 text-xs text-stone-500"
+                      >
+                        {product.available ? "Disponível" : "Indisponível"}
                       </p>
                     </div>
                     <div className="flex flex-col gap-2">
@@ -129,11 +136,11 @@ export function ProductList({
                           data-testid={`admin-menu-toggle-availability-${product.id}`}
                           disabled={isPending}
                           onClick={() =>
-                            toggleAvailability(product.id, !product.active)
+                            toggleAvailability(product.id, !product.available)
                           }
                           className="h-9 rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 disabled:opacity-60"
                         >
-                          {product.active
+                          {product.available
                             ? "Marcar indisponível"
                             : "Marcar disponível"}
                         </button>
@@ -146,7 +153,9 @@ export function ProductList({
                           onClick={() => toggleActive(product.id, !product.active)}
                           className="h-9 rounded-lg border border-amber-500/40 px-3 text-xs font-medium text-amber-100 disabled:opacity-60"
                         >
-                          {product.active ? "Desativar produto" : "Ativar produto"}
+                          {product.active
+                            ? "Ocultar do cardápio"
+                            : "Publicar no cardápio"}
                         </button>
                       ) : null}
                     </div>

@@ -108,11 +108,12 @@ test.describe("admin menu management", () => {
 
     await page.getByTestId(`admin-menu-toggle-availability-${product.id}`).click();
     await expect(
-      page.getByTestId(`admin-menu-product-status-${product.id}`),
+      page.getByTestId(`admin-menu-product-availability-${product.id}`),
     ).toContainText("Indisponível", { timeout: 15_000 });
 
     const updated = await getProductById(product.id);
-    expect(updated?.active).toBe(false);
+    expect(updated?.available).toBe(false);
+    expect(updated?.active).toBe(true);
   });
 
   test("KITCHEN sees menu without edit or toggle actions", async ({ page }) => {
@@ -132,6 +133,7 @@ test.describe("admin menu management", () => {
     await expect(page.getByTestId("admin-menu-page")).toBeVisible();
     await expect(page.getByTestId(`admin-menu-product-${product.id}`)).toBeVisible();
     await expect(page.getByTestId(`admin-menu-toggle-availability-${product.id}`)).toHaveCount(0);
+    await expect(page.getByTestId(`admin-menu-toggle-active-${product.id}`)).toHaveCount(0);
     await expect(page.getByTestId(`admin-menu-edit-product-form-${product.id}`)).toHaveCount(0);
   });
 
@@ -215,10 +217,10 @@ test.describe("admin menu management", () => {
 
     await loginAsUser(page, manager);
     await page.goto("/admin/cardapio");
-    await page.getByTestId(`admin-menu-toggle-availability-${product.id}`).click();
+    await page.getByTestId(`admin-menu-toggle-active-${product.id}`).click();
     await expect(
-      page.getByTestId(`admin-menu-product-status-${product.id}`),
-    ).toContainText("Indisponível", { timeout: 15_000 });
+      page.getByTestId(`admin-menu-product-publication-${product.id}`),
+    ).toContainText("Oculto", { timeout: 15_000 });
 
     await page.goto("/na-brasa");
     await expect(page.getByText(product.name)).toHaveCount(0);

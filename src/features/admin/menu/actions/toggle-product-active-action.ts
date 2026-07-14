@@ -7,7 +7,7 @@ import {
 } from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
 import { setAdminProductActive } from "@/features/admin/menu/admin-menu.repository";
-import { toggleProductSchema } from "@/features/admin/menu/admin-menu.schema";
+import { toggleProductActiveSchema } from "@/features/admin/menu/admin-menu.schema";
 import type { AdminMenuActionResult } from "@/features/admin/menu/admin-menu.types";
 
 function revalidateMenuPaths(storeSlug: string) {
@@ -23,7 +23,7 @@ export async function toggleProductActiveAction(
     return { ok: false, message: ADMIN_PERMISSION_DENIED_MESSAGE };
   }
 
-  const parsed = toggleProductSchema.safeParse(input);
+  const parsed = toggleProductActiveSchema.safeParse(input);
   if (!parsed.success) {
     return {
       ok: false,

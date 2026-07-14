@@ -92,6 +92,7 @@ export async function createE2ePickupOrder(options?: {
         description: "Produto técnico E2E",
         priceCents: 1500,
         active: true,
+        available: true,
         sortOrder: 1,
       },
     });
@@ -320,7 +321,14 @@ export async function createE2eMenuProduct(options: {
   name?: string;
   priceCents?: number;
   active?: boolean;
-}): Promise<{ id: string; name: string; priceCents: number; active: boolean }> {
+  available?: boolean;
+}): Promise<{
+  id: string;
+  name: string;
+  priceCents: number;
+  active: boolean;
+  available: boolean;
+}> {
   const prisma = getPrisma();
   const name = options.name ?? `${E2E_MENU_PREFIX} Product ${Date.now()}`;
   const product = await prisma.product.create({
@@ -332,10 +340,28 @@ export async function createE2eMenuProduct(options: {
       priceCents: options.priceCents ?? 1990,
       sortOrder: 999,
       active: options.active ?? true,
+      available: options.available ?? true,
     },
-    select: { id: true, name: true, priceCents: true, active: true },
+    select: {
+      id: true,
+      name: true,
+      priceCents: true,
+      active: true,
+      available: true,
+    },
   });
   return product;
+}
+
+export async function setE2eProductAvailability(
+  productId: string,
+  available: boolean,
+): Promise<void> {
+  const prisma = getPrisma();
+  await prisma.product.update({
+    where: { id: productId },
+    data: { available },
+  });
 }
 
 export async function cleanupE2eMenuCatalog(): Promise<void> {
@@ -364,6 +390,7 @@ export async function getProductById(productId: string) {
       name: true,
       priceCents: true,
       active: true,
+      available: true,
       storeId: true,
     },
   });
