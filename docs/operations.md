@@ -30,7 +30,22 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 3. Links úteis: cardápio público da loja (`/{slug}`), `/admin` temporário, **Sair**
 4. Usuários de loja (`STORE_OWNER`, `OPERATOR`, etc.) **não** acessam `/master`
 
-`/admin` permanece o painel operacional da **loja/cliente**. CRUD de lojas e usuários no master ainda não está disponível.
+`/admin` permanece o painel operacional da **loja/cliente**.
+
+## Usuários de loja (`/master`)
+
+1. Em `/master`, na loja desejada, use **Gerenciar usuários**
+2. Abre `/master/stores/[storeId]/users` (somente `MASTER`)
+3. Liste usuários: nome, e-mail, role, ativo/inativo, criação, loja vinculada
+4. Crie usuário com role `STORE_OWNER` / `MANAGER` / `OPERATOR` / `KITCHEN`, senha ≥ 8 (recomendado 12+)
+5. Ative/desative o acesso ou altere a role (nunca `MASTER` por esta tela)
+6. Reset de senha ainda é roadmap — a senha inicial não é reexibida após criar
+
+Regras:
+- Todo usuário criado nesta tela recebe o `storeId` da loja da rota
+- `passwordHash` nunca é exposto na UI
+- Usuário de loja acessa `/admin` da própria Store; **não** acessa `/master`
+- E-mail duplicado retorna erro amigável
 
 ## Como receber pedidos
 
@@ -94,7 +109,10 @@ O MVP **não** envia mensagem automática pela API do WhatsApp: só abre o link 
 - Não deixe a sessão aberta em celular de terceiros
 - Pedidos têm dados pessoais (nome, telefone, endereço) — trate o painel como área restrita
 - Credenciais de login ficam no **banco** (`User`); secrets de sessão (`ADMIN_JWT_SECRET`) só nas envs do servidor
-- Sem múltiplos painéis ainda: `MASTER` e usuários de loja compartilham `/admin` temporariamente
-- Sem CRUD de usuários no painel (bootstrap via seed `MASTER_ADMIN_*`)
+- `MASTER` prefere `/master`; acesso a `/admin` ainda é transicional
+- Usuários de loja são gerenciados em `/master/stores/[storeId]/users`
+- Reset de senha ainda não existe no painel
+- Sem CRUD de lojas / cardápio no master nesta etapa
+- Bootstrap inicial do MASTER continua via seed `MASTER_ADMIN_*`
 
 Para colocar o ambiente no ar: [deployment.md](deployment.md).

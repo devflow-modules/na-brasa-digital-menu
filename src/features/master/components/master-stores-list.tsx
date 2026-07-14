@@ -59,12 +59,21 @@ export function MasterStoresList({ stores }: MasterStoresListProps) {
                 </p>
               </div>
 
-              <Link
-                href={`/${store.slug}`}
-                className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 text-sm font-medium text-orange-200 hover:bg-orange-500/20"
-              >
-                Abrir cardápio público
-              </Link>
+              <div className="flex flex-col gap-2 sm:items-stretch">
+                <Link
+                  href={`/master/stores/${store.id}/users`}
+                  data-testid={`master-store-users-link-${store.slug}`}
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 text-sm font-medium text-orange-200 hover:bg-orange-500/20"
+                >
+                  Gerenciar usuários
+                </Link>
+                <Link
+                  href={`/${store.slug}`}
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm font-medium text-stone-200 hover:bg-stone-800"
+                >
+                  Abrir cardápio público
+                </Link>
+              </div>
             </div>
           </li>
         ))}

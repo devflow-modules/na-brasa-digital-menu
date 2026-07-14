@@ -247,6 +247,31 @@ export async function cleanupE2eStores(): Promise<number> {
   return result.count;
 }
 
+/**
+ * Deletes E2E store users created via master UI / fixtures.
+ * Only @example.com emails with known E2E prefixes. Never touches MASTER.
+ */
+export async function cleanupE2eStoreUsers(): Promise<number> {
+  assertCleanupAllowed();
+  const prisma = getPrisma();
+  const result = await prisma.user.deleteMany({
+    where: {
+      AND: [
+        { email: { endsWith: "@example.com" } },
+        {
+          OR: [
+            { email: { startsWith: "e2e-master-created-" } },
+            { email: { startsWith: "e2e-store-" } },
+            { email: { startsWith: "e2e-store-users-" } },
+          ],
+        },
+        { role: { not: "MASTER" } },
+      ],
+    },
+  });
+  return result.count;
+}
+
 export async function getOrderStatus(orderId: string): Promise<OrderStatus> {
   const prisma = getPrisma();
   const order = await prisma.order.findUniqueOrThrow({

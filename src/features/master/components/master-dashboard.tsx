@@ -62,7 +62,8 @@ export function MasterDashboard({
         <Link href="/admin" className="underline underline-offset-2">
           /admin
         </Link>{" "}
-        ainda é transicional. CRUD de lojas e usuários virá em PRs futuras.
+        ainda é transicional. Gerencie usuários de loja em &quot;Gerenciar
+        usuários&quot;. CRUD completo de lojas virá em PRs futuras.
       </p>
 
       <MasterSummaryCards summary={summary} />
@@ -71,7 +72,8 @@ export function MasterDashboard({
         <div>
           <h2 className="text-lg font-semibold text-orange-50">Lojas</h2>
           <p className="text-sm text-stone-400">
-            Tenants cadastrados na plataforma (somente leitura nesta etapa).
+            Tenants cadastrados na plataforma. Usuários por loja já podem ser
+            gerenciados.
           </p>
         </div>
         <MasterStoresList stores={stores} />
