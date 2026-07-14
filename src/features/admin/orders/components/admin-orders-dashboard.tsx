@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { LogoutButton } from "@/features/admin/auth/components/logout-button";
 import type {
   AdminOrderListItem,
@@ -10,6 +11,8 @@ type AdminOrdersDashboardProps = {
   sessionEmail: string;
   storeName: string;
   isMasterTransitional?: boolean;
+  menuNavHref?: string | null;
+  menuNavLabel?: string | null;
   orders: AdminOrderListItem[];
   summary: AdminOrdersSummary;
 };
@@ -18,6 +21,8 @@ export function AdminOrdersDashboard({
   sessionEmail,
   storeName,
   isMasterTransitional = false,
+  menuNavHref = null,
+  menuNavLabel = null,
   orders,
   summary,
 }: AdminOrdersDashboardProps) {
@@ -48,7 +53,18 @@ export function AdminOrdersDashboard({
             </p>
           ) : null}
         </div>
-        <LogoutButton className="border-stone-700 bg-stone-900 text-stone-100 hover:bg-stone-800" />
+        <div className="flex flex-col items-end gap-2">
+          {menuNavHref && menuNavLabel ? (
+            <Link
+              href={menuNavHref}
+              data-testid="admin-menu-nav-link"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 text-sm font-semibold text-orange-100 hover:bg-orange-500/20"
+            >
+              {menuNavLabel}
+            </Link>
+          ) : null}
+          <LogoutButton className="border-stone-700 bg-stone-900 text-stone-100 hover:bg-stone-800" />
+        </div>
       </header>
 
       <OrdersSummaryCards summary={summary} />

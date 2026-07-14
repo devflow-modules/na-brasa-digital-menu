@@ -38,6 +38,15 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 - `MASTER` continua com acesso transicional ao `/admin`.
 - A matriz pode evoluir por cliente/plano no futuro.
 
+## Cardápio (`/admin/cardapio`)
+
+1. No dashboard `/admin`, use **Gerenciar cardápio** (ou **Ver cardápio** para perfis só leitura).
+2. Categorias e produtos são sempre da **sua Store** (`storeId` da sessão).
+3. Dono/gerente podem criar categoria, criar/editar produto e ativar/desativar.
+4. Operador pode marcar produto **disponível/indisponível** no cardápio público (campo `active`).
+5. Cozinha só visualiza o cardápio administrativo.
+6. Não há exclusão física nesta etapa — prefira desativar ou marcar indisponível.
+
 ## Painel Master (`/master`)
 
 1. Faça login em `/admin/login` com usuário role `MASTER`

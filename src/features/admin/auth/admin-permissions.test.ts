@@ -77,8 +77,17 @@ describe("admin-permissions matrix", () => {
   });
 
   it("getAdminPermissions returns expected sizes", () => {
-    assert.equal(getAdminPermissions("MASTER").length, 7);
-    assert.equal(getAdminPermissions("OPERATOR").length, 6);
-    assert.equal(getAdminPermissions("KITCHEN").length, 3);
+    assert.equal(getAdminPermissions("MASTER").length, 14);
+    assert.equal(getAdminPermissions("OPERATOR").length, 8);
+    assert.equal(getAdminPermissions("KITCHEN").length, 4);
+  });
+
+  it("menu permissions by role", () => {
+    assert.equal(hasAdminPermission("OPERATOR", "menu.product.toggleAvailability"), true);
+    assert.equal(hasAdminPermission("OPERATOR", "menu.product.update"), false);
+    assert.equal(hasAdminPermission("KITCHEN", "menu.read"), true);
+    assert.equal(hasAdminPermission("KITCHEN", "menu.product.create"), false);
+    assert.equal(hasAdminPermission("MANAGER", "menu.product.create"), true);
+    assert.equal(hasAdminPermission("STORE_OWNER", "menu.category.update"), true);
   });
 });

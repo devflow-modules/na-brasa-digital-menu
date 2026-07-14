@@ -16,9 +16,16 @@ export type AdminPermission =
   | "orders.status.ready"
   | "orders.status.dispatch"
   | "orders.status.complete"
-  | "orders.status.cancel";
+  | "orders.status.cancel"
+  | "menu.read"
+  | "menu.product.create"
+  | "menu.product.update"
+  | "menu.product.toggleAvailability"
+  | "menu.product.toggleActive"
+  | "menu.category.create"
+  | "menu.category.update";
 
-const ALL_ADMIN_PERMISSIONS: readonly AdminPermission[] = [
+const ORDER_PERMISSIONS = [
   "orders.read",
   "orders.status.confirm",
   "orders.status.prepare",
@@ -26,12 +33,27 @@ const ALL_ADMIN_PERMISSIONS: readonly AdminPermission[] = [
   "orders.status.dispatch",
   "orders.status.complete",
   "orders.status.cancel",
-] as const;
+] as const satisfies readonly AdminPermission[];
+
+const MENU_PERMISSIONS = [
+  "menu.read",
+  "menu.product.create",
+  "menu.product.update",
+  "menu.product.toggleAvailability",
+  "menu.product.toggleActive",
+  "menu.category.create",
+  "menu.category.update",
+] as const satisfies readonly AdminPermission[];
+
+const ORDER_AND_MENU_PERMISSIONS: readonly AdminPermission[] = [
+  ...ORDER_PERMISSIONS,
+  ...MENU_PERMISSIONS,
+];
 
 const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
-  MASTER: ALL_ADMIN_PERMISSIONS,
-  STORE_OWNER: ALL_ADMIN_PERMISSIONS,
-  MANAGER: ALL_ADMIN_PERMISSIONS,
+  MASTER: ORDER_AND_MENU_PERMISSIONS,
+  STORE_OWNER: ORDER_AND_MENU_PERMISSIONS,
+  MANAGER: ORDER_AND_MENU_PERMISSIONS,
   OPERATOR: [
     "orders.read",
     "orders.status.confirm",
@@ -39,11 +61,14 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
     "orders.status.ready",
     "orders.status.dispatch",
     "orders.status.complete",
+    "menu.read",
+    "menu.product.toggleAvailability",
   ],
   KITCHEN: [
     "orders.read",
     "orders.status.prepare",
     "orders.status.ready",
+    "menu.read",
   ],
 };
 
@@ -70,6 +95,45 @@ export function hasAdminPermission(
   permission: AdminPermission,
 ): boolean {
   return getAdminPermissions(role).includes(permission);
+}
+
+export function canReadMenu(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.read");
+}
+
+export function canCreateMenuProduct(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.product.create");
+}
+
+export function canUpdateMenuProduct(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.product.update");
+}
+
+export function canToggleProductAvailability(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.product.toggleAvailability");
+}
+
+export function canToggleProductActive(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.product.toggleActive");
+}
+
+export function canManageMenuCategories(role: UserRole): boolean {
+  return (
+    hasAdminPermission(role, "menu.category.create") &&
+    hasAdminPermission(role, "menu.category.update")
+  );
+}
+
+export function canManageMenu(role: UserRole): boolean {
+  return (
+    canCreateMenuProduct(role) ||
+    canUpdateMenuProduct(role) ||
+    canManageMenuCategories(role)
+  );
+}
+
+export function getAdminMenuNavLabel(role: UserRole): string {
+  return canManageMenu(role) ? "Gerenciar cardápio" : "Ver cardápio";
 }
 
 /**

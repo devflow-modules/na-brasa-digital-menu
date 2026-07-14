@@ -287,3 +287,84 @@ export async function disconnectE2ePrisma(): Promise<void> {
     globalForPrisma.e2ePrisma = undefined;
   }
 }
+
+export const E2E_MENU_PREFIX = "E2E Menu";
+
+export async function createE2eMenuCategory(options?: {
+  storeSlug?: string;
+  name?: string;
+}): Promise<{ id: string; name: string; storeId: string }> {
+  const prisma = getPrisma();
+  const storeSlug = options?.storeSlug ?? getStoreSlug();
+  const store = await prisma.store.findUnique({ where: { slug: storeSlug } });
+  if (!store) {
+    throw new Error(`Store "${storeSlug}" not found`);
+  }
+  const name = options?.name ?? `${E2E_MENU_PREFIX} Category ${Date.now()}`;
+  const category = await prisma.category.create({
+    data: {
+      storeId: store.id,
+      name,
+      description: "Categoria técnica E2E",
+      sortOrder: 999,
+      active: true,
+    },
+    select: { id: true, name: true, storeId: true },
+  });
+  return category;
+}
+
+export async function createE2eMenuProduct(options: {
+  categoryId: string;
+  storeId: string;
+  name?: string;
+  priceCents?: number;
+  active?: boolean;
+}): Promise<{ id: string; name: string; priceCents: number; active: boolean }> {
+  const prisma = getPrisma();
+  const name = options.name ?? `${E2E_MENU_PREFIX} Product ${Date.now()}`;
+  const product = await prisma.product.create({
+    data: {
+      storeId: options.storeId,
+      categoryId: options.categoryId,
+      name,
+      description: "Produto técnico E2E menu",
+      priceCents: options.priceCents ?? 1990,
+      sortOrder: 999,
+      active: options.active ?? true,
+    },
+    select: { id: true, name: true, priceCents: true, active: true },
+  });
+  return product;
+}
+
+export async function cleanupE2eMenuCatalog(): Promise<void> {
+  assertCleanupAllowed();
+  const prisma = getPrisma();
+  const products = await prisma.product.findMany({
+    where: { name: { startsWith: E2E_MENU_PREFIX } },
+    select: { id: true },
+  });
+  if (products.length > 0) {
+    await prisma.product.deleteMany({
+      where: { id: { in: products.map((p) => p.id) } },
+    });
+  }
+  await prisma.category.deleteMany({
+    where: { name: { startsWith: E2E_MENU_PREFIX } },
+  });
+}
+
+export async function getProductById(productId: string) {
+  const prisma = getPrisma();
+  return prisma.product.findUnique({
+    where: { id: productId },
+    select: {
+      id: true,
+      name: true,
+      priceCents: true,
+      active: true,
+      storeId: true,
+    },
+  });
+}

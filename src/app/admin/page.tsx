@@ -1,4 +1,8 @@
 import type { Metadata } from "next";
+import {
+  canReadMenu,
+  getAdminMenuNavLabel,
+} from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
 import {
   getAdminOrdersSummary,
@@ -18,6 +22,7 @@ export default async function AdminPage() {
 
   const orders = await listRecentAdminOrders(context.storeId);
   const summary = await getAdminOrdersSummary(context.storeId, orders.length);
+  const showMenuNav = canReadMenu(context.role);
 
   return (
     <main className="min-h-screen bg-stone-950 text-stone-100">
@@ -25,6 +30,8 @@ export default async function AdminPage() {
         sessionEmail={context.session.email}
         storeName={context.storeName}
         isMasterTransitional={context.isMaster}
+        menuNavHref={showMenuNav ? "/admin/cardapio" : null}
+        menuNavLabel={showMenuNav ? getAdminMenuNavLabel(context.role) : null}
         orders={orders}
         summary={summary}
       />
