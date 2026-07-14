@@ -18,7 +18,8 @@ function getCookieOptions(maxAge: number) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
-    path: "/admin",
+    // Shared by /admin and /master session guards
+    path: "/",
     maxAge,
   };
 }

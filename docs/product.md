@@ -104,10 +104,17 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 
 - `/admin` é área restrita: sem sessão válida, redireciona para `/admin/login`.
 - Login autentica `User` no banco (`email` + `passwordHash` com bcrypt); usuários inativos são rejeitados.
-- Sessão: JWT (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção, com claims `userId`, `name`, `email`, `role`, `storeId`.
-- `MASTER` acessa `/admin` temporariamente até existir `/master` (ADR 0002).
+- Sessão: JWT (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção, path `/`, claims `userId`, `name`, `email`, `role`, `storeId`.
+- **`/master`**: painel da DevFlow Labs — somente `role === MASTER` (`requireMasterSession`). Sem sessão → `/admin/login`; não-MASTER → `notFound()`.
+- `/admin` é o painel da loja/cliente; acesso de `MASTER` ao `/admin` ainda é **transicional**.
 - Logout limpa o cookie e volta para `/admin/login`.
 - Bootstrap do primeiro usuário: seed com `MASTER_ADMIN_*` (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
+
+## Master (plataforma)
+
+- `/master` mostra cards: lojas, lojas abertas (`Store.isOpen`), pedidos totais/pendentes/concluídos.
+- Lista de lojas (somente leitura): nome, slug, WhatsApp mascarado, link público `/{slug}`, contagem de pedidos, `createdAt`.
+- Sem CRUD de loja/usuário nesta etapa (ADR 0002 — PRs futuras).
 
 ## Admin (pedidos)
 

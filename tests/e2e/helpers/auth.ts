@@ -26,6 +26,17 @@ export async function loginAdmin(page: Page): Promise<void> {
   await page.waitForURL(/\/admin\/?$/);
 }
 
+export async function loginAsUser(
+  page: Page,
+  credentials: { email: string; password: string },
+): Promise<void> {
+  await page.goto("/admin/login");
+  await page.getByTestId("admin-login-email").fill(credentials.email);
+  await page.getByTestId("admin-login-password").fill(credentials.password);
+  await page.getByTestId("admin-login-submit").click();
+  await page.waitForURL(/\/admin\/?$/);
+}
+
 export async function logoutAdmin(page: Page): Promise<void> {
   await page.getByTestId("admin-logout-button").click();
   await page.waitForURL(/\/admin\/login/);

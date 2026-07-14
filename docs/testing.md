@@ -11,6 +11,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/public-menu.spec.ts` | Cardápio, carrinho, persistência local, CTA checkout |
 | `tests/e2e/checkout-order.spec.ts` | Checkout → Order PENDING → `wa.me` → limpa carrinho |
 | `tests/e2e/admin-auth.spec.ts` | Redirect, senha inválida, user inativo, login DB, claims JWT, logout |
+| `tests/e2e/master-dashboard.spec.ts` | `/master` auth: redirect, MASTER ok, non-MASTER blocked, lista `na-brasa`, logout |
 | `tests/e2e/admin-orders.spec.ts` | Lista + detalhe de pedido E2E |
 | `tests/e2e/admin-status.spec.ts` | PICKUP: PENDING → … → COMPLETED |
 

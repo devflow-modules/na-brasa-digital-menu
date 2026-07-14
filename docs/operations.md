@@ -13,7 +13,16 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [P
 
 A sessão fica em cookie **HttpOnly** (não aparece em `localStorage`). Em produção o cookie só trafega em HTTPS (`Secure`).
 
-Nota: usuários `MASTER` usam `/admin` de forma **transicional** até existir o painel `/master`.
+Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O acesso de `MASTER` ao `/admin` ainda é **transicional**.
+
+## Painel Master (`/master`)
+
+1. Faça login em `/admin/login` com usuário role `MASTER`
+2. Abra `/master` — operação geral da plataforma (lojas, contagens de pedidos)
+3. Links úteis: cardápio público da loja (`/{slug}`), `/admin` temporário, **Sair**
+4. Usuários de loja (`STORE_OWNER`, `OPERATOR`, etc.) **não** acessam `/master`
+
+`/admin` permanece o painel operacional da **loja/cliente**. CRUD de lojas e usuários no master ainda não está disponível.
 
 ## Como receber pedidos
 

@@ -56,11 +56,13 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] Confirmar abertura do WhatsApp (`wa.me`) com mensagem coerente
 - [ ] Confirmar pedido no banco (`PENDING`, totais > 0)
 - [ ] Acessar `/admin/login`
-- [ ] Login com credenciais de produção
+- [ ] Login com credenciais do `User` no banco (`MASTER` ou usuário de loja)
 - [ ] Ver pedido no dashboard `/admin`
 - [ ] Abrir `/admin/pedidos/[id]`
 - [ ] Mudar status (ex.: Pendente → Confirmado)
 - [ ] Concluir **ou** cancelar o pedido teste
+- [ ] (MASTER) Abrir `/master` — ver loja `na-brasa` e cards de resumo
+- [ ] (usuário de loja) Confirmar que `/master` **não** abre
 
 Se qualquer item falhar → **NO-GO**.
 
