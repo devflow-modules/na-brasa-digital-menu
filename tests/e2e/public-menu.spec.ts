@@ -1,9 +1,11 @@
 import { expect, test } from "@playwright/test";
+import { ensureOfficialStoreDisplayNameForE2e } from "./helpers/db";
 import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
-import { CART_STORAGE_KEY } from "./helpers/test-data";
+import { CART_STORAGE_KEY, OFFICIAL_STORE_DISPLAY_NAME } from "./helpers/test-data";
 
 test.describe("public menu", () => {
   test.beforeEach(async ({ page }) => {
+    await ensureOfficialStoreDisplayNameForE2e();
     await clearCartStorage(page);
   });
 
@@ -13,7 +15,7 @@ test.describe("public menu", () => {
     await expect(page.getByTestId("store-hero")).toBeVisible();
     await expect(
       page.getByTestId("store-hero").getByRole("heading", { level: 1 }),
-    ).toHaveText("Na Brasa");
+    ).toHaveText(OFFICIAL_STORE_DISPLAY_NAME);
     await expect(page.getByTestId("menu-product-card").first()).toBeVisible();
   });
 

@@ -4,7 +4,7 @@
 
 **Status:** Production Validation Candidate (Release Candidate operacional)
 
-**Na Brasa Digital Menu** — primeira versão operacional do cardápio online + painel admin, pronta para **deploy controlado** e validação com o dono antes de divulgação ampla.
+**Na Brasa Digital Menu** — primeira versão operacional do cardápio online + painel admin da loja **Na Braza**, pronta para **deploy controlado** e validação com o dono antes de divulgação ampla.
 
 Documentos: [README](../../README.md) · [Deploy](../deployment.md) · [Production checklist](../production-checklist.md) · [Operação](../operations.md) · [Testes / CI](../testing.md) · [Produto](../product.md)
 

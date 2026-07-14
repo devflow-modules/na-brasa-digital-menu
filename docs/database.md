@@ -1,4 +1,4 @@
-# Database — Na Brasa
+# Database — Na Brasa Digital Menu
 
 Modelo de dados (Prisma 6 + PostgreSQL) para o cardápio online e fundação multi-admin.
 
@@ -29,7 +29,7 @@ Store
 
 ### Catálogo
 
-- **Store** — loja (Na Brasa é o 1º tenant), WhatsApp, taxas e flags de retirada/entrega
+- **Store** — loja (Na Braza é o 1º tenant; slug técnico `na-brasa`), WhatsApp, taxas e flags de retirada/entrega
 - **Category** — categorias do cardápio (`sortOrder`, `active`)
 - **Addon** — adicionais (`priceCents`, `active`, `sortOrder`)
 - **Product** — itens (`priceCents`, `featured`, `sortOrder`, `active`, `available`)

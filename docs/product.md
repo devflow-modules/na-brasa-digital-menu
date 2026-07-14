@@ -1,4 +1,4 @@
-# Produto — Na Brasa Cardápio Online
+# Produto — Na Braza Cardápio Online
 
 ## Status (v0.1.0-pilot)
 
@@ -26,13 +26,13 @@
 1. Aceite do dono com [checklist de aceite](../production-checklist.md#client-acceptance-checklist)
 2. Dados reais finais (WhatsApp, endereço, cardápio, taxas)
 3. Divulgação do link / QR
-4. Backlog priorizado com o Na Brasa (sem feature nova até aceite)
+4. Backlog priorizado com o Na Braza (sem feature nova até aceite)
 
 Detalhes: [docs/releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md)
 
 ## Problema
 
-O Na Brasa opera como carrinho de lanche com ponto fixo. Hoje o atendimento depende de conversa manual; falta um cardápio digital claro para o cliente montar o pedido e para o operador registrar/acompanhar pedidos.
+O Na Braza opera como carrinho de lanche com ponto fixo. Hoje o atendimento depende de conversa manual; falta um cardápio digital claro para o cliente montar o pedido e para o operador registrar/acompanhar pedidos.
 
 ## Solução (MVP)
 
@@ -56,7 +56,7 @@ O operador visualiza pedidos salvos em um painel simples.
 ## Personas
 
 - **Cliente**: pede pelo celular, quer clareza de itens/preços e envio rápido no WhatsApp
-- **Operador Na Brasa**: precisa ver pedidos entrando e confirmar atendimento
+- **Operador Na Braza**: precisa ver pedidos entrando e confirmar atendimento
 
 ## Fluxo alvo
 

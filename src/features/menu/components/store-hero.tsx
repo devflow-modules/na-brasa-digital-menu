@@ -42,7 +42,7 @@ export function StoreHero({ store }: StoreHeroProps) {
       <div className="mx-auto flex w-full max-w-lg flex-col gap-5">
         <div className="flex flex-col gap-2">
           <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300/90">
-            Cardápio online oficial do Na Brasa
+            Cardápio online oficial do Na Braza
           </p>
           <p className="text-sm font-medium text-orange-200/90">
             Pedido direto pelo WhatsApp

@@ -6,7 +6,7 @@
 
 ## Context
 
-**Na Brasa** is the first real client/tenant of **DevFlow Menu**, a white-label online menu and WhatsApp order platform. The product must work for end customers on mobile phones and for store staff in a real operational environment.
+**Na Braza** is the first real client/tenant of **DevFlow Menu**, a white-label online menu and WhatsApp order platform. The product must work for end customers on mobile phones and for store staff in a real operational environment.
 
 The experience must be **simple, fast, and trustworthy**. The pilot goal is **operational validation**, not a final brand identity or a full visual redesign.
 
@@ -53,7 +53,7 @@ No requirement to document exact hex in this ADR; follow existing Tailwind usage
 
 Priorities:
 
-- Immediately understand this is **Na Brasa’s** menu
+- Immediately understand this is **Na Braza’s** menu
 - See whether the store is **open or closed**
 - See **address** and **opening hours** when configured
 - Browse **categories** and featured items
@@ -179,7 +179,7 @@ Admin/master may stay slightly more utilitarian than the public menu; they shoul
 ### Trade-offs
 
 - Limited visual customization during the pilot
-- Identity is still **Na Brasa–specific**, not neutral platform chrome
+- Identity is still **Na Braza–specific**, not neutral platform chrome
 - Advanced accessibility and design tokens deferred
 - Admin favors clarity over polish
 
@@ -199,7 +199,7 @@ Admin/master may stay slightly more utilitarian than the public menu; they shoul
 
 ### D. Neutral generic SaaS aesthetic
 
-**Rejected** — Na Brasa needs a warm, food-forward identity.
+**Rejected** — Na Braza needs a warm, food-forward identity.
 
 ## Follow-ups
 
