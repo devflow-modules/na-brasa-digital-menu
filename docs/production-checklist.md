@@ -142,6 +142,19 @@ Resumo dos fluxos já validados em produção (jul/2026). Repetir após mudança
 
 Referência: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md#validated-production-smoke).
 
+## Na Braza — após `pnpm store:apply-na-braza-settings`
+
+Rodar o script manual em produção só após merge desta PR e com `DATABASE_URL` de produção. Depois conferir no público `/na-brasa`:
+
+- [ ] Nome da loja exibe **Na Braza**
+- [ ] WhatsApp do pedido aponta para **5513981091971** (smoke com número de teste; não spamar o número real)
+- [ ] Endereço e horário conferidos no hero
+- [ ] Taxa de entrega exibe **R$ 6,00** (quando entrega habilitada)
+- [ ] Pedido mínimo exibe **R$ 30,00** (quando configurado)
+- [ ] Retirada e entrega habilitadas conforme piloto
+
+Fonte dos valores: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).
+
 ## Resultado
 
 | Resultado | Critério |

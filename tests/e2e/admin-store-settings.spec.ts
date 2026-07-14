@@ -259,7 +259,7 @@ test.describe("admin store settings", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
-      items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
+      items: [{ productId: product!.id, quantity: 2, addonIds: [] }],
     });
     expect(created.ok).toBe(true);
     if (created.ok) {

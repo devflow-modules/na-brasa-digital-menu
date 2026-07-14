@@ -4,7 +4,9 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 const STORE_SLUG = "na-brasa";
-const WHATSAPP_PLACEHOLDER = "5513999999999";
+/** Official Na Braza orders WhatsApp (digits with country code 55). */
+const NA_BRAZA_WHATSAPP = "5513981091971";
+const LEGACY_WHATSAPP_PLACEHOLDER = "5513999999999";
 const BCRYPT_ROUNDS = 10;
 
 const categories = [
@@ -184,19 +186,20 @@ async function ensureStore() {
       slug: STORE_SLUG,
       description:
         "Carrinho de lanches artesanais e espetinhos feitos na brasa.",
-      whatsapp: WHATSAPP_PLACEHOLDER,
-      address: "Ponto fixo — endereço fictício para desenvolvimento",
-      openingHours: "Ter–Dom 18:00–23:30",
+      whatsapp: NA_BRAZA_WHATSAPP,
+      address: "Barão de Ramalho, 155 — Macuco — Santos/SP",
+      openingHours:
+        "Segunda a domingo, 17:30–00:00. Em dias de chuva forte não abrimos.",
       isOpen: true,
       pickupEnabled: true,
       deliveryEnabled: true,
-      deliveryFeeCents: 500,
-      minimumOrderAmountCents: 2000,
+      deliveryFeeCents: 600,
+      minimumOrderAmountCents: 3000,
     },
   });
 
   console.log(
-    `[seed] Store "${STORE_SLUG}" created (bootstrap placeholders). Update real WhatsApp/address/fees in the database before client use.`,
+    `[seed] Store "${STORE_SLUG}" created with Na Braza pilot store settings (see docs/client/na-braza-pilot-data.md).`,
   );
   return { store, created: true };
 }
@@ -385,7 +388,7 @@ async function main() {
     store: store.slug,
     storeCreated,
     storeDataPreserved: !storeCreated,
-    whatsappIsPlaceholder: store.whatsapp === WHATSAPP_PLACEHOLDER,
+    whatsappIsLegacyPlaceholder: store.whatsapp === LEGACY_WHATSAPP_PLACEHOLDER,
     masterUserSeeded: master.seeded,
     categories: await prisma.category.count({ where: { storeId: store.id } }),
     products: await prisma.product.count({ where: { storeId: store.id } }),

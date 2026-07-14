@@ -17,7 +17,7 @@ test.describe("checkout order", () => {
   }) => {
     const customerName = uniqueCustomerName("Pickup Customer");
 
-    await addFirstProductToCart(page);
+    await addFirstProductToCart(page, { quantity: 2 });
     await page.getByTestId("checkout-cta").click();
     await expect(page).toHaveURL(/\/na-brasa\/checkout/);
 
