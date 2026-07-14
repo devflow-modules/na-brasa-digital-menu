@@ -112,7 +112,7 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
   - pedido fora da Store → `notFound()` / “Pedido não encontrado.”
 - Logout limpa o cookie e volta para `/admin/login`.
 - Bootstrap do primeiro usuário: seed com `MASTER_ADMIN_*` (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
-- Permissões finas por role (KITCHEN vs OWNER) ainda são roadmap.
+- **Permissões por role no `/admin`** (status de pedidos): validadas no server a partir da role da sessão; a UI esconde ações não permitidas. Podem evoluir por cliente/plano no futuro.
 
 ## Master (plataforma)
 
@@ -135,7 +135,18 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 
 - No detalhe `/admin/pedidos/[id]`, o admin pode avançar o status com ações controladas.
 - Transições validadas no server (não confiar nos botões do client).
+- Além da transição válida, a **role da sessão** precisa ter permissão para a ação.
 - Enum Prisma: `PENDING` → `CONFIRMED` → `PREPARING` → `READY` → (`OUT_FOR_DELIVERY` se entrega) → `COMPLETED`, com `CANCELLED` até o pedido ser finalizado.
 - Retirada (`PICKUP`): em `READY` não há “Saiu para entrega”; pode concluir direto.
 - Entrega (`DELIVERY`): em `READY` a ação principal é `OUT_FOR_DELIVERY`.
 - Não há notificação automática, WhatsApp API, WebSocket ou polling nesta etapa.
+
+### Matriz de permissões (`/admin`)
+
+| Role | Ver pedidos | Confirmar | Preparar / pronto | Despachar / concluir | Cancelar |
+| --- | --- | --- | --- | --- | --- |
+| `MASTER` | sim (transicional) | sim | sim | sim | sim |
+| `STORE_OWNER` | sim | sim | sim | sim | sim |
+| `MANAGER` | sim | sim | sim | sim | sim |
+| `OPERATOR` | sim | sim | sim | sim | **não** |
+| `KITCHEN` | sim | **não** | sim | **não** | **não** |

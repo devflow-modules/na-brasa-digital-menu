@@ -16,6 +16,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-store-scope.spec.ts` | Isolamento por Store no `/admin` (lista/detalhe/status/MASTER transicional) |
 | `tests/e2e/admin-orders.spec.ts` | Lista + detalhe de pedido E2E |
 | `tests/e2e/admin-status.spec.ts` | PICKUP: PENDING → … → COMPLETED |
+| `tests/e2e/admin-role-permissions.spec.ts` | Permissões por role (OWNER/MANAGER/OPERATOR/KITCHEN/MASTER) + bypass server-side |
 
 Browser: **Chromium** apenas.
 
@@ -50,6 +51,16 @@ Opcional: `.env.test.local` (não commitado; já coberto por `.env*.local` no `.
 pnpm add -D @playwright/test
 pnpm exec playwright install chromium
 ```
+
+## Testes unitários (matriz de permissões)
+
+Sem Vitest — usa o runner nativo do Node via `tsx`:
+
+```bash
+pnpm test
+```
+
+Arquivo: `src/features/admin/auth/admin-permissions.test.ts` (role × transição).
 
 ## Rodar E2E
 

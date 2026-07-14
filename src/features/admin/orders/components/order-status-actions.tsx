@@ -1,7 +1,12 @@
 "use client";
 
+import type { UserRole } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import {
+  formatAdminRoleLabel,
+  getPermittedOrderStatusActions,
+} from "@/features/admin/auth/admin-permissions";
 import { updateOrderStatusAction } from "@/features/admin/orders/actions/update-order-status-action";
 import { getOrderStatusActions } from "@/features/admin/orders/admin-order-status-transitions";
 import type {
@@ -13,17 +18,25 @@ type OrderStatusActionsProps = {
   orderId: string;
   status: AdminOrderStatus;
   deliveryType: AdminDeliveryType;
+  role: UserRole;
 };
 
 export function OrderStatusActions({
   orderId,
   status,
   deliveryType,
+  role,
 }: OrderStatusActionsProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const actions = getOrderStatusActions(status, deliveryType);
+  const workflowActions = getOrderStatusActions(status, deliveryType);
+  const actions = getPermittedOrderStatusActions(role, status, deliveryType);
+  const roleLabel = formatAdminRoleLabel(role);
+  const emptyMessage =
+    workflowActions.length === 0
+      ? "Pedido finalizado. Nenhuma ação disponível."
+      : "Nenhuma ação disponível para o seu perfil neste status.";
 
   if (actions.length === 0) {
     return (
@@ -35,10 +48,16 @@ export function OrderStatusActions({
           Ações do pedido
         </h2>
         <p
+          data-testid="order-status-role-note"
+          className="mt-2 text-xs text-stone-500"
+        >
+          Perfil: {roleLabel}
+        </p>
+        <p
           data-testid="order-status-actions-empty"
           className="mt-3 text-sm text-stone-400"
         >
-          Pedido finalizado. Nenhuma ação disponível.
+          {emptyMessage}
         </p>
       </section>
     );
@@ -71,6 +90,12 @@ export function OrderStatusActions({
       className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
     >
       <h2 className="text-sm font-semibold text-orange-50">Ações do pedido</h2>
+      <p
+        data-testid="order-status-role-note"
+        className="mt-2 text-xs text-stone-500"
+      >
+        Perfil: {roleLabel}
+      </p>
 
       <div className="mt-4 flex flex-col gap-2">
         {primaryActions.map((action) => (
