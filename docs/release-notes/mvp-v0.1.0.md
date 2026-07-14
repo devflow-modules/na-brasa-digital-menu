@@ -1,5 +1,7 @@
 # Release notes — MVP v0.1.0
 
+> **Atualização:** para o piloto em produção, use [v0.1.0-pilot](../releases/v0.1.0-pilot.md). Este arquivo permanece como registro histórico do gate inicial do MVP.
+
 **Status:** Production Validation Candidate (Release Candidate operacional)
 
 **Na Brasa Digital Menu** — primeira versão operacional do cardápio online + painel admin, pronta para **deploy controlado** e validação com o dono antes de divulgação ampla.
@@ -52,9 +54,9 @@ CI **não** faz deploy e **não** usa banco de produção.
 
 Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma 6 · PostgreSQL · Zod · React Hook Form · jose · pnpm · Playwright · GitHub Actions
 
-## Limitações conhecidas
+## Limitações conhecidas (histórico deste documento)
 
-- Sem CRUD de cardápio
+- Escopo ampliado desde então: cardápio, adicionais e configurações da loja são gerenciados no `/admin` (ver [v0.1.0-pilot](../releases/v0.1.0-pilot.md)).
 - Sem upload de imagens
 - Sem notificações em tempo real
 - Sem WhatsApp Cloud API

@@ -2,7 +2,7 @@
 
 Checklist **GO / NO-GO** para o primeiro deploy real controlado.
 
-Guias: [deployment.md](deployment.md) · [operations.md](operations.md) · [release notes](release-notes/mvp-v0.1.0.md) · [testing.md](testing.md)
+Guias: [deployment.md](deployment.md) · [operations.md](operations.md) · [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · [testing.md](testing.md)
 
 Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de clientes em validação.
 
@@ -106,6 +106,41 @@ Detalhes: [deployment.md](deployment.md#rollback-manual-básico).
 - [ ] Confirmar taxa de entrega / pedido mínimo (se aplicável)
 - [ ] Confirmar horários / aberto-fechado
 - [ ] Confirmar operação do painel (login, lista, status)
+
+## Client acceptance checklist
+
+Checklist para o **dono do Na Brasa** após o piloto técnico (dados reais, não fictícios de E2E):
+
+- [ ] Dados da loja conferidos em `/admin/configuracoes`
+- [ ] WhatsApp oficial conferido (mensagem de teste chega no número certo)
+- [ ] Endereço conferido no público
+- [ ] Horário / texto de funcionamento conferido
+- [ ] Taxa de entrega conferida
+- [ ] Entrega e retirada habilitadas conforme operação
+- [ ] Cardápio e categorias conferidos
+- [ ] Preços conferidos
+- [ ] Adicionais conferidos (vínculos e preços)
+- [ ] Pedido teste enviado para o WhatsApp oficial
+- [ ] Pedido aparece no `/admin`
+- [ ] Status do pedido atualizado no fluxo real
+- [ ] Link público aprovado (`/na-brasa`)
+- [ ] QR Code ou link pronto para divulgação (Instagram, balcão, etc.)
+
+## Pilot smoke checklist
+
+Resumo dos fluxos já validados em produção (jul/2026). Repetir após mudanças grandes ou antes de campanha:
+
+- [ ] `/na-brasa` carrega; produto disponível entra no carrinho
+- [ ] Checkout cria pedido e abre `wa.me`
+- [ ] `/admin` lista o pedido; status avança conforme role
+- [ ] `/admin/configuracoes`: MANAGER edita endereço/taxa/horário; público reflete
+- [ ] Loja fechada bloqueia checkout e criação de pedido
+- [ ] Entrega desligada bloqueia pedido delivery (server)
+- [ ] Retirada desligada bloqueia pedido pickup (server)
+- [ ] OPERATOR só abre/fecha; KITCHEN só leitura
+- [ ] Valores reais da loja restaurados após qualquer teste
+
+Referência: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md#validated-production-smoke).
 
 ## Resultado
 

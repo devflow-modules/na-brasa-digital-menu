@@ -1,5 +1,35 @@
 # Produto — Na Brasa Cardápio Online
 
+## Status (v0.1.0-pilot)
+
+| | |
+| --- | --- |
+| **Versão** | v0.1.0-pilot |
+| **Produção** | https://na-brasa-cardapio.vercel.app/na-brasa |
+| **Gate** | Smoke autenticado de Store Settings: **GO** (jul/2026) |
+
+### Pronto no piloto
+
+- Fluxo público completo (cardápio → carrinho → checkout → pedido → WhatsApp)
+- Admin de pedidos, status por role, cardápio, adicionais, configurações da loja
+- `/master` para usuários por loja
+- CI/E2E e checklists de produção
+
+### Fora do piloto (não prometer ao cliente)
+
+- Pagamento online, WhatsApp API, zonas de entrega, horário por dia
+- Reset de senha, upload de imagens, relatórios, tempo real
+- CRUD de lojas no `/master`
+
+### Próximos passos pós-piloto
+
+1. Aceite do dono com [checklist de aceite](../production-checklist.md#client-acceptance-checklist)
+2. Dados reais finais (WhatsApp, endereço, cardápio, taxas)
+3. Divulgação do link / QR
+4. Backlog priorizado com o Na Brasa (sem feature nova até aceite)
+
+Detalhes: [docs/releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md)
+
 ## Problema
 
 O Na Brasa opera como carrinho de lanche com ponto fixo. Hoje o atendimento depende de conversa manual; falta um cardápio digital claro para o cliente montar o pedido e para o operador registrar/acompanhar pedidos.
@@ -112,7 +142,7 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
   - pedido fora da Store → `notFound()` / “Pedido não encontrado.”
 - Logout limpa o cookie e volta para `/admin/login`.
 - Bootstrap do primeiro usuário: seed com `MASTER_ADMIN_*` (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
-- **Permissões por role no `/admin`** (status de pedidos): validadas no server a partir da role da sessão; a UI esconde ações não permitidas. Podem evoluir por cliente/plano no futuro.
+- **Permissões por role no `/admin`**: pedidos, cardápio, adicionais e configurações da loja — validadas no server; a UI esconde ações não permitidas. A matriz pode evoluir por cliente/plano depois do piloto.
 
 ## Master (plataforma)
 
