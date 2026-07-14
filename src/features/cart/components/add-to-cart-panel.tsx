@@ -98,6 +98,7 @@ export function AddToCartPanel({
                       <span className="flex items-center gap-3 text-sm text-stone-100">
                         <input
                           type="checkbox"
+                          data-testid={`menu-addon-option-${addon.id}`}
                           checked={checked}
                           onChange={() => toggleAddon(addon.id)}
                           className="h-4 w-4 accent-orange-500"

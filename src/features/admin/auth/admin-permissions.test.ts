@@ -77,9 +77,9 @@ describe("admin-permissions matrix", () => {
   });
 
   it("getAdminPermissions returns expected sizes", () => {
-    assert.equal(getAdminPermissions("MASTER").length, 14);
-    assert.equal(getAdminPermissions("OPERATOR").length, 8);
-    assert.equal(getAdminPermissions("KITCHEN").length, 4);
+    assert.equal(getAdminPermissions("MASTER").length, 20);
+    assert.equal(getAdminPermissions("OPERATOR").length, 9);
+    assert.equal(getAdminPermissions("KITCHEN").length, 5);
   });
 
   it("menu permissions by role", () => {
@@ -89,5 +89,18 @@ describe("admin-permissions matrix", () => {
     assert.equal(hasAdminPermission("KITCHEN", "menu.product.create"), false);
     assert.equal(hasAdminPermission("MANAGER", "menu.product.create"), true);
     assert.equal(hasAdminPermission("STORE_OWNER", "menu.category.update"), true);
+  });
+
+  it("addon permissions by role", () => {
+    for (const role of ["MASTER", "STORE_OWNER", "MANAGER"] as const) {
+      assert.equal(hasAdminPermission(role, "menu.addon.create"), true);
+      assert.equal(hasAdminPermission(role, "menu.addon.linkProduct"), true);
+      assert.equal(hasAdminPermission(role, "menu.addon.unlinkProduct"), true);
+    }
+    assert.equal(hasAdminPermission("OPERATOR", "menu.addon.read"), true);
+    assert.equal(hasAdminPermission("OPERATOR", "menu.addon.create"), false);
+    assert.equal(hasAdminPermission("OPERATOR", "menu.addon.linkProduct"), false);
+    assert.equal(hasAdminPermission("KITCHEN", "menu.addon.read"), true);
+    assert.equal(hasAdminPermission("KITCHEN", "menu.addon.update"), false);
   });
 });

@@ -18,6 +18,9 @@ import { formatWhatsAppMessage } from "@/features/orders/whatsapp/format-whatsap
 
 const MAX_CODE_ATTEMPTS = 5;
 
+const ADDON_UNAVAILABLE_MESSAGE =
+  "Adicional indisponível para este produto.";
+
 function paymentLabel(method: CreateOrderPaymentMethod): string {
   switch (method) {
     case "PIX":
@@ -112,17 +115,10 @@ export async function createOrder(
     for (const addonId of uniqueAddonIds) {
       const addon = addonsById.get(addonId);
 
-      if (!addon) {
+      if (!addon || !addon.active) {
         return {
           ok: false,
-          message: `Adicional inválido para o produto "${product.name}".`,
-        };
-      }
-
-      if (!addon.active) {
-        return {
-          ok: false,
-          message: `O adicional "${addon.name}" não está disponível.`,
+          message: ADDON_UNAVAILABLE_MESSAGE,
         };
       }
 

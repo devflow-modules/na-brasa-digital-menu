@@ -368,12 +368,21 @@ export async function cleanupE2eMenuCatalog(): Promise<void> {
   assertCleanupAllowed();
   const prisma = getPrisma();
   const products = await prisma.product.findMany({
-    where: { name: { startsWith: E2E_MENU_PREFIX } },
+    where: {
+      OR: [
+        { name: { startsWith: E2E_MENU_PREFIX } },
+        { name: { startsWith: "E2E Addon Product" } },
+      ],
+    },
     select: { id: true },
   });
   if (products.length > 0) {
+    const ids = products.map((p) => p.id);
+    await prisma.productAddon.deleteMany({
+      where: { productId: { in: ids } },
+    });
     await prisma.product.deleteMany({
-      where: { id: { in: products.map((p) => p.id) } },
+      where: { id: { in: ids } },
     });
   }
   await prisma.category.deleteMany({
@@ -394,4 +403,103 @@ export async function getProductById(productId: string) {
       storeId: true,
     },
   });
+}
+
+export const E2E_ADDON_PREFIX = "E2E Addon";
+
+export async function createE2eAddon(options?: {
+  storeId?: string;
+  storeSlug?: string;
+  name?: string;
+  priceCents?: number;
+  active?: boolean;
+}): Promise<{
+  id: string;
+  name: string;
+  priceCents: number;
+  active: boolean;
+  storeId: string;
+}> {
+  const prisma = getPrisma();
+  let storeId = options?.storeId;
+  if (!storeId) {
+    const storeSlug = options?.storeSlug ?? getStoreSlug();
+    const store = await prisma.store.findUnique({ where: { slug: storeSlug } });
+    if (!store) {
+      throw new Error(`Store "${storeSlug}" not found`);
+    }
+    storeId = store.id;
+  }
+  const name = options?.name ?? `${E2E_ADDON_PREFIX} ${Date.now()}`;
+  const addon = await prisma.addon.create({
+    data: {
+      storeId,
+      name,
+      description: "Adicional técnico E2E",
+      priceCents: options?.priceCents ?? 350,
+      sortOrder: 999,
+      active: options?.active ?? true,
+    },
+    select: {
+      id: true,
+      name: true,
+      priceCents: true,
+      active: true,
+      storeId: true,
+    },
+  });
+  return addon;
+}
+
+export async function linkE2eAddonToProduct(
+  productId: string,
+  addonId: string,
+): Promise<void> {
+  const prisma = getPrisma();
+  await prisma.productAddon.upsert({
+    where: { productId_addonId: { productId, addonId } },
+    create: { productId, addonId },
+    update: {},
+  });
+}
+
+export async function unlinkE2eAddonFromProduct(
+  productId: string,
+  addonId: string,
+): Promise<void> {
+  const prisma = getPrisma();
+  await prisma.productAddon.deleteMany({
+    where: { productId, addonId },
+  });
+}
+
+export async function getAddonById(addonId: string) {
+  const prisma = getPrisma();
+  return prisma.addon.findUnique({
+    where: { id: addonId },
+    select: {
+      id: true,
+      name: true,
+      priceCents: true,
+      active: true,
+      storeId: true,
+    },
+  });
+}
+
+export async function cleanupE2eAddons(): Promise<void> {
+  assertCleanupAllowed();
+  const prisma = getPrisma();
+  const addons = await prisma.addon.findMany({
+    where: { name: { startsWith: E2E_ADDON_PREFIX } },
+    select: { id: true },
+  });
+  if (addons.length > 0) {
+    await prisma.productAddon.deleteMany({
+      where: { addonId: { in: addons.map((a) => a.id) } },
+    });
+    await prisma.addon.deleteMany({
+      where: { id: { in: addons.map((a) => a.id) } },
+    });
+  }
 }
