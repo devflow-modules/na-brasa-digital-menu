@@ -147,6 +147,23 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 | `OPERATOR` | sim | não | não | sim | não |
 | `KITCHEN` | sim | não | não | não | não |
 
+## Gestão de adicionais (`/admin/cardapio/adicionais`)
+
+- Lista adicionais da Store efetiva e produtos para vínculo (`ProductAddon`).
+- **`Addon.active`**: `false` remove o adicional da escolha no cardápio público (quando vinculado).
+- Sem delete físico; sem grupos obrigatórios, min/max ou estoque nesta etapa.
+- Link **Gerenciar adicionais** em `/admin/cardapio` para quem tem `menu.addon.read`.
+
+| Role | Ver | Criar/editar | Ativar/desativar | Vincular/desvincular produto |
+| --- | --- | --- | --- | --- |
+| `MASTER` | sim | sim | sim | sim |
+| `STORE_OWNER` | sim | sim | sim | sim |
+| `MANAGER` | sim | sim | sim | sim |
+| `OPERATOR` | sim | não | não | não |
+| `KITCHEN` | sim | não | não | não |
+
+Pedido/checkout valida no server: adicional ativo e vinculado ao produto; preço vem do banco.
+
 ## Gestão de status
 
 - No detalhe `/admin/pedidos/[id]`, o admin pode avançar o status com ações controladas.

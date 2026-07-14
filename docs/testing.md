@@ -19,6 +19,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-role-permissions.spec.ts` | Permissões por role (OWNER/MANAGER/OPERATOR/KITCHEN/MASTER) + bypass server-side |
 | `tests/e2e/admin-menu-management.spec.ts` | `/admin/cardapio`: CRUD simples, toggles, escopo por Store, publicação (`active`) |
 | `tests/e2e/product-availability.spec.ts` | `active` vs `available`: badge público, bloqueio carrinho/checkout, permissões OPERATOR |
+| `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: CRUD, vínculos, público, permissões, order validation |
 
 Browser: **Chromium** apenas.
 

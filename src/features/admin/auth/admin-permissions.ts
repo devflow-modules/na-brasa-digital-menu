@@ -23,7 +23,13 @@ export type AdminPermission =
   | "menu.product.toggleAvailability"
   | "menu.product.toggleActive"
   | "menu.category.create"
-  | "menu.category.update";
+  | "menu.category.update"
+  | "menu.addon.read"
+  | "menu.addon.create"
+  | "menu.addon.update"
+  | "menu.addon.toggleActive"
+  | "menu.addon.linkProduct"
+  | "menu.addon.unlinkProduct";
 
 const ORDER_PERMISSIONS = [
   "orders.read",
@@ -45,15 +51,25 @@ const MENU_PERMISSIONS = [
   "menu.category.update",
 ] as const satisfies readonly AdminPermission[];
 
-const ORDER_AND_MENU_PERMISSIONS: readonly AdminPermission[] = [
+const ADDON_PERMISSIONS = [
+  "menu.addon.read",
+  "menu.addon.create",
+  "menu.addon.update",
+  "menu.addon.toggleActive",
+  "menu.addon.linkProduct",
+  "menu.addon.unlinkProduct",
+] as const satisfies readonly AdminPermission[];
+
+const ORDER_MENU_AND_ADDON_PERMISSIONS: readonly AdminPermission[] = [
   ...ORDER_PERMISSIONS,
   ...MENU_PERMISSIONS,
+  ...ADDON_PERMISSIONS,
 ];
 
 const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
-  MASTER: ORDER_AND_MENU_PERMISSIONS,
-  STORE_OWNER: ORDER_AND_MENU_PERMISSIONS,
-  MANAGER: ORDER_AND_MENU_PERMISSIONS,
+  MASTER: ORDER_MENU_AND_ADDON_PERMISSIONS,
+  STORE_OWNER: ORDER_MENU_AND_ADDON_PERMISSIONS,
+  MANAGER: ORDER_MENU_AND_ADDON_PERMISSIONS,
   OPERATOR: [
     "orders.read",
     "orders.status.confirm",
@@ -63,12 +79,14 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
     "orders.status.complete",
     "menu.read",
     "menu.product.toggleAvailability",
+    "menu.addon.read",
   ],
   KITCHEN: [
     "orders.read",
     "orders.status.prepare",
     "orders.status.ready",
     "menu.read",
+    "menu.addon.read",
   ],
 };
 
@@ -129,6 +147,39 @@ export function canManageMenu(role: UserRole): boolean {
     canCreateMenuProduct(role) ||
     canUpdateMenuProduct(role) ||
     canManageMenuCategories(role)
+  );
+}
+
+export function canReadMenuAddons(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.addon.read");
+}
+
+export function canCreateMenuAddon(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.addon.create");
+}
+
+export function canUpdateMenuAddon(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.addon.update");
+}
+
+export function canToggleMenuAddonActive(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.addon.toggleActive");
+}
+
+export function canLinkMenuAddonToProduct(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.addon.linkProduct");
+}
+
+export function canUnlinkMenuAddonFromProduct(role: UserRole): boolean {
+  return hasAdminPermission(role, "menu.addon.unlinkProduct");
+}
+
+export function canManageMenuAddons(role: UserRole): boolean {
+  return (
+    canCreateMenuAddon(role) ||
+    canUpdateMenuAddon(role) ||
+    canToggleMenuAddonActive(role) ||
+    canLinkMenuAddonToProduct(role)
   );
 }
 

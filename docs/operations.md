@@ -48,6 +48,14 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O
 6. Cozinha só visualiza o cardápio administrativo.
 7. Não há exclusão física nesta etapa — prefira ocultar (`active`) ou marcar indisponível (`available`).
 
+## Adicionais (`/admin/cardapio/adicionais`)
+
+1. Acesse pelo link **Gerenciar adicionais** em `/admin/cardapio` (ou URL direta).
+2. Dono/gerente podem criar, editar, ativar/desativar e vincular adicionais a produtos da mesma Store.
+3. Operador e cozinha só visualizam a lista e vínculos.
+4. Adicional inativo não aparece no modal público; desvinculado também não.
+5. Checkout rejeita adicional inválido com mensagem amigável no server.
+
 ## Painel Master (`/master`)
 
 1. Faça login em `/admin/login` com usuário role `MASTER`

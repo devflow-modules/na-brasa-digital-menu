@@ -4,6 +4,7 @@ import { LogoutButton } from "@/features/admin/auth/components/logout-button";
 import {
   canCreateMenuProduct,
   canManageMenuCategories,
+  canReadMenuAddons,
   canUpdateMenuProduct,
   formatAdminRoleLabel,
 } from "@/features/admin/auth/admin-permissions";
@@ -31,6 +32,7 @@ export function AdminMenuPage({
   const canCreateProduct = canCreateMenuProduct(role);
   const canUpdateProduct = canUpdateMenuProduct(role);
   const defaultCategoryId = catalog.categories[0]?.id;
+  const showAddonsLink = canReadMenuAddons(role);
 
   return (
     <div
@@ -58,6 +60,15 @@ export function AdminMenuPage({
           ) : null}
         </div>
         <div className="flex flex-col items-end gap-2">
+          {showAddonsLink ? (
+            <Link
+              href="/admin/cardapio/adicionais"
+              data-testid="admin-menu-addons-link"
+              className="text-sm font-medium text-orange-300 underline-offset-2 hover:underline"
+            >
+              Gerenciar adicionais
+            </Link>
+          ) : null}
           <Link
             href="/admin"
             className="text-sm font-medium text-orange-300 underline-offset-2 hover:underline"
