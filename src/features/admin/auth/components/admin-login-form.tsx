@@ -43,6 +43,8 @@ export function AdminLoginForm() {
   return (
     <form
       data-testid="admin-login-form"
+      method="post"
+      action="#"
       onSubmit={onSubmit}
       className="flex w-full flex-col gap-4"
       noValidate
