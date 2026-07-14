@@ -66,9 +66,10 @@ Placeholders locais (sem secrets reais): [`.env.example`](../.env.example).
 - Sessão JWT (cookie HttpOnly, path `/`) inclui `userId`, `name`, `email`, `role`, `storeId`.
 - Usuário `isActive === false` não autentica (mensagem genérica).
 - **`/master`**: apenas `MASTER` (`requireMasterSession`). Sem sessão → login; outras roles → `notFound()`.
+- **Usuários de loja:** `MASTER` gerencia em `/master/stores/[storeId]/users` (criar / ativar-desativar / role). Sem `MASTER_ADMIN_*` na Vercel Production.
 - `/admin` = painel da loja (**store-scoped**). Usuários de loja precisam de `storeId`. `MASTER` ainda pode abrir `/admin` de forma **transicional** na Store de `NEXT_PUBLIC_STORE_SLUG`.
 - Ambiente novo: `pnpm prisma migrate deploy` + seed com `MASTER_ADMIN_*` preenchidos.
-- Permissões finas por role e CRUD de usuários = PRs futuras.
+- Permissões finas por role no `/admin` = PRs futuras. Reset de senha = roadmap.
 
 ### Como validar `DATABASE_URL`
 

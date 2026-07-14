@@ -117,8 +117,12 @@ Na criação do pedido, o server recalcula totais — não confiar em preço vin
 ## Master (plataforma)
 
 - `/master` mostra cards: lojas, lojas abertas (`Store.isOpen`), pedidos totais/pendentes/concluídos.
-- Lista de lojas (somente leitura): nome, slug, WhatsApp mascarado, link público `/{slug}`, contagem de pedidos, `createdAt`.
-- Sem CRUD de loja/usuário nesta etapa (ADR 0002 — PRs futuras).
+- Lista de lojas: nome, slug, WhatsApp mascarado, link público `/{slug}`, contagem de pedidos, `createdAt`.
+- **Usuários por loja:** `/master/stores/[storeId]/users` — MASTER lista/cria usuários vinculados à Store; roles permitidas: `STORE_OWNER`, `MANAGER`, `OPERATOR`, `KITCHEN`.
+- Ações: criar (bcrypt hash), ativar/desativar (`isActive`), alterar role de loja.
+- Não cria `MASTER` por essa UI; `storeId` vem da rota validada; senha não é reexibida.
+- Reset de senha e CRUD de lojas = roadmap.
+- Roles de loja acessam `/admin` (store-scoped), não `/master`.
 
 ## Admin (pedidos)
 
