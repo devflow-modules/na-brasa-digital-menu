@@ -15,6 +15,7 @@
     "prisma:seed": "prisma db seed",
     "prisma:studio": "prisma studio",
     "store:apply-na-braza-settings": "tsx scripts/apply-na-braza-store-settings.ts",
+    "menu:apply-na-braza-pilot": "tsx scripts/apply-na-braza-pilot-menu.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",

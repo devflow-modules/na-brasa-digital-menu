@@ -4,6 +4,7 @@ import {
   type OrderStatus,
   type PaymentMethod,
 } from "@prisma/client";
+import { applyNaBrazaPilotMenu } from "../../../prisma/na-braza-pilot-menu";
 import { loadLocalEnvFile } from "./load-env";
 import {
   E2E_CUSTOMER_PREFIX,
@@ -38,6 +39,23 @@ export async function ensureOfficialStoreDisplayNameForE2e(): Promise<void> {
     where: { slug: storeSlug },
     data: { name: OFFICIAL_STORE_DISPLAY_NAME },
   });
+}
+
+/** Applies pilot catalog to the E2E store (does not run in production). */
+export async function ensurePilotMenuForE2e(): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { id: true },
+  });
+  if (!store) {
+    throw new Error(`Store "${storeSlug}" not found for E2E pilot menu apply.`);
+  }
+  await applyNaBrazaPilotMenu(prisma, store.id);
 }
 
 function assertCleanupAllowed(): void {

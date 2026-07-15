@@ -14,10 +14,12 @@ import {
   cleanupE2eStoreUsers,
   disconnectE2ePrisma,
   ensureE2eStore,
+  ensurePilotMenuForE2e,
   getPrisma,
 } from "./helpers/db";
 import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
 import { e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
+import { PILOT_BURGER_PRODUCT_NAME } from "../../prisma/na-braza-pilot-menu";
 
 const E2E_ADDRESS_MARKER = "E2E Settings Address";
 const E2E_HOURS_MARKER = "E2E Horário 10h–22h";
@@ -28,6 +30,7 @@ test.describe("admin store settings", () => {
 
   test.beforeAll(async () => {
     process.env.E2E_ALLOW_DB_CLEANUP = "true";
+    await ensurePilotMenuForE2e();
     baseline = await captureE2eStoreSettings(getStoreSlug());
   });
 
@@ -248,7 +251,11 @@ test.describe("admin store settings", () => {
     });
 
     const product = await prisma.product.findFirst({
-      where: { storeId: baseline.storeId, active: true },
+      where: {
+        storeId: baseline.storeId,
+        active: true,
+        name: PILOT_BURGER_PRODUCT_NAME,
+      },
       select: { id: true },
     });
     expect(product).toBeTruthy();

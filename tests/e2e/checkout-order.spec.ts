@@ -1,14 +1,19 @@
 import { expect, test } from "@playwright/test";
-import { findLatestOrderByCustomerName } from "./helpers/db";
-import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
+import {
+  ensurePilotMenuForE2e,
+  findLatestOrderByCustomerName,
+} from "./helpers/db";
+import { addProductToCartByName, clearCartStorage } from "./helpers/menu";
 import {
   CART_STORAGE_KEY,
   e2ePhone,
   uniqueCustomerName,
 } from "./helpers/test-data";
+import { PILOT_BURGER_PRODUCT_NAME } from "../../prisma/na-braza-pilot-menu";
 
 test.describe("checkout order", () => {
   test.beforeEach(async ({ page }) => {
+    await ensurePilotMenuForE2e();
     await clearCartStorage(page);
   });
 
@@ -17,7 +22,9 @@ test.describe("checkout order", () => {
   }) => {
     const customerName = uniqueCustomerName("Pickup Customer");
 
-    await addFirstProductToCart(page, { quantity: 2 });
+    await addProductToCartByName(page, PILOT_BURGER_PRODUCT_NAME, {
+      quantity: 2,
+    });
     await page.getByTestId("checkout-cta").click();
     await expect(page).toHaveURL(/\/na-brasa\/checkout/);
 
