@@ -1,6 +1,6 @@
-# Deploy — Na Brasa Digital Menu (produção controlada)
+# Deploy — plataforma e piloto Na Braza
 
-Guia para o **primeiro deploy real** do MVP: validar com o dono antes de divulgar o link para clientes.
+Guia para deploy em produção da **plataforma** com foco na **primeira implantação real** (cliente 1 **Na Braza**, slug `na-brasa`): validar com o dono antes de divulgar o link público.
 
 Documentos relacionados:
 
@@ -129,7 +129,7 @@ O seed é um **bootstrap técnico** idempotente: cria loja `na-brasa` + cardápi
 - Placeholder WhatsApp `5513999999999` aplica-se **apenas** na primeira criação da Store.
 - Categorias/produtos/adicionais existentes: **não** são reescritos (só cria ausentes).
 
-Se `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL` e `MASTER_ADMIN_PASSWORD` estiverem definidos na sessão, também faz upsert do usuário plataforma (`role = MASTER`, `storeId` null). Não usa `ADMIN_*` para isso e não há senha padrão.
+Quando as variáveis `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL` e `MASTER_ADMIN_PASSWORD` estiverem configuradas no **ambiente** durante a execução de `pnpm prisma db seed`, o seed cria ou atualiza o usuário `MASTER` de bootstrap (`role = MASTER`, `storeId` null). Não usa `ADMIN_EMAIL`/`ADMIN_PASSWORD` para isso e não há senha padrão hardcoded — essas envs **não** são lidas pelo login em runtime.
 
 Em produção real:
 
@@ -186,7 +186,7 @@ Valores esperados (não commitar):
 | `ADMIN_SESSION_COOKIE` | `na-brasa-admin-session` |
 | `NEXT_PUBLIC_APP_URL` | `https://na-brasa-cardapio.vercel.app` |
 | `NEXT_PUBLIC_STORE_SLUG` | `na-brasa` |
-| `MASTER_ADMIN_*` | só na máquina/sessão de seed (cria `User` MASTER) |
+| `MASTER_ADMIN_*` | envs no momento do `pnpm prisma db seed` (cria/atualiza `User` MASTER) |
 
 ### Redeploy
 

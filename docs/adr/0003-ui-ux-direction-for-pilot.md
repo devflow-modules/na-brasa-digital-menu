@@ -1,5 +1,7 @@
 # ADR 0003 — UI/UX Direction for Pilot
 
+> **Nota de contexto — 2026:** Na Braza é o **cliente 1** e primeira implantação real. A direção UX abaixo é **específica do piloto** (identidade Na Braza), não da plataforma white-label neutra. Referências a *Na Brasa Digital Menu* ou **DevFlow Menu** no cabeçalho refletem nomenclatura histórica da decisão.
+
 - **Status:** Accepted
 - **Date:** 2026-07-14
 - **Product:** Na Brasa Digital Menu (first tenant of DevFlow Menu)

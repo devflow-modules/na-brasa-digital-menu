@@ -1,10 +1,17 @@
 # Release notes — MVP v0.1.0
 
-> **Atualização:** para o piloto em produção, use [v0.1.0-pilot](../releases/v0.1.0-pilot.md). Este arquivo permanece como registro histórico do gate inicial do MVP.
+> **Atualização (documentação):** para operação atual do piloto, use [v0.1.0-pilot](../releases/v0.1.0-pilot.md) e [product.md](../product.md). Este arquivo é **registro histórico** do gate inicial do MVP.
+>
+> - O MVP inicial descrevia narrativa e procedimentos anteriores (incl. auth por env em evolução).
+> - **Autenticação atual:** DB-backed via tabela `User`; sessão JWT em cookie HttpOnly.
+> - **Bootstrap:** `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL`, `MASTER_ADMIN_PASSWORD` no seed do usuário `MASTER`.
+> - **`ADMIN_EMAIL` / `ADMIN_PASSWORD`:** não representam a autenticação ativa do `/admin/login`.
+> - **“Sem múltiplos admins”** (abaixo) descrevia apenas o **MVP original** deste documento. Depois foram implementados: autenticação DB-backed via `User`; múltiplos usuários por loja; RBAC; papel `MASTER`; gestão de usuários por loja no `/master`. Documentação operacional atual: [README](../../README.md), [product.md](../product.md), [v0.1.0-pilot](../releases/v0.1.0-pilot.md).
+> - Não use este documento sozinho como runbook operacional.
 
-**Status:** Production Validation Candidate (Release Candidate operacional)
+**Status (histórico):** Production Validation Candidate (Release Candidate operacional)
 
-**Na Brasa Digital Menu** — primeira versão operacional do cardápio online + painel admin da loja **Na Braza**, pronta para **deploy controlado** e validação com o dono antes de divulgação ampla.
+**Piloto Na Braza** — primeira versão operacional do cardápio online + painel da loja do **cliente 1**, pronta para deploy controlado e validação com o dono antes de divulgação ampla.
 
 Documentos: [README](../../README.md) · [Deploy](../deployment.md) · [Production checklist](../production-checklist.md) · [Operação](../operations.md) · [Testes / CI](../testing.md) · [Produto](../product.md)
 
@@ -30,7 +37,7 @@ Documentos: [README](../../README.md) · [Deploy](../deployment.md) · [Producti
 ## Segurança
 
 - Sessão admin em cookie HttpOnly (token **não** fica em `localStorage`)
-- Credenciais admin via env; JWT com `ADMIN_JWT_SECRET`
+- **Histórico:** credenciais admin via env na fase inicial; **hoje** login via `User` no banco + `ADMIN_JWT_SECRET` para JWT
 - Mutações autorizadas no server (Server Actions)
 - Sem API pública REST para pedidos/admin
 - Pedidos contêm PII — painel e banco devem permanecer restritos
@@ -61,7 +68,7 @@ Next.js 15 (App Router) · TypeScript · Tailwind CSS · Prisma 6 · PostgreSQL 
 - Sem notificações em tempo real
 - Sem WhatsApp Cloud API
 - Sem pagamento online
-- Sem múltiplos admins
+- Sem múltiplos admins *(estado do MVP nesta release; superado — ver nota de atualização no topo)*
 - Sem histórico/auditoria de status
 - Sem motivo de cancelamento
 - Domínio customizado / polish PWA: pós-validação
