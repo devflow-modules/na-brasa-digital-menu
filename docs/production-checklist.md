@@ -179,6 +179,16 @@ Rodar com `DATABASE_URL` de produção e `NA_BRAZA_LUCAS_PASSWORD` (mín. 12 car
 - [ ] `/master` **bloqueado** para STORE_OWNER
 - [ ] Logout funciona (sessão encerrada)
 
+## Na Braza — após `pnpm data:clean-na-braza-tests` (apply)
+
+Rodar dry-run antes; apply só com `CONFIRM_CLEAN_NA_BRAZA_TEST_DATA=true` e `DATABASE_URL` de produção.
+
+- [ ] Pedidos de smoke/E2E aparecem como **cancelados** no admin (não pendentes na fila)
+- [ ] Fila `/admin` sem pedidos de teste aguardando ação
+- [ ] `/na-brasa` exibe somente itens do cardápio piloto real
+- [ ] Lucas (`theluksvm@gmail.com`) continua **ativo** e consegue login
+- [ ] `/master` continua **bloqueado** para STORE_OWNER
+
 ## Resultado
 
 | Resultado | Critério |

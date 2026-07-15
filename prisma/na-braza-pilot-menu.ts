@@ -227,6 +227,86 @@ export function pilotProductNameSet(): Set<string> {
   return new Set(PILOT_PRODUCTS.map((p) => p.name));
 }
 
+export type HideNonPilotCatalogSummary = {
+  categoriesEnsuredInactive: number;
+  addonsEnsuredInactive: number;
+  productsEnsuredInactiveUnavailable: number;
+};
+
+/**
+ * Ensures catalog rows outside the pilot name sets are hidden (no deletes).
+ * Does not create or update pilot items; safe to run after menu:apply.
+ */
+export async function hideNonPilotCatalogForStore(
+  prisma: PrismaClient,
+  storeId: string,
+  apply: boolean,
+): Promise<HideNonPilotCatalogSummary> {
+  const summary: HideNonPilotCatalogSummary = {
+    categoriesEnsuredInactive: 0,
+    addonsEnsuredInactive: 0,
+    productsEnsuredInactiveUnavailable: 0,
+  };
+
+  const pilotCategoryNames = pilotCategoryNameSet();
+  const categories = await prisma.category.findMany({
+    where: { storeId },
+    select: { id: true, name: true, active: true },
+  });
+  for (const row of categories) {
+    if (pilotCategoryNames.has(row.name) || !row.active) {
+      continue;
+    }
+    if (apply) {
+      await prisma.category.update({
+        where: { id: row.id },
+        data: { active: false },
+      });
+    }
+    summary.categoriesEnsuredInactive += 1;
+  }
+
+  const pilotAddonNames = pilotAddonNameSet();
+  const addons = await prisma.addon.findMany({
+    where: { storeId },
+    select: { id: true, name: true, active: true },
+  });
+  for (const row of addons) {
+    if (pilotAddonNames.has(row.name) || !row.active) {
+      continue;
+    }
+    if (apply) {
+      await prisma.addon.update({
+        where: { id: row.id },
+        data: { active: false },
+      });
+    }
+    summary.addonsEnsuredInactive += 1;
+  }
+
+  const pilotProductNames = pilotProductNameSet();
+  const products = await prisma.product.findMany({
+    where: { storeId },
+    select: { id: true, name: true, active: true, available: true },
+  });
+  for (const row of products) {
+    if (pilotProductNames.has(row.name)) {
+      continue;
+    }
+    if (row.active || row.available) {
+      if (apply) {
+        await prisma.product.update({
+          where: { id: row.id },
+          data: { active: false, available: false },
+        });
+      }
+      summary.productsEnsuredInactiveUnavailable += 1;
+    }
+  }
+
+  return summary;
+}
+
 export type ApplyNaBrazaPilotMenuSummary = {
   storeId: string;
   categoriesCreated: number;
