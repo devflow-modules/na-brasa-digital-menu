@@ -25,6 +25,8 @@ Muitos negócios de alimentação ainda recebem pedidos por WhatsApp de forma ma
 
 Escopo validado, limitações e aceite: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).
 
+Plano de validação do piloto (hipóteses, funil, sucesso/ajuste/interrupção): [docs/product/pilot-validation-plan.md](docs/product/pilot-validation-plan.md).
+
 ## Capacidades atuais
 
 **Fundação da plataforma (implementada):**

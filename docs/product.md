@@ -49,6 +49,8 @@ Use esta classificação ao priorizar escopo e impacto em isolamento entre lojas
 
 **Próximos passos:** aceite do dono → dados reais finais → divulgação do link → backlog com o Na Braza (sem feature nova até aceite).
 
+**Validação do piloto:** plano formal em [product/pilot-validation-plan.md](product/pilot-validation-plan.md). Gates de decisão no Cursor: `.cursor/skills/product-grill` e `.cursor/skills/revenue-centric-design`.
+
 Detalhes: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dados operacionais: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).
 
 ## Superfícies atuais
@@ -171,13 +173,20 @@ Não prometer ao cliente Na Braza sem decisão de produto:
 
 ## Roadmap
 
+- Validação controlada do piloto ([product/pilot-validation-plan.md](product/pilot-validation-plan.md))
 - Aceite e dados reais do piloto Na Braza
 - Storefront por slug e onboarding de tenants
 - CRUD de `Store` no master, billing, polish de marca white-label
 - Itens em [README.md](../README.md) e ADRs
 
+Toda feature relevante após o aceite deve passar por **product-grill** antes do
+planejamento técnico. Somente **BUILD** autoriza arquitetura.
+`REDUCE SCOPE` exige reformular e executar o grill novamente.
+Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
+
 ## Referências
 
+- [product/pilot-validation-plan.md](product/pilot-validation-plan.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)

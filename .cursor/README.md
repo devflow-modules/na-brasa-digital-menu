@@ -6,16 +6,19 @@ Documentação operacional para agentes e humanos no Cursor. Orienta **como** co
 
 - Alinhar escopo MVP e decisões da V1
 - Reduzir overengineering e PRs gigantes
-- Reutilizar papéis (agents), regras (rules), fluxos (workflows) e prompts (commands)
+- Reutilizar papéis (agents), regras (rules), skills, fluxos (workflows) e prompts (commands)
+- Exigir problema, evidência, hipótese e métrica antes de features relevantes
 
 ## Fonte da verdade
 
 | Fonte | Uso |
 | --- | --- |
 | `docs/product.md` | Problema, personas, fluxo, fora de escopo |
+| `docs/product/pilot-validation-plan.md` | Validação do piloto Na Braza |
 | `README.md` | Setup, scripts, roadmap |
 | `.env.example` | Variáveis de ambiente |
 | `.cursor/rules/` | Convenções obrigatórias / contextuais |
+| `.cursor/skills/` | Gates de produto (grill, revenue-centric design) |
 | `.cursor/AGENTS.md` | Índice de papéis lógicos |
 | Código em `src/` e `prisma/` | Implementação real |
 
@@ -31,6 +34,18 @@ Regras `.mdc` com frontmatter. As com `alwaysApply: true` valem em toda sessão.
 
 Papéis lógicos para planejar, implementar ou revisar. Não são automações mágicas: escolha o papel (ou peça para “atuar como X”) conforme a tarefa.
 
+### Skills (`.cursor/skills/`)
+
+| Skill | Uso |
+| --- | --- |
+| `product-grill` | Gate BUILD / VALIDATE / REDUCE SCOPE / DEFER / REJECT antes de planejar |
+| `revenue-centric-design` | Hipótese + métrica para mudanças de UI/UX/operação (somente após BUILD) |
+
+Nenhuma feature relevante deve começar sem `product-grill`.
+`REDUCE SCOPE` → cortar → re-grill → só seguir com **BUILD**.
+Registrar decisão em `## Product Decision` (plano + corpo da PR).
+Ver `workflows/feature-development.md`.
+
 ### Workflows (`.cursor/workflows/`)
 
 Sequências recomendadas: feature, bugfix, release, checagem de produção.
@@ -38,6 +53,7 @@ Sequências recomendadas: feature, bugfix, release, checagem de produção.
 ### Commands (`.cursor/commands/`)
 
 Prompts reutilizáveis. Cole no chat ou referencie o arquivo ao pedir uma tarefa.
+`plan-feature` exige product-grill antes de arquitetura.
 
 ### Playwright MCP (opcional, local)
 
@@ -48,9 +64,10 @@ Não é obrigatório para `pnpm build` nem para a suíte `pnpm test:e2e`.
 ## PRs pequenas
 
 1. Uma intenção por PR (feature, fix ou docs — não misturar)
-2. Planejar com `commands/plan-feature.md` antes de codar features maiores
-3. Validar (`lint`, `typecheck`, `build`) antes de commit
-4. Reportar arquivos, escopo e o que ficou de fora
+2. Rodar `product-grill`; só planejar/codar se a decisão for BUILD (REDUCE SCOPE exige re-grill)
+3. Planejar com `commands/plan-feature.md` e salvar `## Product Decision`
+4. Validar (`lint`, `typecheck`, `build`) antes de commit
+5. Reportar arquivos, escopo, hipótese/métrica; repetir resumo Product Decision na PR
 
 ## Evitar overengineering
 
