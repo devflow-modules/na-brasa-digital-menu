@@ -451,6 +451,7 @@ export async function createE2eMenuProduct(options: {
   priceCents?: number;
   active?: boolean;
   available?: boolean;
+  featured?: boolean;
   imageUrl?: string | null;
 }): Promise<{
   id: string;
@@ -458,6 +459,7 @@ export async function createE2eMenuProduct(options: {
   priceCents: number;
   active: boolean;
   available: boolean;
+  featured: boolean;
 }> {
   const prisma = getPrisma();
   const name = options.name ?? `${E2E_MENU_PREFIX} Product ${Date.now()}`;
@@ -471,6 +473,7 @@ export async function createE2eMenuProduct(options: {
       sortOrder: 999,
       active: options.active ?? true,
       available: options.available ?? true,
+      featured: options.featured ?? false,
       ...(options.imageUrl !== undefined ? { imageUrl: options.imageUrl } : {}),
     },
     select: {
@@ -479,6 +482,7 @@ export async function createE2eMenuProduct(options: {
       priceCents: true,
       active: true,
       available: true,
+      featured: true,
     },
   });
   return product;
