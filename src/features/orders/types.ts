@@ -51,24 +51,56 @@ export type PreparedOrderItem = {
   quantity: number;
   unitPriceCents: number;
   totalCents: number;
+  notes: string | null;
   addons: PreparedOrderItemAddon[];
 };
 
-export type PreparedOrder = {
+export type CreateOrderPersistenceInput = {
   storeId: string;
-  storeName: string;
-  storeWhatsapp: string;
   code: string;
   customerName: string;
-  customerPhone: string;
+  customerPhone: string | null;
   deliveryType: CreateOrderDeliveryType;
   deliveryAddress: string | null;
-  paymentMethod: "PIX" | "CASH" | "CARD";
-  paymentLabel: string;
+  paymentMethod: "PIX" | "CASH" | "CARD" | null;
   changeForCents: number | null;
   notes: string | null;
   subtotalCents: number;
   deliveryFeeCents: number;
   totalCents: number;
+  source: "DIRECT" | "COUNTER";
+  whatsappMessage: string | null;
+  createdByUserId: string | null;
   items: PreparedOrderItem[];
 };
+
+export type CounterOrderContext = {
+  storeId: string;
+  createdByUserId: string;
+};
+
+export type CreateCounterOrderInput = {
+  customerLabel?: string;
+  notes?: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+    addonIds?: string[];
+    notes?: string;
+  }>;
+};
+
+export type CreateCounterOrderSuccess = {
+  ok: true;
+  orderId: string;
+  orderCode: string;
+};
+
+export type CreateCounterOrderFailure = {
+  ok: false;
+  message: string;
+};
+
+export type CreateCounterOrderResult =
+  | CreateCounterOrderSuccess
+  | CreateCounterOrderFailure;

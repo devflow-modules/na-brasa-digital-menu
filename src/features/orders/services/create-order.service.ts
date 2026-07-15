@@ -1,15 +1,14 @@
 import { createOrderSchema } from "@/features/orders/schemas/create-order.schema";
 import {
   createOrderWithItems,
-  findActiveProductsForOrder,
   findStoreForOrderBySlug,
 } from "@/features/orders/repositories/orders.repository";
+import { resolveAndPriceOrderItems } from "@/features/orders/services/resolve-and-price-order-items";
 import type {
   CreateOrderInput,
   CreateOrderPaymentMethod,
+  CreateOrderPersistenceInput,
   CreateOrderResult,
-  PreparedOrder,
-  PreparedOrderItem,
 } from "@/features/orders/types";
 import { generateOrderCode } from "@/features/orders/utils/order-code";
 import { parseCurrencyToCents } from "@/features/orders/utils/parse-currency-to-cents";
@@ -17,9 +16,6 @@ import { createWhatsAppUrl } from "@/features/orders/whatsapp/create-whatsapp-ur
 import { formatWhatsAppMessage } from "@/features/orders/whatsapp/format-whatsapp-message";
 
 const MAX_CODE_ATTEMPTS = 5;
-
-const ADDON_UNAVAILABLE_MESSAGE =
-  "Adicional indisponível para este produto.";
 
 function paymentLabel(method: CreateOrderPaymentMethod): string {
   switch (method) {
@@ -82,83 +78,23 @@ export async function createOrder(
     return { ok: false, message: "Entrega indisponível no momento." };
   }
 
-  const productIds = [...new Set(input.items.map((item) => item.productId))];
-  const products = await findActiveProductsForOrder(store.id, productIds);
-  const productsById = new Map(products.map((product) => [product.id, product]));
-
-  const preparedItems: PreparedOrderItem[] = [];
-
-  for (const item of input.items) {
-    const product = productsById.get(item.productId);
-
-    if (!product) {
-      return { ok: false, message: "Um ou mais produtos não foram encontrados." };
-    }
-
-    if (!product.active) {
-      return {
-        ok: false,
-        message: `O produto "${product.name}" não está disponível.`,
-      };
-    }
-
-    if (!product.available) {
-      return {
-        ok: false,
-        message: "Produto indisponível no momento.",
-      };
-    }
-
-    const addonsById = new Map(
-      product.productAddons.map((link) => [link.addon.id, link.addon]),
-    );
-
-    const uniqueAddonIds = [...new Set(item.addonIds)];
-    const preparedAddons = [];
-
-    for (const addonId of uniqueAddonIds) {
-      const addon = addonsById.get(addonId);
-
-      if (!addon || !addon.active) {
-        return {
-          ok: false,
-          message: ADDON_UNAVAILABLE_MESSAGE,
-        };
-      }
-
-      preparedAddons.push({
-        addonId: addon.id,
-        addonNameSnapshot: addon.name,
-        addonPriceCents: addon.priceCents,
-      });
-    }
-
-    const addonsTotalCents = preparedAddons.reduce(
-      (sum, addon) => sum + addon.addonPriceCents,
-      0,
-    );
-    const unitPriceCents = product.priceCents + addonsTotalCents;
-    const totalCents = unitPriceCents * item.quantity;
-
-    preparedItems.push({
-      productId: product.id,
-      productNameSnapshot: product.name,
-      productDescriptionSnapshot: product.description,
+  const priced = await resolveAndPriceOrderItems(
+    store.id,
+    input.items.map((item) => ({
+      productId: item.productId,
       quantity: item.quantity,
-      unitPriceCents,
-      totalCents,
-      addons: preparedAddons,
-    });
-  }
-
-  const subtotalCents = preparedItems.reduce(
-    (sum, item) => sum + item.totalCents,
-    0,
+      addonIds: item.addonIds,
+      notes: null,
+    })),
   );
+
+  if (!priced.ok) {
+    return priced;
+  }
 
   if (
     store.minimumOrderAmountCents > 0 &&
-    subtotalCents < store.minimumOrderAmountCents
+    priced.subtotalCents < store.minimumOrderAmountCents
   ) {
     return {
       ok: false,
@@ -168,7 +104,7 @@ export async function createOrder(
 
   const deliveryFeeCents =
     input.deliveryType === "DELIVERY" ? store.deliveryFeeCents : 0;
-  const totalCents = subtotalCents + deliveryFeeCents;
+  const totalCents = priced.subtotalCents + deliveryFeeCents;
 
   let changeForCents: number | null = null;
   if (input.paymentMethod === "CASH" && input.changeFor) {
@@ -186,43 +122,27 @@ export async function createOrder(
 
   const notes = input.notes?.trim() ? input.notes.trim() : null;
   const label = paymentLabel(input.paymentMethod);
+  const customerName = input.customerName.trim();
+  const customerPhone = input.customerPhone.trim();
+  const paymentMethod = toPrismaPaymentMethod(input.paymentMethod);
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
     const code = generateOrderCode();
 
-    const prepared: PreparedOrder = {
-      storeId: store.id,
-      storeName: store.name,
-      storeWhatsapp: store.whatsapp,
+    const whatsappMessage = formatWhatsAppMessage({
       code,
-      customerName: input.customerName.trim(),
-      customerPhone: input.customerPhone.trim(),
+      storeName: store.name,
+      customerName,
+      customerPhone,
       deliveryType: input.deliveryType,
       deliveryAddress,
-      paymentMethod: toPrismaPaymentMethod(input.paymentMethod),
       paymentLabel: label,
       changeForCents,
       notes,
-      subtotalCents,
+      subtotalCents: priced.subtotalCents,
       deliveryFeeCents,
       totalCents,
-      items: preparedItems,
-    };
-
-    const whatsappMessage = formatWhatsAppMessage({
-      code: prepared.code,
-      storeName: prepared.storeName,
-      customerName: prepared.customerName,
-      customerPhone: prepared.customerPhone,
-      deliveryType: prepared.deliveryType,
-      deliveryAddress: prepared.deliveryAddress,
-      paymentLabel: prepared.paymentLabel,
-      changeForCents: prepared.changeForCents,
-      notes: prepared.notes,
-      subtotalCents: prepared.subtotalCents,
-      deliveryFeeCents: prepared.deliveryFeeCents,
-      totalCents: prepared.totalCents,
-      items: prepared.items.map((item) => ({
+      items: priced.items.map((item) => ({
         quantity: item.quantity,
         productName: item.productNameSnapshot,
         lineTotalCents: item.totalCents,
@@ -233,8 +153,27 @@ export async function createOrder(
       })),
     });
 
+    const persistence: CreateOrderPersistenceInput = {
+      storeId: store.id,
+      code,
+      customerName,
+      customerPhone,
+      deliveryType: input.deliveryType,
+      deliveryAddress,
+      paymentMethod,
+      changeForCents,
+      notes,
+      subtotalCents: priced.subtotalCents,
+      deliveryFeeCents,
+      totalCents,
+      source: "DIRECT",
+      whatsappMessage,
+      createdByUserId: null,
+      items: priced.items,
+    };
+
     try {
-      const created = await createOrderWithItems(prepared, whatsappMessage);
+      const created = await createOrderWithItems(persistence);
       const whatsappUrl = createWhatsAppUrl(store.whatsapp, whatsappMessage);
 
       return {

@@ -54,7 +54,7 @@ Login **runtime** em `/admin/login` usa `User` + bcrypt. Sessão JWT inclui `use
 
 - **Order** — cliente, entrega, pagamento, totais, `status`, `source`, `whatsappMessage`
 - **OrderItem** / **OrderItemAddon** — snapshots; FKs opcionais com `onDelete: SetNull`
-- **`OrderSource.COUNTER`** — origem preparada para comanda digital de balcão (criação/fechamento ainda não entregues; não é PDV completo)
+- **`OrderSource.COUNTER`** — comanda digital de balcão; criação autenticada entregue; fechamento/pagamento e UI `/admin/balcao` ainda não (não é PDV completo)
 - **`customerPhone` / `paymentMethod`** — opcionais no modelo persistido compartilhado; o checkout público `DIRECT` continua exigindo ambos
 - **`createdByUserId`** — operador que abriu a comanda (`onDelete: SetNull`); preenchido só por service autenticado futuro; nunca do payload livre do client
 - **`paidAt`** — confirmação de pagamento no fechamento posterior; pedidos existentes permanecem `null` (não reinterpretar `DIRECT` como “não pago” só por isso)
@@ -105,4 +105,4 @@ Histórico: migrations em `prisma/migrations/`.
 - Onboarding self-service de novos tenants
 - Storefront público dinâmico por slug (piloto usa rota `/na-brasa`)
 - Billing, planos e limites por tenant
-- Criação autenticada de pedido `COUNTER`, UI `/admin/balcao`, fechamento com recebimento e `paidAt`
+- UI `/admin/balcao`, fechamento com recebimento e preenchimento de `paidAt`

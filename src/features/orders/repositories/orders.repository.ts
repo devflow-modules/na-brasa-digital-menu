@@ -4,7 +4,7 @@ import type {
   Prisma,
 } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import type { PreparedOrder } from "@/features/orders/types";
+import type { CreateOrderPersistenceInput } from "@/features/orders/types";
 
 export type OrderStoreRecord = {
   id: string;
@@ -87,35 +87,43 @@ export async function findActiveProductsForOrder(
 }
 
 export async function createOrderWithItems(
-  prepared: PreparedOrder,
-  whatsappMessage: string,
+  input: CreateOrderPersistenceInput,
 ) {
   const data: Prisma.OrderCreateInput = {
-    code: prepared.code,
-    customerName: prepared.customerName,
-    customerPhone: prepared.customerPhone,
-    deliveryType: prepared.deliveryType as DeliveryType,
-    deliveryAddress: prepared.deliveryAddress,
-    paymentMethod: prepared.paymentMethod as PaymentMethod,
-    changeForCents: prepared.changeForCents,
-    notes: prepared.notes,
-    subtotalCents: prepared.subtotalCents,
-    deliveryFeeCents: prepared.deliveryFeeCents,
-    totalCents: prepared.totalCents,
+    code: input.code,
+    customerName: input.customerName,
+    customerPhone: input.customerPhone,
+    deliveryType: input.deliveryType as DeliveryType,
+    deliveryAddress: input.deliveryAddress,
+    paymentMethod: input.paymentMethod as PaymentMethod | null,
+    changeForCents: input.changeForCents,
+    notes: input.notes,
+    subtotalCents: input.subtotalCents,
+    deliveryFeeCents: input.deliveryFeeCents,
+    totalCents: input.totalCents,
     status: "PENDING",
-    source: "DIRECT",
-    whatsappMessage,
+    source: input.source,
+    whatsappMessage: input.whatsappMessage,
+    paidAt: null,
     store: {
-      connect: { id: prepared.storeId },
+      connect: { id: input.storeId },
     },
+    ...(input.createdByUserId
+      ? {
+          createdByUser: {
+            connect: { id: input.createdByUserId },
+          },
+        }
+      : {}),
     items: {
-      create: prepared.items.map((item) => ({
+      create: input.items.map((item) => ({
         productId: item.productId,
         productNameSnapshot: item.productNameSnapshot,
         productDescriptionSnapshot: item.productDescriptionSnapshot,
         quantity: item.quantity,
         unitPriceCents: item.unitPriceCents,
         totalCents: item.totalCents,
+        notes: item.notes,
         addons: {
           create: item.addons.map((addon) => ({
             addonId: addon.addonId,
