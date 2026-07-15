@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { AddToCartPanel } from "@/features/cart/components/add-to-cart-panel";
 import { CartSummary } from "@/features/cart/components/cart-summary";
 import { useCart } from "@/features/cart/use-cart";
+import { CategoryJumpNavigation } from "@/features/menu/components/category-jump-navigation";
 import { CategorySection } from "@/features/menu/components/category-section";
 import { ProductCard } from "@/features/menu/components/product-card";
 import type {
@@ -69,6 +70,13 @@ export function MenuOrderingExperience({
           </div>
         ) : (
           <>
+            <CategoryJumpNavigation
+              categories={catalogCategories.map((category) => ({
+                id: category.id,
+                name: category.name,
+              }))}
+            />
+
             {featuredProducts.length > 0 ? (
               <section
                 data-testid="menu-featured-section"

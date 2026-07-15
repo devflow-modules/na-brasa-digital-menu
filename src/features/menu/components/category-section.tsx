@@ -13,14 +13,18 @@ export function CategorySection({
   category,
   onAddProduct,
 }: CategorySectionProps) {
+  const sectionId = `category-${category.id}`;
+  const headingId = `category-heading-${category.id}`;
+
   if (category.products.length === 0) {
     return (
       <section
-        className="rounded-xl border border-dashed border-stone-700 bg-stone-900/40 px-4 py-6 text-center"
-        aria-labelledby={`category-${category.id}`}
+        id={sectionId}
+        className="scroll-mt-24 rounded-xl border border-dashed border-stone-700 bg-stone-900/40 px-4 py-6 text-center"
+        aria-labelledby={headingId}
       >
         <h2
-          id={`category-${category.id}`}
+          id={headingId}
           className="text-base font-semibold text-stone-300"
         >
           {category.name}
@@ -34,12 +38,13 @@ export function CategorySection({
 
   return (
     <section
-      className="flex flex-col gap-4 border-l-2 border-orange-500/35 pl-4"
-      aria-labelledby={`category-${category.id}`}
+      id={sectionId}
+      className="flex scroll-mt-24 flex-col gap-4 border-l-2 border-orange-500/35 pl-4"
+      aria-labelledby={headingId}
     >
       <div className="flex flex-col gap-1">
         <h2
-          id={`category-${category.id}`}
+          id={headingId}
           className="text-xl font-semibold tracking-tight text-orange-50"
         >
           {category.name}
