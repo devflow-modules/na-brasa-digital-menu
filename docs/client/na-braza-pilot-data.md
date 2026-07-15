@@ -10,6 +10,7 @@ Status geral:
 - Menu data: applied via `pnpm menu:apply-na-braza-pilot`
 - Admin users: Lucas prepared via PR/script; Renan pending
 - Test/smoke data cleanup: script `pnpm data:clean-na-braza-tests` (dry-run default); apply with `CONFIRM_CLEAN_NA_BRAZA_TEST_DATA=true`
+- Test records purge before handoff: `pnpm data:purge-na-braza-tests` (dry-run default); apply with `CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS=true`
 
 ## Implementation tracking
 
@@ -23,6 +24,8 @@ Status geral:
 | Renan `STORE_OWNER` | Pending contact data |
 | Test/smoke cleanup (code) | `pnpm data:clean-na-braza-tests` — dry-run then apply in production |
 | Test/smoke cleanup (production DB) | Pending until dry-run reviewed |
+| Test records purge (code) | `pnpm data:purge-na-braza-tests` — final handoff, after cleanup |
+| Test records purge (production DB) | Pending until dry-run reviewed |
 
 ## Sources
 
