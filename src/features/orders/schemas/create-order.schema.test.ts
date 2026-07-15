@@ -36,4 +36,24 @@ describe("createOrderSchema public DIRECT regression", () => {
     const result = createOrderSchema.safeParse(validBase);
     assert.equal(result.success, true);
   });
+
+  it("still requires storeSlug and deliveryType for DIRECT", () => {
+    const withoutStore = createOrderSchema.safeParse({
+      customerName: validBase.customerName,
+      customerPhone: validBase.customerPhone,
+      deliveryType: validBase.deliveryType,
+      paymentMethod: validBase.paymentMethod,
+      items: validBase.items,
+    });
+    assert.equal(withoutStore.success, false);
+
+    const withoutDelivery = createOrderSchema.safeParse({
+      storeSlug: validBase.storeSlug,
+      customerName: validBase.customerName,
+      customerPhone: validBase.customerPhone,
+      paymentMethod: validBase.paymentMethod,
+      items: validBase.items,
+    });
+    assert.equal(withoutDelivery.success, false);
+  });
 });

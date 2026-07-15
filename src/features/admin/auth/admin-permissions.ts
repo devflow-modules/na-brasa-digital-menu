@@ -11,6 +11,7 @@ import {
 
 export type AdminPermission =
   | "orders.read"
+  | "orders.create"
   | "orders.status.confirm"
   | "orders.status.prepare"
   | "orders.status.ready"
@@ -36,6 +37,7 @@ export type AdminPermission =
 
 const ORDER_PERMISSIONS = [
   "orders.read",
+  "orders.create",
   "orders.status.confirm",
   "orders.status.prepare",
   "orders.status.ready",
@@ -82,6 +84,7 @@ const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
   MANAGER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
   OPERATOR: [
     "orders.read",
+    "orders.create",
     "orders.status.confirm",
     "orders.status.prepare",
     "orders.status.ready",
@@ -126,6 +129,10 @@ export function hasAdminPermission(
   permission: AdminPermission,
 ): boolean {
   return getAdminPermissions(role).includes(permission);
+}
+
+export function canCreateOrder(role: UserRole): boolean {
+  return hasAdminPermission(role, "orders.create");
 }
 
 export function canReadMenu(role: UserRole): boolean {
