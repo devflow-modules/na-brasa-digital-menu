@@ -111,7 +111,7 @@ O seed cria o tenant piloto `na-brasa` (cardápio fictício, WhatsApp placeholde
 | `pnpm build` / `pnpm start` | Build e produção local |
 | `pnpm lint` / `pnpm typecheck` | Qualidade estática |
 | `pnpm test` | Teste unitário (permissões admin) |
-| `pnpm test:e2e` | Playwright (Chromium) |
+| `pnpm test:e2e` | Playwright (Desktop Chrome + Mobile Chrome / Pixel 5) |
 | `pnpm prisma:generate` / `migrate` / `seed` / `studio` | Prisma |
 
 ### Scripts específicos do piloto Na Braza

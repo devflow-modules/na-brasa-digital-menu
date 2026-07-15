@@ -21,8 +21,14 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/product-availability.spec.ts` | `active` vs `available`: badge público, bloqueio carrinho/checkout, permissões OPERATOR |
 | `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: CRUD, vínculos, público, permissões, order validation |
 | `tests/e2e/admin-store-settings.spec.ts` | `/admin/configuracoes`: permissões, público, loja fechada, entrega/retirada, escopo Store, WhatsApp; **restaura** settings da loja seed |
+| `tests/e2e/mobile-storefront.spec.ts` | Fluxo crítico do storefront em viewport mobile (Pixel 5) |
 
-Browser: **Chromium** apenas.
+Browsers / projetos Playwright:
+
+| Projeto | Device | Specs |
+| --- | --- | --- |
+| `chromium` | Desktop Chrome | Toda a suíte, exceto `mobile-storefront.spec.ts` |
+| `mobile-chrome` | Pixel 5 | Somente `mobile-storefront.spec.ts` |
 
 ## Pré-requisitos
 
@@ -72,6 +78,16 @@ Arquivo: `src/features/admin/auth/admin-permissions.test.ts` (role × transiçã
 pnpm test:e2e
 ```
 
+Roda desktop (`chromium`) + a spec mobile focada (`mobile-chrome`).
+
+Projetos isolados:
+
+```bash
+pnpm test:e2e --project=chromium
+pnpm test:e2e --project=mobile-chrome
+pnpm test:e2e tests/e2e/mobile-storefront.spec.ts --project=mobile-chrome
+```
+
 Outros scripts:
 
 | Comando | Descrição |
@@ -81,6 +97,8 @@ Outros scripts:
 | `pnpm test:e2e:report` | Abre o HTML report |
 
 O `playwright.config.ts` sobe `pnpm dev` em `http://127.0.0.1:3000` (`reuseExistingServer: true`).
+
+No Windows, se o subprocesso do Playwright não encontrar `pnpm` no PATH, suba antes `corepack pnpm dev` e garanta que `http://127.0.0.1:3000` responda 2xx para reutilizar o servidor.
 
 ## Relatório e artifacts
 
