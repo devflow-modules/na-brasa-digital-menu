@@ -155,6 +155,19 @@ Rodar o script manual em produção só após merge desta PR e com `DATABASE_URL
 
 Fonte dos valores: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).
 
+## Na Braza — após `pnpm menu:apply-na-braza-pilot`
+
+Rodar após merge do cardápio piloto e com `DATABASE_URL` de produção. Conferir em `/na-brasa`:
+
+- [ ] Categorias na ordem: Lanches artesanais → Espetinhos na Brasa → Bebidas → Cervejas
+- [ ] **Pão Carne Queijo** exibe **R$ 25,00**
+- [ ] Adicionais do burger: Bacon extra, Salada, Queijo extra, Hambúrguer extra
+- [ ] Espetinhos (carne, linguiça, coração, misto) visíveis
+- [ ] Bebidas listadas conforme piloto
+- [ ] Cervejas com texto **Produto permitido apenas para maiores de 18 anos.**
+- [ ] Itens fictícios antigos (ex.: Burger Na Braza) **não** aparecem no público
+- [ ] Pedido teste com Pão Carne Queijo + adicional ≥ R$ 30,00 finaliza e abre WhatsApp correto
+
 ## Resultado
 
 | Resultado | Critério |

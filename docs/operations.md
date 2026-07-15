@@ -21,6 +21,16 @@ Em banco **já existente** (produção ou dev compartilhado), aplicar settings m
 
 Não altera cardápio, pedidos nem usuários.
 
+## Cardápio real do piloto
+
+Fonte: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md). Produto principal: **Pão Carne Queijo** (R$ 25,00) com adicionais no burger; espetinhos, bebidas e cervejas com aviso +18.
+
+Em banco já existente, aplicar o cardápio piloto manualmente:
+
+`pnpm menu:apply-na-braza-pilot`
+
+O script ativa/atualiza itens reais e **desativa** (não deleta) produtos/categorias/adicionais antigos do seed fictício. Não altera Store settings, pedidos nem usuários.
+
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)

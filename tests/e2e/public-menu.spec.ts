@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { ensureOfficialStoreDisplayNameForE2e } from "./helpers/db";
+import { ensureOfficialStoreDisplayNameForE2e, ensurePilotMenuForE2e } from "./helpers/db";
 import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
 import { CART_STORAGE_KEY, OFFICIAL_STORE_DISPLAY_NAME } from "./helpers/test-data";
 
 test.describe("public menu", () => {
   test.beforeEach(async ({ page }) => {
     await ensureOfficialStoreDisplayNameForE2e();
+    await ensurePilotMenuForE2e();
     await clearCartStorage(page);
   });
 
