@@ -26,7 +26,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
+      testIgnore: /mobile-storefront\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
+    },
+    {
+      name: "mobile-chrome",
+      testMatch: /mobile-storefront\.spec\.ts/,
+      use: { ...devices["Pixel 5"] },
     },
   ],
   webServer: {
