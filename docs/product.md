@@ -1,234 +1,183 @@
-# Produto — Na Braza Cardápio Online
+# Produto — plataforma white-label de cardápio digital
 
-## Status (v0.1.0-pilot)
+## Visão
+
+Plataforma **white-label multi-tenant** para pequenos negócios de alimentação: cardápio mobile-first, pedido salvo no banco, encaminhamento ao WhatsApp por link (`wa.me`) e operação em painéis web. **Nome comercial:** indefinido. **Nome interno provisório:** Digital Menu Platform.
+
+Não confundir a plataforma com o **cliente 1**: **Na Braza** (slug `na-brasa`), primeira implantação real em produção controlada.
+
+## Problema
+
+**No piloto (Na Braza):** o negócio opera como carrinho de lanche com ponto fixo; o atendimento depende de conversa manual e falta um fluxo digital claro para o cliente montar o pedido e para a equipe acompanhar pedidos.
+
+**Na plataforma:** permitir replicar esse fluxo por **loja (`Store`)**, com isolamento de dados e papéis distintos (cliente final, equipe da loja, operador de plataforma).
+
+## Usuários
+
+| Usuário | Superfície | Objetivo |
+| --- | --- | --- |
+| Cliente final | Storefront do tenant | Ver cardápio, pedir no celular, enviar via WhatsApp |
+| Equipe da loja | `/admin` | Pedidos, cardápio, settings (conforme role) |
+| Operador de plataforma | `/master` | Visão agregada e gestão de usuários por loja (`MASTER`) |
+
+## Modelo operacional
+
+- **Tenant:** uma `Store` (slug, WhatsApp, taxas, flags).
+- **Pedido:** sempre persistido no server antes do WhatsApp; snapshots em itens.
+- **Auth:** `User` no banco; sessão JWT em cookie HttpOnly; RBAC por `UserRole`.
+- **Piloto:** uma loja real (Na Braza); storefront público hoje na rota fixa `/na-brasa` (não é rota dinâmica `/{slug}` para qualquer tenant).
+
+## Classificação de requisitos
+
+| Tipo | Significado | Exemplo |
+| --- | --- | --- |
+| **PLATFORM** | Comportamento transversal (`/master`, auth, regras globais) | Dashboard master |
+| **TENANT** | Qualquer loja no modelo `Store` | Settings, pedidos por `storeId` |
+| **CLIENT_SPECIFIC** | Só o piloto Na Braza | Copy, scripts `apply-na-braza-*`, rota `/na-brasa` |
+
+Use esta classificação ao priorizar escopo e impacto em isolamento entre lojas. Decisões de arquitetura multi-tenant: [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md).
+
+## Piloto v0.1.0 — Na Braza
 
 | | |
 | --- | --- |
 | **Versão** | v0.1.0-pilot |
 | **Produção** | https://na-brasa-cardapio.vercel.app/na-brasa |
-| **Gate** | Smoke autenticado de Store Settings: **GO** (jul/2026) |
+| **Gate** | Smoke Store Settings: **GO** (jul/2026) |
 
-### Pronto no piloto
+**Pronto no piloto:** fluxo público completo; admin (pedidos, cardápio, adicionais, configurações); `/master` (métricas e usuários por loja); CI/E2E.
 
-- Fluxo público completo (cardápio → carrinho → checkout → pedido → WhatsApp)
-- Admin de pedidos, status por role, cardápio, adicionais, configurações da loja
-- `/master` para usuários por loja
-- CI/E2E e checklists de produção
+**Próximos passos:** aceite do dono → dados reais finais → divulgação do link → backlog com o Na Braza (sem feature nova até aceite).
 
-### Fora do piloto (não prometer ao cliente)
+Detalhes: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dados operacionais: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).
 
-- Pagamento online, WhatsApp API, zonas de entrega, horário por dia
-- Reset de senha, upload de imagens, relatórios, tempo real
-- CRUD de lojas no `/master`
+## Superfícies atuais
 
-### Próximos passos pós-piloto
+### Storefront público
 
-1. Aceite do dono com [checklist de aceite](../production-checklist.md#client-acceptance-checklist)
-2. Dados reais finais (WhatsApp, endereço, cardápio, taxas)
-3. Divulgação do link / QR
-4. Backlog priorizado com o Na Braza (sem feature nova até aceite)
+**Estado atual:** rota do piloto **`/na-brasa`** (e `/na-brasa/checkout`); `/` redireciona para essa rota.
 
-Detalhes: [docs/releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md)
+- Renderiza `Store`, categorias e produtos ativos (Server Components + Prisma).
+- Carrinho local (`localStorage`); totais no checkout são estimados no client.
+- **Direção planejada:** storefront público por slug genérico (não implementado como App Router dinâmico).
 
-## Problema
+### Painel da loja
 
-O Na Braza opera como carrinho de lanche com ponto fixo. Hoje o atendimento depende de conversa manual; falta um cardápio digital claro para o cliente montar o pedido e para o operador registrar/acompanhar pedidos.
+**Estado atual:** **`/admin`** (login em `/admin/login`), **store-scoped** via `requireAdminStoreContext`.
 
-## Solução (MVP)
+- Pedidos, cardápio, adicionais, configurações — permissões por role no server.
+- Usuários de loja: contexto de `session.storeId`.
+- `MASTER` em `/admin`: contexto **transitório** da loja definida por `NEXT_PUBLIC_STORE_SLUG` (piloto: `na-brasa`) — não é seleção livre de tenant.
 
-Um cardápio online mobile-first onde o cliente:
+### Painel master
 
-1. Navega categorias e itens
-2. Monta o carrinho
-3. Informa dados básicos do pedido
-4. Envia o pedido via WhatsApp (link com mensagem pronta)
+**Estado atual:** **`/master`** (`requireMasterSession`, role `MASTER`).
 
-O operador visualiza pedidos salvos em um painel simples.
+- Dashboard com métricas e lista de lojas existentes no banco.
+- **Usuários por loja:** `/master/stores/[storeId]/users` (criar, roles de loja, ativar/desativar).
+- **Não implementado:** CRUD completo de `Store` (criar/editar/arquivar lojas pela UI).
+- Usuários de loja **não** acessam `/master`; operação em `/admin` e `/master` são contextos distintos.
 
-## Fora do escopo da V1
-
-- WhatsApp Business API / chatbot automático
-- App nativo (React Native)
-- Backend Express separado
-- Pagamentos online
-- Multi-loja avançado (há `STORE_SLUG` para preparar o caminho)
-
-## Personas
-
-- **Cliente**: pede pelo celular, quer clareza de itens/preços e envio rápido no WhatsApp
-- **Operador Na Braza**: precisa ver pedidos entrando e confirmar atendimento
-
-## Fluxo alvo
+## Fluxo público
 
 ```text
 Cliente abre /na-brasa
-  → escolhe itens
-  → revisa carrinho
-  → checkout
-  → pedido salvo no sistema
-  → redireciona/abre WhatsApp com mensagem formatada
-  → operador vê pedido no /admin
+  → carrinho local
+  → /na-brasa/checkout
+  → pedido salvo (server recalcula preços/taxas; snapshots)
+  → abre wa.me com mensagem formatada
 ```
 
-## Princípios
+O payload inclui `storeSlug`; o server resolve a `Store` e valida que produtos/adicionais pertencem a essa loja.
 
-- Mobile-first
-- Fluxo curto até o WhatsApp
-- Código simples e tipado
-- Incremental: fundação → catálogo → carrinho → checkout → admin
+## Fluxo operacional
 
-## Modelo de dados inicial
+```text
+Equipe: /admin/login → /admin → /admin/pedidos/[id] → atualiza status (server)
+Plataforma: /admin/login → /master → gestão de usuários da loja (quando aplicável)
+```
 
-O schema Prisma cobre catálogo e pedidos. Detalhes em `docs/database.md`.
+Transições de status e permissões: validadas no server (matrizes abaixo).
 
-### Catálogo
+## Autenticação e autorização
 
-- **Store** — loja `na-brasa` (WhatsApp, endereço, taxas)
-- **Category** / **Product** / **Addon** — cardápio com `active`, `available` (produto) e `sortOrder`
-- **ProductAddon** — quais adicionais cada produto aceita
+- Login: `User.email` + `passwordHash` (bcrypt); inativos rejeitados.
+- Sessão: JWT (`jose`), cookie `ADMIN_SESSION_COOKIE`, claims `userId`, `role`, `storeId`, etc.
+- Bootstrap: `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL`, `MASTER_ADMIN_PASSWORD` no **seed** (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
+- **`/master`:** só `MASTER`; demais roles → `notFound()`.
+- **`/admin`:** roles de loja + acesso transicional do `MASTER` à Store de `NEXT_PUBLIC_STORE_SLUG`.
 
-### Pedidos
+## Modelo multi-tenant
 
-- **Order** — dados do cliente, entrega, pagamento, totais em centavos, `status` e `source`
-- **OrderItem** — snapshot do produto + quantidade + total da linha
-- **OrderItemAddon** — snapshot do adicional no item
+- Dados de catálogo e pedidos vinculados a `Store` / `storeId`.
+- Isolamento em queries admin (ex.: pedido `where: { id, storeId }`).
+- **Fundação multi-tenant** ≠ **SaaS self-service completo** (sem onboarding automático de novas lojas nem billing).
 
-### Enums
+Schema e seed: [database.md](database.md). Decisão: [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md).
 
-- `OrderStatus`, `DeliveryType`, `PaymentMethod`, `OrderSource`
+## Estado atual (detalhes funcionais)
 
-### Dinheiro
+### Dados e pedidos
 
-Preços e totais usam inteiros em **centavos** (`priceCents`, `totalCents`, etc.).
+Resumo do schema: [database.md](database.md). Centavos no server; não confiar em preços do client.
 
-Na criação do pedido, o server recalcula totais — não confiar em preço vindo do client.
+### Configurações da loja (`/admin/configuracoes`)
 
-## Cardápio público
-
-- Rota `/na-brasa` renderiza `Store`, categorias e produtos ativos do banco (Server Component + Prisma no server).
-- Exibe status aberto/fechado, retirada/entrega, taxa e pedido mínimo quando aplicável.
-
-## Carrinho local
-
-- O cliente monta o pedido no navegador (estado + `localStorage`).
-- Adicionais entram no total do item: `(preço do produto + soma dos adicionais) × quantidade`.
-- Preços no carrinho são snapshots client-side; na criação do pedido o **server recalcula** tudo.
-
-## Checkout
-
-- Rota `/na-brasa/checkout` captura dados do cliente (nome, telefone, retirada/entrega, pagamento, observações).
-- Validação client com Zod + React Hook Form; totais no checkout são **estimados**.
-- Ao finalizar, o client envia só IDs/quantidades (sem preços como fonte de verdade).
-
-## Criação de pedido
-
-- Server Action cria o pedido **antes** de abrir o WhatsApp.
-- O server recalcula preços, taxas e total a partir do banco (produtos/adicionais ativos).
-- `OrderItem` / `OrderItemAddon` gravam **snapshots** para preservar o histórico.
-- Status inicial: `PENDING`; origem: `DIRECT`.
-- Mensagem formatada é salva em `Order.whatsappMessage`.
-- O cliente é redirecionado para `https://wa.me/<telefone>?text=...` (link, **não** WhatsApp API).
-- Em sucesso, o carrinho local (`na-brasa-cart-v1`) é limpo.
-
-## Admin (auth)
-
-- `/admin` é área restrita: sem sessão válida, redireciona para `/admin/login`.
-- Login autentica `User` no banco (`email` + `passwordHash` com bcrypt); usuários inativos são rejeitados.
-- Sessão: JWT (`jose`) em cookie **HttpOnly**, `SameSite=Lax`, `Secure` em produção, path `/`, claims `userId`, `name`, `email`, `role`, `storeId`.
-- **`/master`**: painel da DevFlow Labs — somente `role === MASTER` (`requireMasterSession`). Sem sessão → `/admin/login`; não-MASTER → `notFound()`.
-- `/admin` é o painel da loja/cliente (**store-scoped** via `requireAdminStoreContext`):
-  - roles de loja usam `session.storeId`;
-  - `MASTER` resolve Store por `NEXT_PUBLIC_STORE_SLUG` (acesso **transicional**);
-  - pedido fora da Store → `notFound()` / “Pedido não encontrado.”
-- Logout limpa o cookie e volta para `/admin/login`.
-- Bootstrap do primeiro usuário: seed com `MASTER_ADMIN_*` (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
-- **Permissões por role no `/admin`**: pedidos, cardápio, adicionais e configurações da loja — validadas no server; a UI esconde ações não permitidas. A matriz pode evoluir por cliente/plano depois do piloto.
-
-## Master (plataforma)
-
-- `/master` mostra cards: lojas, lojas abertas (`Store.isOpen`), pedidos totais/pendentes/concluídos.
-- Lista de lojas: nome, slug, WhatsApp mascarado, link público `/{slug}`, contagem de pedidos, `createdAt`.
-- **Usuários por loja:** `/master/stores/[storeId]/users` — MASTER lista/cria usuários vinculados à Store; roles permitidas: `STORE_OWNER`, `MANAGER`, `OPERATOR`, `KITCHEN`.
-- Ações: criar (bcrypt hash), ativar/desativar (`isActive`), alterar role de loja.
-- Não cria `MASTER` por essa UI; `storeId` vem da rota validada; senha não é reexibida.
-- Reset de senha e CRUD de lojas = roadmap.
-- Roles de loja acessam `/admin` (store-scoped), não `/master`.
-
-## Admin (pedidos)
-
-- `/admin` lista os últimos 50 pedidos (read-only), com cards de resumo.
-- `/admin/pedidos/[id]` mostra detalhe: cliente, itens/adicionais, totais, endereço, pagamento e `whatsappMessage`.
-- Cards usam dia local do servidor (`setHours(0,0,0,0)`); receita de hoje exclui `CANCELLED`.
-- Link para `/admin/cardapio` no dashboard (gerenciar ou ver conforme a role).
-- Link **Configurações** (`/admin/configuracoes`) para quem tem `store.settings.read`.
-
-## Configurações da loja (`/admin/configuracoes`)
-
-- Edita dados operacionais da Store efetiva (store-scoped): WhatsApp, endereço, taxa de entrega, retirada/entrega habilitadas, texto de horário e **loja aberta** (`Store.isOpen`).
-- Campos já existentes no Prisma (`whatsapp`, `address`, `openingHours`, `deliveryFeeCents`, `pickupEnabled`, `deliveryEnabled`, `isOpen`) — sem migration nesta etapa.
-- **Dados estruturais** (WhatsApp, endereço, taxa, flags de entrega/retirada, horário): dono/gerente (`STORE_OWNER` / `MANAGER` / `MASTER` transicional).
-- **Status operacional** (abrir/fechar loja): dono/gerente **e** `OPERATOR`; `KITCHEN` só visualiza.
-- Reflexo no público `/{slug}`: endereço, horário, badge aberto/fechado; taxa de entrega no checkout vem do server.
-- Loja fechada: cardápio continua visível; checkout e criação de pedido bloqueados no server com mensagem amigável.
-- Entrega/retirada desabilitadas: checkout e `createOrder` rejeitam o tipo correspondente no server.
+- Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.
+- Reflexo no público **`/na-brasa`**: badge aberto/fechado, taxas no checkout (server).
+- Loja fechada ou tipo de entrega desabilitado: bloqueio no server em checkout/`createOrder`.
 
 | Role | Ver | Editar dados estruturais | Abrir/fechar loja |
 | --- | --- | --- | --- |
 | `MASTER` | sim | sim | sim |
-| `STORE_OWNER` | sim | sim | sim |
-| `MANAGER` | sim | sim | sim |
+| `STORE_OWNER` / `MANAGER` | sim | sim | sim |
 | `OPERATOR` | sim | não | sim |
 | `KITCHEN` | sim | não | não |
 
-## Gestão de cardápio (`/admin/cardapio`)
+### Cardápio (`/admin/cardapio`)
 
-- Lista categorias e produtos da Store efetiva (store-scoped).
-- Preços em **centavos** no banco; formulários aceitam reais e convertem no server.
-- **`Product.active`**: publicação no catálogo (`false` = oculto em `/{slug}`).
-- **`Product.available`**: disponibilidade operacional (`false` = aparece como indisponível, sem pedido).
-- Sem upload de imagem, sem delete físico e sem addons avançados.
+- `Product.active` (publicação no cardápio público do piloto) e `Product.available` (indisponível para pedido).
 
-| Role | Ver | Criar/editar produto | Categorias | Disponível/indisponível (`available`) | Publicar/ocultar (`active`) |
-| --- | --- | --- | --- | --- | --- |
-| `MASTER` | sim | sim | sim | sim | sim |
-| `STORE_OWNER` | sim | sim | sim | sim | sim |
-| `MANAGER` | sim | sim | sim | sim | sim |
-| `OPERATOR` | sim | não | não | sim | não |
-| `KITCHEN` | sim | não | não | não | não |
-
-## Gestão de adicionais (`/admin/cardapio/adicionais`)
-
-- Lista adicionais da Store efetiva e produtos para vínculo (`ProductAddon`).
-- **`Addon.active`**: `false` remove o adicional da escolha no cardápio público (quando vinculado).
-- Sem delete físico; sem grupos obrigatórios, min/max ou estoque nesta etapa.
-- Link **Gerenciar adicionais** em `/admin/cardapio` para quem tem `menu.addon.read`.
-
-| Role | Ver | Criar/editar | Ativar/desativar | Vincular/desvincular produto |
+| Role | Ver | Criar/editar | `available` | `active` |
 | --- | --- | --- | --- | --- |
-| `MASTER` | sim | sim | sim | sim |
-| `STORE_OWNER` | sim | sim | sim | sim |
-| `MANAGER` | sim | sim | sim | sim |
-| `OPERATOR` | sim | não | não | não |
+| `MASTER` / `STORE_OWNER` / `MANAGER` | sim | sim | sim | sim |
+| `OPERATOR` | sim | não | sim | não |
 | `KITCHEN` | sim | não | não | não |
 
-Pedido/checkout valida no server: adicional ativo e vinculado ao produto; preço vem do banco.
+### Adicionais (`/admin/cardapio/adicionais`)
 
-## Gestão de status
+Validação no server: adicional ativo e vinculado ao produto; preço do banco.
 
-- No detalhe `/admin/pedidos/[id]`, o admin pode avançar o status com ações controladas.
-- Transições validadas no server (não confiar nos botões do client).
-- Além da transição válida, a **role da sessão** precisa ter permissão para a ação.
-- Enum Prisma: `PENDING` → `CONFIRMED` → `PREPARING` → `READY` → (`OUT_FOR_DELIVERY` se entrega) → `COMPLETED`, com `CANCELLED` até o pedido ser finalizado.
-- Retirada (`PICKUP`): em `READY` não há “Saiu para entrega”; pode concluir direto.
-- Entrega (`DELIVERY`): em `READY` a ação principal é `OUT_FOR_DELIVERY`.
-- Não há notificação automática, WhatsApp API, WebSocket ou polling nesta etapa.
+### Status de pedido (`/admin/pedidos/[id]`)
 
-### Matriz de permissões (`/admin`)
+`PENDING` → … → `COMPLETED` / `CANCELLED`; matriz por role (OPERATOR/KITCHEN com restrições). Sem WhatsApp API nem tempo real.
 
-| Role | Ver pedidos | Confirmar | Preparar / pronto | Despachar / concluir | Cancelar |
+| Role | Ver | Confirmar | Preparar / pronto | Despachar / concluir | Cancelar |
 | --- | --- | --- | --- | --- | --- |
 | `MASTER` | sim (transicional) | sim | sim | sim | sim |
-| `STORE_OWNER` | sim | sim | sim | sim | sim |
-| `MANAGER` | sim | sim | sim | sim | sim |
-| `OPERATOR` | sim | sim | sim | sim | **não** |
-| `KITCHEN` | sim | **não** | sim | **não** | **não** |
+| `STORE_OWNER` / `MANAGER` | sim | sim | sim | sim | sim |
+| `OPERATOR` | sim | sim | sim | sim | não |
+| `KITCHEN` | sim | não | sim | não | não |
+
+## Fora do piloto
+
+Não prometer ao cliente Na Braza sem decisão de produto:
+
+- Pagamento online, WhatsApp Business API
+- Reset de senha, upload de imagens, relatórios, tempo real
+- Zonas de entrega, horário por dia da semana estruturado
+- CRUD de lojas no `/master`
+- Storefront dinâmico por slug para novos tenants
+
+## Roadmap
+
+- Aceite e dados reais do piloto Na Braza
+- Storefront por slug e onboarding de tenants
+- CRUD de `Store` no master, billing, polish de marca white-label
+- Itens em [README.md](../README.md) e ADRs
+
+## Referências
+
+- [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
+- [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
+- [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)

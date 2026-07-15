@@ -1,6 +1,6 @@
-# Testing — Na Brasa Digital Menu
+# Testing — plataforma e tenant piloto
 
-Guia dos testes E2E (Playwright) e do Playwright MCP no Cursor.
+Guia dos testes E2E (Playwright) e do Playwright MCP no Cursor. A suíte E2E exercita principalmente o tenant piloto **`na-brasa`** (Na Braza).
 
 Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Operação](operations.md) · [Política MCP](development/mcp-usage.md)
 

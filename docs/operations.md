@@ -1,6 +1,6 @@
-# Operação — Painel Na Braza (MVP)
+# Operação — loja piloto Na Braza
 
-Guia para o dono/operador usar o painel no dia a dia.
+Guia para o dono/operador do **cliente 1 (Na Braza)** usar o painel no dia a dia. Procedimentos e dados abaixo são **específicos do piloto** (`na-brasa`), não onboarding genérico de novos tenants.
 
 Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Produto](product.md) · [Release notes](release-notes/mvp-v0.1.0.md) · [Dados do piloto Na Braza](client/na-braza-pilot-data.md)
 
@@ -115,7 +115,7 @@ $env:CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS="true"; pnpm data:purge-na-braza-tests
 
 A sessão fica em cookie **HttpOnly** (não aparece em `localStorage`). Em produção o cookie só trafega em HTTPS (`Secure`).
 
-Nota: usuários `MASTER` devem preferir o painel **`/master`** (DevFlow Labs). O acesso de `MASTER` ao `/admin` ainda é **transicional** e fica limitado à Store de `NEXT_PUBLIC_STORE_SLUG`.
+Nota: usuários `MASTER` devem preferir o painel **`/master`** (operação de plataforma). O acesso de `MASTER` ao `/admin` ainda é **transicional** e fica limitado à Store de `NEXT_PUBLIC_STORE_SLUG`.
 
 ## Isolamento por loja no `/admin`
 

@@ -1,5 +1,7 @@
 # ADR 0002 — Database-backed multi-admin and master panel
 
+> **Nota de contexto — 2026:** Na Braza é o **cliente 1** e primeira implantação real (`na-brasa`). A plataforma ainda não possui nome comercial definitivo; em documentação interna do Cursor usa-se provisoriamente **Digital Menu Platform**. Referências a *Na Brasa Digital Menu*, **DevFlow Menu** ou **DevFlow Labs** neste ADR refletem o **contexto histórico** da decisão — o corpo abaixo permanece o registro aceito.
+
 - **Status:** Accepted
 - **Date:** 2026-07-14
 - **Product:** Na Brasa Digital Menu → white-label platform (DevFlow Labs)

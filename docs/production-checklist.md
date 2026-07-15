@@ -1,6 +1,6 @@
-# Production checklist — Na Brasa Digital Menu
+# Checklist de produção — piloto Na Braza
 
-Checklist **GO / NO-GO** para o primeiro deploy real controlado.
+Checklist **GO / NO-GO** para deploy em produção da plataforma com foco no **piloto do cliente 1 (Na Braza**, slug `na-brasa`).
 
 Guias: [deployment.md](deployment.md) · [operations.md](operations.md) · [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · [testing.md](testing.md) · Dados reais do piloto Na Braza: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md)
 

@@ -1,290 +1,197 @@
-# Na Braza — Cardápio Online
+# Plataforma white-label de cardápio digital
 
-Cardápio digital para o carrinho de lanches **Na Braza**: lanches artesanais e espetinhos, com pedidos salvos no painel e finalização via WhatsApp.
+Repositório da plataforma **multi-tenant** para cardápio online, pedidos salvos no banco, handoff via WhatsApp (`wa.me`) e painéis operacionais (`/admin` e `/master`). A **primeira implantação real** é o piloto do cliente **Na Braza** (`na-brasa`).
 
-## Current status
+Muitos negócios de alimentação ainda recebem pedidos por WhatsApp de forma manual e fragmentada — sem cardápio claro, sem registro estruturado e com retrabalho para a equipe. A plataforma organiza esse fluxo: **cardápio público**, **carrinho**, **checkout**, **pedido persistido**, **mensagem pronta para o WhatsApp** e **acompanhamento no painel** da loja (e operação de plataforma quando aplicável).
 
-**v0.1.0-pilot ready** — validated for controlled pilot with the Na Braza owner.
+## Identidade do produto
 
-Core capabilities:
+| | |
+| --- | --- |
+| **Produto** | Plataforma white-label multi-tenant |
+| **Nome comercial** | Ainda não definido |
+| **Nome interno provisório** | Digital Menu Platform (uso em documentação interna) |
+| **Cliente 1** | Na Braza |
+| **Slug técnico do cliente 1** | `na-brasa` |
 
-- public menu (`/na-brasa`), cart, checkout
-- WhatsApp order handoff (`wa.me`)
-- admin orders and status workflow
-- role-based access (store-scoped `/admin`)
-- menu and catalog management (`/admin/cardapio`)
-- addons (`/admin/cardapio/adicionais`)
-- Store settings (`/admin/configuracoes`)
-- platform user management (`/master`)
-- E2E tests, CI, and production deploy (Vercel + PostgreSQL)
+## Piloto — Na Braza
 
-Release notes: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) · [CHANGELOG](CHANGELOG.md)
+| | |
+| --- | --- |
+| **Versão** | v0.1.0-pilot |
+| **Status** | Pronto para validação controlada com o dono |
+| **Produção** | https://na-brasa-cardapio.vercel.app/na-brasa |
+| **Gate** | Smoke autenticado de Store Settings: **GO** (jul/2026) |
 
-## Product positioning
+Escopo validado, limitações e aceite: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).
 
-Na Brasa Digital Menu is the first tenant/client implementation of **DevFlow Menu**, a white-label online menu and WhatsApp order platform for small food businesses. This repository is the Na Brasa deployment; capabilities are documented for pilot operation, not as a generic SaaS product yet.
+## Capacidades atuais
 
-## Visão geral do MVP
+**Fundação da plataforma (implementada):**
 
-O MVP operacional permite:
+- Modelo `Store` e isolamento por `storeId`
+- Autenticação DB-backed (`User`, roles, JWT em cookie HttpOnly)
+- Painel da loja `/admin` (store-scoped) com RBAC
+- Painel `/master` para operação de plataforma (`MASTER`)
+- Gestão de usuários por loja em `/master/stores/[storeId]/users`
 
-1. Cliente monta o pedido no celular (`/na-brasa`)
-2. Preenche o checkout e o pedido é **salvo no banco**
-3. Abre o WhatsApp com mensagem pronta (`wa.me` — sem WhatsApp API)
-4. Operador faz login no admin, vê pedidos e atualiza o status
+**Piloto Na Braza (tenant `na-brasa`):**
 
-Documentação relacionada:
+- Storefront público em `/na-brasa` (cardápio, carrinho local, checkout)
+- Pedido persistido no PostgreSQL antes do WhatsApp
+- Admin: pedidos, status, cardápio, adicionais, configurações da loja
+- CI (quality + E2E) e deploy documentado (Vercel + PostgreSQL)
 
-- [Produto](docs/product.md)
-- [Banco de dados](docs/database.md)
-- [Deploy](docs/deployment.md)
-- [Production checklist](docs/production-checklist.md)
-- [Operação](docs/operations.md)
-- [Testes E2E](docs/testing.md)
-- [Release notes v0.1.0-pilot](docs/releases/v0.1.0-pilot.md)
-- [Release notes MVP v0.1.0 (histórico)](docs/release-notes/mvp-v0.1.0.md)
+## Estado atual e limitações
+
+| | |
+| --- | --- |
+| **Implementado** | Fluxos acima; ver [docs/product.md](docs/product.md) |
+| **Fundação** | Multi-tenant no schema e nas rotas admin/master; storefront do piloto ainda em rota fixa `/na-brasa` |
+| **Planejado** | Storefront público dinâmico por slug; CRUD completo de lojas no `/master`; onboarding self-service |
+| **Fora do piloto** | Pagamento online, WhatsApp API, reset de senha no painel, upload de imagens, relatórios avançados — ver [docs/product.md](docs/product.md) |
 
 ## Stack
 
 - Next.js 15 (App Router)
-- TypeScript
-- Tailwind CSS
-- Prisma 6 + PostgreSQL
-- Zod
-- React Hook Form
-- jose (JWT em cookie HttpOnly)
-- pnpm
+- TypeScript · Tailwind CSS · Prisma 6 · PostgreSQL
+- Zod · React Hook Form · jose (JWT) · pnpm
 
-## Rotas principais
+## Rotas
 
-### Públicas
+### Públicas (piloto)
 
 | Rota | Descrição |
 | --- | --- |
 | `/` | Redireciona para `/na-brasa` |
-| `/na-brasa` | Cardápio público + carrinho local |
-| `/na-brasa/checkout` | Checkout → cria pedido no server → abre WhatsApp (`wa.me`) |
+| `/na-brasa` | Cardápio + carrinho local |
+| `/na-brasa/checkout` | Checkout → pedido no server → `wa.me` |
 
-### Admin
+### Painel da loja
 
 | Rota | Descrição |
 | --- | --- |
-| `/admin/login` | Login (cookie HttpOnly + JWT) |
-| `/admin` | Dashboard de pedidos (protegido) |
-| `/admin/pedidos/[id]` | Detalhe + ações de status (protegido) |
-| `/admin/cardapio` | Gestão de categorias e produtos |
-| `/admin/cardapio/adicionais` | Gestão de adicionais e vínculos |
-| `/admin/configuracoes` | Configurações operacionais da loja |
-| `/master` | Painel plataforma (somente `MASTER`) |
-| `/master/stores/[storeId]/users` | Usuários da loja |
+| `/admin/login` | Login (`User` no banco) |
+| `/admin` | Pedidos (store-scoped) |
+| `/admin/pedidos/[id]` | Detalhe e status |
+| `/admin/cardapio` | Categorias e produtos |
+| `/admin/cardapio/adicionais` | Adicionais e vínculos |
+| `/admin/configuracoes` | Settings da `Store` |
 
-## Fluxo do cliente
+### Painel master (plataforma)
 
-1. Acessa o cardápio em `/na-brasa`
-2. Adiciona produtos e adicionais ao carrinho (estado local)
-3. Preenche o checkout em `/na-brasa/checkout`
-4. Pedido é salvo no banco (totais recalculados no server)
-5. WhatsApp abre com a mensagem formatada (`wa.me`)
-
-```text
-/na-brasa → carrinho local → /na-brasa/checkout → Order no banco → wa.me
-```
-
-## Fluxo do admin
-
-1. Faz login em `/admin/login`
-2. Visualiza pedidos em `/admin`
-3. Abre o detalhe em `/admin/pedidos/[id]`
-4. Atualiza o status com ações controladas (validadas no server)
-
-```text
-/admin/login → /admin → /admin/pedidos/[id] → atualiza status
-```
-
-### Status do pedido
-
-| Enum | Label |
+| Rota | Descrição |
 | --- | --- |
-| `PENDING` | Pendente |
-| `CONFIRMED` | Confirmado |
-| `PREPARING` | Em preparo |
-| `READY` | Pronto |
-| `OUT_FOR_DELIVERY` | Saiu para entrega |
-| `COMPLETED` | Concluído |
-| `CANCELLED` | Cancelado |
-
-Detalhes de operação: [docs/operations.md](docs/operations.md).
+| `/master` | Dashboard (`MASTER` apenas) |
+| `/master/stores/[storeId]/users` | Usuários da loja |
 
 ## Setup local
 
-### Pré-requisitos
-
-- Node.js 22+ (CI usa Node 22; pnpm 11 exige ≥ 22.13)
-- pnpm 11
-- PostgreSQL
-
-### Passos
+**Pré-requisitos:** Node.js 22+, pnpm 11, PostgreSQL.
 
 ```bash
 pnpm install
 cp .env.example .env
-# Ajuste DATABASE_URL e demais variáveis em .env
+# Ajuste DATABASE_URL, ADMIN_JWT_SECRET, MASTER_ADMIN_*, NEXT_PUBLIC_*
 pnpm prisma generate
 pnpm prisma migrate dev
 pnpm prisma db seed
 pnpm dev
 ```
 
-O seed cria a loja `na-brasa` com cardápio fictício e WhatsApp **placeholder** (`5513999999999`). Não use o número do seed em produção real sem ajustar.
+O seed cria o tenant piloto `na-brasa` (cardápio fictício, WhatsApp placeholder). Detalhes: [docs/database.md](docs/database.md).
 
-## Comandos
+## Scripts
 
-### Desenvolvimento
+### Desenvolvimento e plataforma
 
 | Comando | Descrição |
 | --- | --- |
-| `pnpm install` | Instala dependências |
-| `pnpm prisma generate` | Gera o Prisma Client |
-| `pnpm prisma migrate dev` | Cria/aplica migrations (dev) |
-| `pnpm prisma db seed` | Seed idempotente da loja Na Braza (`slug` `na-brasa`) |
 | `pnpm dev` | Servidor de desenvolvimento |
-| `pnpm lint` | ESLint |
-| `pnpm typecheck` | TypeScript (`tsc --noEmit`) |
-| `pnpm build` | Build de produção |
-| `pnpm test:e2e` | Playwright E2E (Chromium) |
+| `pnpm build` / `pnpm start` | Build e produção local |
+| `pnpm lint` / `pnpm typecheck` | Qualidade estática |
+| `pnpm test` | Teste unitário (permissões admin) |
+| `pnpm test:e2e` | Playwright (Chromium) |
+| `pnpm prisma:generate` / `migrate` / `seed` / `studio` | Prisma |
 
-Aliases do `package.json`: `pnpm prisma:generate`, `pnpm prisma:migrate`, `pnpm prisma:seed`, `pnpm prisma:studio`, `pnpm test:e2e:ui`, `pnpm test:e2e:debug`, `pnpm test:e2e:report`.
+### Scripts específicos do piloto Na Braza
 
-Guia completo: [docs/testing.md](docs/testing.md).
+Definidos em `package.json`; usam `DATABASE_URL` e afetam a loja **Na Braza** (`na-brasa`), não um onboarding genérico de novos tenants:
 
-### CI (GitHub Actions)
+| Script npm | Uso |
+| --- | --- |
+| `pnpm store:apply-na-braza-settings` | Aplica settings operacionais do piloto |
+| `pnpm menu:apply-na-braza-pilot` | Aplica cardápio do piloto |
+| `pnpm store:create-na-braza-owner` | Cria usuário dono da loja piloto |
+| `pnpm data:clean-na-braza-tests` / `data:purge-na-braza-tests` | Limpeza de dados de teste do piloto |
 
-Há dois workflows separados (PR / push em `main`), ambos com Node **22** + pnpm **11** e envs fake:
+## Testes
 
-| Workflow | Arquivo | O que valida |
-| --- | --- | --- |
-| **Quality Checks** | [`.github/workflows/quality.yml`](.github/workflows/quality.yml) | `prisma generate`, lint, typecheck, build (sem banco) |
-| **E2E Tests** | [`.github/workflows/e2e.yml`](.github/workflows/e2e.yml) | Postgres 16 + migrate + seed + Playwright Chromium |
+Guia: [docs/testing.md](docs/testing.md). CI: Quality Checks + E2E (Postgres efêmero). E2E exercita principalmente o tenant `na-brasa`.
 
-O E2E sobe o app via `playwright.config.ts` (`pnpm dev` em `http://127.0.0.1:3000`), usa cleanup só para pedidos `E2E*` e sobe artifacts (`playwright-report/`, `test-results/`) só em falha.
+## Deploy
 
-Guia completo: [docs/testing.md](docs/testing.md).
-
-### Produção (após configurar envs)
+- **App:** Vercel · **Banco:** Neon ou Supabase Postgres
+- Guias: [docs/deployment.md](docs/deployment.md) · [docs/production-checklist.md](docs/production-checklist.md)
 
 ```bash
 pnpm prisma migrate deploy
-# pnpm prisma db seed   # só se for bootstrap controlado — ver nota abaixo
 pnpm build
 ```
 
-**Seed em produção:** o seed atual usa dados fictícios (incluindo WhatsApp placeholder). Em produção real, ajuste o seed antes de executar ou cadastre a loja/WhatsApp de forma controlada. Não trate o seed de desenvolvimento como dados oficiais do cliente.
+Seed em produção só com bootstrap controlado; ver [docs/deployment.md](docs/deployment.md).
 
 ## Variáveis de ambiente
 
-Veja `.env.example`. Obrigatórias / usadas pelo app:
+Ver `.env.example`. Principais: `DATABASE_URL`, `ADMIN_JWT_SECRET`, `ADMIN_SESSION_COOKIE`, `MASTER_ADMIN_*` (seed do `MASTER`), `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_STORE_SLUG` (piloto: `na-brasa`).
 
-| Variável | Uso |
+`ADMIN_EMAIL` / `ADMIN_PASSWORD` estão **obsoletos** no runtime de login.
+
+## Segurança e isolamento
+
+- Sessão admin: JWT em cookie **HttpOnly** (`ADMIN_JWT_SECRET`); não usar `localStorage` para sessão.
+- Login **DB-backed** (`User` + `passwordHash` com bcrypt); bootstrap do primeiro `MASTER` via `MASTER_ADMIN_*` no seed.
+- **RBAC** por `UserRole` no `/admin`; permissões validadas no server (não só na UI).
+- Usuários de loja vinculados a uma **Store** (`storeId`); operações admin tenant-scoped.
+- Isolamento de pedidos e catálogo por **`storeId`** nas queries/mutações aplicáveis.
+- Pedidos: preços e totais **recalculados no servidor**; produtos/adicionais indisponíveis bloqueados no server.
+- **`MASTER`:** contexto de plataforma em `/master`; em `/admin` acesso transitório à Store de `NEXT_PUBLIC_STORE_SLUG` — distinto de usuários só da loja.
+- Segredos e `.env` reais **não** versionados; ver `.env.example` e [docs/deployment.md](docs/deployment.md). Decisão de auth multi-admin: [docs/adr/0002-database-backed-multi-admin-and-master-panel.md](docs/adr/0002-database-backed-multi-admin-and-master-panel.md).
+
+## Documentação
+
+| Documento | Conteúdo |
 | --- | --- |
-| `DATABASE_URL` | PostgreSQL (Prisma) |
-| `ADMIN_JWT_SECRET` | Segredo JWT da sessão admin (mín. 16; preferir 32+) |
-| `ADMIN_SESSION_COOKIE` | Nome do cookie de sessão |
-| `MASTER_ADMIN_NAME` | Seed: nome do usuário `MASTER` |
-| `MASTER_ADMIN_EMAIL` | Seed: e-mail do `MASTER` (login admin) |
-| `MASTER_ADMIN_PASSWORD` | Seed: senha do `MASTER` (hash no banco; nunca commitar) |
-| `NEXT_PUBLIC_APP_URL` | URL pública do app (ex.: `https://seu-dominio.vercel.app`) |
-| `NEXT_PUBLIC_STORE_SLUG` | Slug da loja (`na-brasa`) |
-| `NODE_ENV` | Definido pelo runtime; em produção o cookie admin usa `Secure` |
+| [docs/product.md](docs/product.md) | Produto da plataforma e piloto |
+| [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) | Escopo e smoke do piloto Na Braza |
+| [docs/production-checklist.md](docs/production-checklist.md) | GO/NO-GO e aceite do cliente |
+| [docs/operations.md](docs/operations.md) | Operação diária (piloto Na Braza) |
+| [docs/database.md](docs/database.md) | Schema, seed, multi-tenant |
+| [docs/deployment.md](docs/deployment.md) | Vercel, envs, auth |
+| [docs/testing.md](docs/testing.md) | E2E e CI |
+| [docs/client/na-braza-pilot-data.md](docs/client/na-braza-pilot-data.md) | Dados operacionais do cliente 1 |
+| [CHANGELOG.md](CHANGELOG.md) | Histórico de mudanças do repositório |
+| [.cursor/README.md](.cursor/README.md) | Tooling operacional (desenvolvimento assistido no Cursor) |
 
-`ADMIN_EMAIL` / `ADMIN_PASSWORD` estão **deprecated** (não autenticam mais o `/admin`).
+ADRs: [docs/adr/](docs/adr/).
 
-Não versionar `.env` com credenciais reais. Nunca commitar `MASTER_ADMIN_PASSWORD` ou `ADMIN_JWT_SECRET` reais.
-
-### Segurança (resumo)
-
-- Sessão admin: JWT em cookie **HttpOnly** (não fica em `localStorage`)
-- Login via tabela `User` (bcrypt); sem senha padrão hardcoded
-- Pedidos contêm PII (nome, telefone, endereço) — proteger o painel
-- Envs nunca devem ser commitadas
-- `ADMIN_JWT_SECRET` longo e aleatório; senha do admin forte no bootstrap
-
-Mais detalhes: [docs/deployment.md](docs/deployment.md).
-
-## Production readiness
-
-O projeto está em **v0.1.0-pilot**: deploy em produção validado com smoke de Store Settings (GO). Próximo passo é aceite do cliente com dados reais e divulgação controlada do link.
-
-| Documento | Uso |
-| --- | --- |
-| [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) | Escopo do piloto, smoke validado, limitações |
-| [docs/deployment.md](docs/deployment.md) | Vercel + Neon, envs, migrate/seed, rollback |
-| [docs/production-checklist.md](docs/production-checklist.md) | GO/NO-GO, aceite do cliente, smoke piloto |
-| [docs/release-notes/mvp-v0.1.0.md](docs/release-notes/mvp-v0.1.0.md) | Notas históricas do MVP inicial |
-
-### CI atual
-
-| Workflow | Escopo |
-| --- | --- |
-| **Quality Checks** | `prisma generate`, lint, typecheck, build |
-| **E2E Tests** | Postgres efêmero + migrate + seed + Playwright |
-
-Não há deploy automático nesta etapa. E2E CI **não** usa banco de produção.
-
-## Deploy recomendado
-
-- **App:** Vercel
-- **Banco:** Neon (recomendado) ou Supabase Postgres
-- **URL inicial:** `*.vercel.app` (domínio customizado depois da validação)
-
-Guia: [docs/deployment.md](docs/deployment.md). Checklist: [docs/production-checklist.md](docs/production-checklist.md).
-
-## Checklist de produção (resumo)
-
-Use o checklist completo: [docs/production-checklist.md](docs/production-checklist.md).
-
-- [ ] Actions verdes na `main`
-- [ ] `DATABASE_URL` remoto + migrations
-- [ ] WhatsApp da loja real no banco
-- [ ] Envs admin fortes na Vercel
-- [ ] Smoke: pedido teste → `wa.me` → admin → status
-- [ ] Validação com o dono no celular
-
-## Arquitetura (V1)
-
-- Next.js fullstack (sem Express separado)
-- Sem React Native
-- Auth admin simples via JWT em cookie HttpOnly (sem provedor externo)
-- Sem WhatsApp Business API / pagamento online na V1
-
-## Estrutura
+## Estrutura do repositório
 
 ```text
 src/
-  app/           # rotas (App Router)
-  components/    # ui e layout
-  features/      # menu, cart, checkout, orders, admin
-  lib/           # prisma, env, utils
-  server/        # repositories, services, actions
-prisma/          # schema Prisma
-docs/            # produto, deploy, operação, release notes
+  app/           # rotas App Router (público piloto, /admin, /master)
+  components/    # UI compartilhada
+  features/      # domínios (orders, admin, master, menu, …)
+  lib/           # prisma, env, utilitários
+prisma/          # schema e migrations
+docs/            # produto, deploy, operação
+.cursor/         # rules, agents, workflows (ver commit e259dc1)
 ```
 
-## Limitações conhecidas (piloto)
+Lógica de negócio e acesso a dados ficam em `src/features/<domínio>/` (`*.repository.ts`, `*.service.ts`, actions, components).
 
-- Sem WhatsApp Cloud API
-- Sem pagamento online
-- Sem zonas de entrega / múltiplas áreas
-- Sem horário por dia da semana (apenas texto livre em `openingHours`)
-- Sem reset de senha no painel
-- Sem upload de imagens no admin
-- Sem notificações em tempo real (WebSocket/polling)
-- Sem CRUD de lojas no `/master` (apenas usuários por loja)
-- Sem histórico/auditoria de status na UI
-- Sem motivo de cancelamento estruturado
+## Roadmap (resumo)
 
-## Roadmap (pós-piloto)
-
-1. Aceite do cliente e dados reais finais ([production-checklist.md](docs/production-checklist.md))
-2. Tag `v0.1.0-pilot` e divulgação controlada (link / QR)
-3. Domínio customizado (quando priorizado)
-4. Melhorias pós-feedback (notificações, pagamento, WhatsApp API — fora do piloto atual)
+1. Aceite do piloto Na Braza e dados reais finais
+2. Divulgação controlada do link / QR
+3. Evolução da plataforma (storefront por slug, CRUD de lojas, etc.) conforme [docs/product.md](docs/product.md)
