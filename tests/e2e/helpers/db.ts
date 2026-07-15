@@ -41,6 +41,43 @@ export async function ensureOfficialStoreDisplayNameForE2e(): Promise<void> {
   });
 }
 
+/**
+ * Reads the official store minimum order (cents).
+ * Returns null when the store is missing. Schema field is Int (non-null); 0 means no minimum.
+ */
+export async function getOfficialStoreMinimumOrderAmountCentsForE2e(): Promise<
+  number | null
+> {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { minimumOrderAmountCents: true },
+  });
+  return store?.minimumOrderAmountCents ?? null;
+}
+
+/**
+ * Sets store minimum order for E2E scenarios (does not run in production).
+ * Schema field is Int (non-null); pass 0 for “no minimum”.
+ */
+export async function setOfficialStoreMinimumOrderAmountCentsForE2e(
+  minimumOrderAmountCents: number,
+): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  await prisma.store.updateMany({
+    where: { slug: storeSlug },
+    data: { minimumOrderAmountCents },
+  });
+}
+
 /** Applies pilot catalog to the E2E store (does not run in production). */
 export async function ensurePilotMenuForE2e(): Promise<void> {
   if (process.env.NODE_ENV === "production") {
