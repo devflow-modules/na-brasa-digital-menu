@@ -123,7 +123,7 @@ Schema e seed: [database.md](database.md). Decisão: [adr/0002-database-backed-m
 
 Resumo do schema: [database.md](database.md). Centavos no server; não confiar em preços do client.
 
-**Comanda digital de balcão:** domínio `COUNTER` modelado; criação autenticada via `createCounterOrder` / `createCounterOrderAction` com permissão `orders.create` (`MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado). A comanda nasce `PENDING`, `PICKUP`, sem telefone, sem forma de pagamento, sem `paidAt` e sem WhatsApp — pagamento e fechamento são posteriores. UI `/admin/balcao` **ainda não entregue**. Não é PDV completo (sem caixa, fiscal, estoque ou impressão).
+**Comanda digital de balcão:** domínio `COUNTER` modelado; criação autenticada via `createCounterOrder` / `createCounterOrderAction` com permissão `orders.create` (`MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado). UI mobile em `/admin/balcao` registra a comanda (itens + identificação opcional) e entra na fila existente como `PENDING`, sem telefone, pagamento, `paidAt` ou WhatsApp. Recebimento e fechamento **ainda não entregues**. Não é PDV completo (sem caixa, fiscal, estoque ou impressão).
 
 ### Configurações da loja (`/admin/configuracoes`)
 

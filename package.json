@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/features/admin/auth/admin-permissions.test.ts src/features/admin/orders/admin-orders-formatters.test.ts src/features/orders/schemas/create-order.schema.test.ts src/features/orders/schemas/create-counter-order.schema.test.ts src/features/orders/services/resolve-and-price-order-items.test.ts src/features/orders/services/create-counter-order.service.test.ts",
+    "test": "tsx --test src/features/admin/auth/admin-permissions.test.ts src/features/admin/orders/admin-orders-formatters.test.ts src/features/admin/counter-order/counter-order-draft.test.ts src/features/orders/schemas/create-order.schema.test.ts src/features/orders/schemas/create-counter-order.schema.test.ts src/features/orders/services/resolve-and-price-order-items.test.ts src/features/orders/services/create-counter-order.service.test.ts",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

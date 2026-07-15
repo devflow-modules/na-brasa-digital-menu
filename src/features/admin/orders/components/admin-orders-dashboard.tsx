@@ -11,6 +11,7 @@ type AdminOrdersDashboardProps = {
   sessionEmail: string;
   storeName: string;
   isMasterTransitional?: boolean;
+  counterNavHref?: string | null;
   menuNavHref?: string | null;
   menuNavLabel?: string | null;
   settingsNavHref?: string | null;
@@ -22,6 +23,7 @@ export function AdminOrdersDashboard({
   sessionEmail,
   storeName,
   isMasterTransitional = false,
+  counterNavHref = null,
   menuNavHref = null,
   menuNavLabel = null,
   settingsNavHref = null,
@@ -56,6 +58,15 @@ export function AdminOrdersDashboard({
           ) : null}
         </div>
         <div className="flex flex-col items-end gap-2">
+          {counterNavHref ? (
+            <Link
+              href={counterNavHref}
+              data-testid="admin-counter-nav-link"
+              className="inline-flex h-10 items-center justify-center rounded-xl border border-orange-500/50 bg-orange-500 px-4 text-sm font-semibold text-stone-950 hover:bg-orange-400"
+            >
+              Balcão
+            </Link>
+          ) : null}
           {settingsNavHref ? (
             <Link
               href={settingsNavHref}
