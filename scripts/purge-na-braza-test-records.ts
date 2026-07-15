@@ -96,6 +96,115 @@ function assertPilotSafe(
   }
 }
 
+function assertProtectedUserCandidates(
+  users: { email: string; role: UserRole }[],
+): void {
+  for (const user of users) {
+    if (user.email.toLowerCase() === PROTECTED_OWNER_EMAIL.toLowerCase()) {
+      throw new Error(
+        `Safety abort: protected store owner ${PROTECTED_OWNER_EMAIL} cannot be purged.`,
+      );
+    }
+    if (user.role === UserRole.MASTER) {
+      throw new Error(
+        `Safety abort: MASTER user ${user.email} cannot be purged.`,
+      );
+    }
+  }
+}
+
+function formatMoney(cents: number): string {
+  return `R$ ${(cents / 100).toFixed(2)} (${cents} cents)`;
+}
+
+function logOrderCandidates(
+  orders: {
+    code: string;
+    status: string;
+    customerName: string;
+    totalCents: number;
+  }[],
+): void {
+  if (orders.length === 0) {
+    console.log("Orders to purge: none.");
+    return;
+  }
+  console.log(`Orders to purge: ${orders.length}`);
+  for (const order of orders) {
+    console.log(
+      `  code=${order.code} | status=${order.status} | customerName=${order.customerName} | total=${formatMoney(order.totalCents)}`,
+    );
+  }
+}
+
+function logProductCandidates(
+  products: {
+    name: string;
+    active: boolean;
+    available: boolean;
+    priceCents: number;
+  }[],
+): void {
+  if (products.length === 0) {
+    console.log("Products to purge: none.");
+    return;
+  }
+  console.log(`Products to purge: ${products.length}`);
+  for (const p of products) {
+    console.log(
+      `  name=${p.name} | active=${p.active} | available=${p.available} | priceCents=${p.priceCents}`,
+    );
+  }
+}
+
+function logCategoryCandidates(
+  categories: { name: string; active: boolean }[],
+): void {
+  if (categories.length === 0) {
+    console.log("Categories to purge: none.");
+    return;
+  }
+  console.log(`Categories to purge: ${categories.length}`);
+  for (const c of categories) {
+    console.log(`  name=${c.name} | active=${c.active}`);
+  }
+}
+
+function logAddonCandidates(
+  addons: { name: string; active: boolean; priceCents: number }[],
+): void {
+  if (addons.length === 0) {
+    console.log("Addons to purge: none.");
+    return;
+  }
+  console.log(`Addons to purge: ${addons.length}`);
+  for (const a of addons) {
+    console.log(
+      `  name=${a.name} | active=${a.active} | priceCents=${a.priceCents}`,
+    );
+  }
+}
+
+function logUserCandidates(
+  users: {
+    email: string;
+    name: string;
+    role: UserRole;
+    isActive: boolean;
+  }[],
+): void {
+  if (users.length === 0) {
+    console.log("Users to purge: none.");
+    return;
+  }
+  console.log(`Users to purge: ${users.length} (delete, or inactive if FK)`);
+  for (const user of users) {
+    console.log(
+      `  email=${user.email} | name=${user.name} | role=${user.role} | isActive=${user.isActive}`,
+    );
+  }
+}
+
 function isForeignKeyViolation(error: unknown): boolean {
   return (
     error instanceof Prisma.PrismaClientKnownRequestError &&
@@ -163,17 +272,7 @@ async function main(): Promise<void> {
       orderBy: { createdAt: "desc" },
     });
 
-    if (orders.length === 0) {
-      console.log("Orders to purge: none.");
-    } else {
-      console.log(`Orders to purge: ${orders.length}`);
-      for (const order of orders) {
-        const total = (order.totalCents / 100).toFixed(2);
-        console.log(
-          `  - ${order.code} | status=${order.status} | customer=${order.customerName} | total=R$ ${total}`,
-        );
-      }
-    }
+    logOrderCandidates(orders);
 
     const testeNamedOrders = await prisma.order.findMany({
       where: {
@@ -197,7 +296,14 @@ async function main(): Promise<void> {
 
     const allProducts = await prisma.product.findMany({
       where: { storeId: store.id },
-      select: { id: true, name: true, categoryId: true },
+      select: {
+        id: true,
+        name: true,
+        categoryId: true,
+        active: true,
+        available: true,
+        priceCents: true,
+      },
     });
     const productCandidates = allProducts.filter(
       (p) =>
@@ -206,7 +312,7 @@ async function main(): Promise<void> {
 
     const allCategories = await prisma.category.findMany({
       where: { storeId: store.id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, active: true },
     });
     const categoryCandidates = allCategories.filter(
       (c) =>
@@ -216,7 +322,7 @@ async function main(): Promise<void> {
 
     const allAddons = await prisma.addon.findMany({
       where: { storeId: store.id },
-      select: { id: true, name: true },
+      select: { id: true, name: true, active: true, priceCents: true },
     });
     const addonCandidates = allAddons.filter(
       (a) => !pilotAddonNames.has(a.name) && matchesTechnicalAddonName(a.name),
@@ -255,49 +361,24 @@ async function main(): Promise<void> {
       }
     }
 
-    if (productCandidates.length === 0) {
-      console.log("Products to purge: none.");
-    } else {
-      console.log(`Products to purge: ${productCandidates.length}`);
-      for (const p of productCandidates) {
-        console.log(`  - ${p.name}`);
-      }
-    }
-
-    if (categoryCandidates.length === 0) {
-      console.log("Categories to purge: none.");
-    } else {
-      console.log(`Categories to purge: ${categoryCandidates.length}`);
-      for (const c of categoryCandidates) {
-        console.log(`  - ${c.name}`);
-      }
-    }
-
-    if (addonCandidates.length === 0) {
-      console.log("Addons to purge: none.");
-    } else {
-      console.log(`Addons to purge: ${addonCandidates.length}`);
-      for (const a of addonCandidates) {
-        console.log(`  - ${a.name}`);
-      }
-    }
+    logProductCandidates(productCandidates);
+    logCategoryCandidates(categoryCandidates);
+    logAddonCandidates(addonCandidates);
 
     const users = await prisma.user.findMany({
       where: buildPurgeUserWhere(store.id),
-      select: { id: true, email: true, name: true, isActive: true },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isActive: true,
+      },
       orderBy: { email: "asc" },
     });
 
-    if (users.length === 0) {
-      console.log("Users to purge: none.");
-    } else {
-      console.log(`Users to purge: ${users.length} (delete, or inactive if FK)`);
-      for (const user of users) {
-        console.log(
-          `  - ${user.email} | active=${user.isActive} | name=${user.name}`,
-        );
-      }
-    }
+    assertProtectedUserCandidates(users);
+    logUserCandidates(users);
 
     if (!apply) {
       console.log("--- Summary (dry-run) ---");
