@@ -4,7 +4,11 @@ import {
   createE2eMenuProduct,
   ensureOfficialStoreDisplayNameForE2e,
   ensurePilotMenuForE2e,
+  getOfficialStoreDescriptionForE2e,
+  getOfficialStoreIsOpenForE2e,
   getOfficialStoreMinimumOrderAmountCentsForE2e,
+  setOfficialStoreDescriptionForE2e,
+  setOfficialStoreIsOpenForE2e,
   setOfficialStoreMinimumOrderAmountCentsForE2e,
 } from "./helpers/db";
 import {
@@ -33,11 +37,106 @@ test.describe("public menu", () => {
   test("loads hero and products", async ({ page }) => {
     await page.goto("/na-brasa");
 
-    await expect(page.getByTestId("store-hero")).toBeVisible();
-    await expect(
-      page.getByTestId("store-hero").getByRole("heading", { level: 1 }),
-    ).toHaveText(OFFICIAL_STORE_DISPLAY_NAME);
+    const hero = page.getByTestId("store-hero");
+    await expect(hero).toBeVisible();
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText(
+      OFFICIAL_STORE_DISPLAY_NAME,
+    );
     await expect(page.getByTestId("menu-product-card").first()).toBeVisible();
+  });
+
+  test("hero eyebrow and title are tenant-aware", async ({ page }) => {
+    await page.goto("/na-brasa");
+
+    const hero = page.getByTestId("store-hero");
+    await expect(hero.getByRole("heading", { level: 1 })).toHaveText(
+      OFFICIAL_STORE_DISPLAY_NAME,
+    );
+    await expect(page.getByTestId("store-hero-eyebrow")).toHaveText(
+      "Cardápio online",
+    );
+    await expect(hero).not.toContainText("Cardápio online oficial do Na Braza");
+    await expect(hero).not.toContainText(
+      `Cardápio online de ${OFFICIAL_STORE_DISPLAY_NAME}`,
+    );
+    await expect(hero).not.toContainText(
+      "Lanches artesanais e espetinhos na brasa",
+    );
+  });
+
+  test("hero shows store description when configured", async ({ page }) => {
+    const originalDescription = await getOfficialStoreDescriptionForE2e();
+    const e2eDescription = `E2E Store Description ${Date.now()}`;
+
+    try {
+      await setOfficialStoreDescriptionForE2e(e2eDescription);
+      await page.goto("/na-brasa");
+      await expect(page.getByTestId("store-hero-description")).toHaveText(
+        e2eDescription,
+      );
+    } finally {
+      await setOfficialStoreDescriptionForE2e(originalDescription);
+    }
+  });
+
+  for (const emptyDescription of [null, "", "   "] as const) {
+    test(`hero shows generic description fallback when store description is ${JSON.stringify(emptyDescription)}`, async ({
+      page,
+    }) => {
+      const originalDescription = await getOfficialStoreDescriptionForE2e();
+
+      try {
+        await setOfficialStoreDescriptionForE2e(emptyDescription);
+        await page.goto("/na-brasa");
+        await expect(page.getByTestId("store-hero-description")).toHaveText(
+          "Escolha seus itens e faça seu pedido online.",
+        );
+        await expect(page.getByTestId("store-hero")).not.toContainText(
+          "Lanches artesanais e espetinhos na brasa",
+        );
+      } finally {
+        await setOfficialStoreDescriptionForE2e(originalDescription);
+      }
+    });
+  }
+
+  test("hero shows open status text when store is open", async ({ page }) => {
+    const originalIsOpen = await getOfficialStoreIsOpenForE2e();
+
+    try {
+      await setOfficialStoreIsOpenForE2e(true);
+      await page.goto("/na-brasa");
+      await expect(page.getByTestId("store-status-badge")).toHaveText(
+        "Aberto para pedidos",
+      );
+      await expect(page.getByTestId("store-open-notice")).toBeVisible();
+      await expect(page.getByTestId("store-closed-notice")).toHaveCount(0);
+    } finally {
+      if (originalIsOpen !== null) {
+        await setOfficialStoreIsOpenForE2e(originalIsOpen);
+      }
+    }
+  });
+
+  test("hero shows closed status text when store is closed", async ({
+    page,
+  }) => {
+    const originalIsOpen = await getOfficialStoreIsOpenForE2e();
+
+    try {
+      await setOfficialStoreIsOpenForE2e(false);
+      await page.goto("/na-brasa");
+      await expect(page.getByTestId("store-status-badge")).toHaveText(
+        "Fechado no momento",
+      );
+      await expect(page.getByTestId("store-closed-notice")).toBeVisible();
+      await expect(page.getByTestId("store-open-notice")).toHaveCount(0);
+      await expect(page.getByTestId("menu-product-card").first()).toBeVisible();
+    } finally {
+      if (originalIsOpen !== null) {
+        await setOfficialStoreIsOpenForE2e(originalIsOpen);
+      }
+    }
   });
 
   test("adds product to cart, shows subtotal, preserves on reload, and opens checkout", async ({

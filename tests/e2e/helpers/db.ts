@@ -78,6 +78,66 @@ export async function setOfficialStoreMinimumOrderAmountCentsForE2e(
   });
 }
 
+/** Reads official store public description (null when store missing). */
+export async function getOfficialStoreDescriptionForE2e(): Promise<
+  string | null
+> {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { description: true },
+  });
+  return store ? store.description : null;
+}
+
+/** Sets official store description for E2E (does not run in production). */
+export async function setOfficialStoreDescriptionForE2e(
+  description: string | null,
+): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  await prisma.store.updateMany({
+    where: { slug: storeSlug },
+    data: { description },
+  });
+}
+
+/** Reads official store open flag (null when store missing). */
+export async function getOfficialStoreIsOpenForE2e(): Promise<boolean | null> {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { isOpen: true },
+  });
+  return store?.isOpen ?? null;
+}
+
+/** Sets official store open flag for E2E (does not run in production). */
+export async function setOfficialStoreIsOpenForE2e(
+  isOpen: boolean,
+): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  await prisma.store.updateMany({
+    where: { slug: storeSlug },
+    data: { isOpen },
+  });
+}
+
 /** Applies pilot catalog to the E2E store (does not run in production). */
 export async function ensurePilotMenuForE2e(): Promise<void> {
   if (process.env.NODE_ENV === "production") {
