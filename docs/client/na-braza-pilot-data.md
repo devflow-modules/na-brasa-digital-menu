@@ -9,6 +9,7 @@ Status geral:
 - Store data: applied via seed + `pnpm store:apply-na-braza-settings`
 - Menu data: applied via `pnpm menu:apply-na-braza-pilot`
 - Admin users: Lucas prepared via PR/script; Renan pending
+- Test/smoke data cleanup: script `pnpm data:clean-na-braza-tests` (dry-run default); apply with `CONFIRM_CLEAN_NA_BRAZA_TEST_DATA=true`
 
 ## Implementation tracking
 
@@ -18,8 +19,10 @@ Status geral:
 | Store settings (production DB) | Apply manually when not yet run |
 | Pilot menu (code/seed/script) | Merged — `pnpm menu:apply-na-braza-pilot` |
 | Pilot menu (production DB) | Apply manually when not yet run |
-| Lucas `STORE_OWNER` | In PR `chore(client-data): create Na Braza store owner access` — `pnpm store:create-na-braza-owner` |
+| Lucas `STORE_OWNER` | `pnpm store:create-na-braza-owner` — apply in production when ready |
 | Renan `STORE_OWNER` | Pending contact data |
+| Test/smoke cleanup (code) | `pnpm data:clean-na-braza-tests` — dry-run then apply in production |
+| Test/smoke cleanup (production DB) | Pending until dry-run reviewed |
 
 ## Sources
 

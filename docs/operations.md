@@ -46,6 +46,35 @@ NA_BRAZA_LUCAS_PASSWORD="use-a-strong-temporary-password" pnpm store:create-na-b
 - **Renan** permanece pendente até e-mail/WhatsApp confirmados.
 - O model `User` não possui campo de telefone; o WhatsApp 13981091971 fica apenas na documentação da loja.
 
+## Limpeza de dados de teste
+
+Após smoke/E2E em produção (ou banco compartilhado), use o script auditável para **cancelar** pedidos claramente de teste, **desativar** usuários E2E e **ocultar** catálogo fora do piloto — sem deletar pedidos, sem alterar settings, cardápio real nem o Lucas.
+
+**Dry-run (padrão, sem writes):**
+
+```bash
+pnpm data:clean-na-braza-tests
+```
+
+Revise a lista de pedidos/usuários/catálogo que seriam afetados.
+
+**Apply (somente após revisar o dry-run):**
+
+```bash
+CONFIRM_CLEAN_NA_BRAZA_TEST_DATA=true pnpm data:clean-na-braza-tests
+```
+
+No PowerShell:
+
+```powershell
+$env:CONFIRM_CLEAN_NA_BRAZA_TEST_DATA="true"; pnpm data:clean-na-braza-tests
+```
+
+- Exige `DATABASE_URL` do ambiente alvo.
+- Idempotente: reexecutar não deve falhar; pedidos já `CANCELLED` e usuários já inativos são contados separadamente.
+- Não altera `MASTER`, `theluksvm@gmail.com`, Store settings nem preços do cardápio piloto.
+- Pedidos de teste viram `CANCELLED` (não são apagados).
+
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
