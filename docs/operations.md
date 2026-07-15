@@ -31,6 +31,21 @@ Em banco já existente, aplicar o cardápio piloto manualmente:
 
 O script ativa/atualiza itens reais e **desativa** (não deleta) produtos/categorias/adicionais antigos do seed fictício. Não altera Store settings, pedidos nem usuários.
 
+## Acesso do dono (Lucas — STORE_OWNER)
+
+Criar ou atualizar o usuário **Lucas Araújo** (`theluksvm@gmail.com`) na Store `na-brasa` com senha temporária **somente via variável de ambiente** (nunca commitar senha):
+
+```bash
+NA_BRAZA_LUCAS_PASSWORD="use-a-strong-temporary-password" pnpm store:create-na-braza-owner
+```
+
+- Exige `DATABASE_URL` do ambiente alvo (produção: usar credencial de produção no shell, não no `.env` versionado).
+- Senha: mínimo **12 caracteres**, sem espaços no início/fim.
+- Reexecutar o script **atualiza** nome, role, `storeId`, `isActive` e **substitui a senha** pelo valor atual da env.
+- Envie a senha ao Lucas por **canal seguro** (não WhatsApp público do pedido). Peça troca após o primeiro login quando houver fluxo de reset (fora do escopo V1).
+- **Renan** permanece pendente até e-mail/WhatsApp confirmados.
+- O model `User` não possui campo de telefone; o WhatsApp 13981091971 fica apenas na documentação da loja.
+
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
