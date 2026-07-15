@@ -1,6 +1,7 @@
 "use client";
 
 import { formatMoney } from "@/features/menu/format-money";
+import { ProductMenuThumbnail } from "@/features/menu/components/product-menu-thumbnail";
 import type { PublicMenuProduct } from "@/features/menu/menu.types";
 
 type ProductCardProps = {
@@ -21,12 +22,11 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
           : "border-stone-800/60 bg-stone-950/80 opacity-75"
       }`}
     >
-      <div
-        className="flex h-[4.5rem] w-[4.5rem] shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-stone-800 to-orange-950/70 text-[10px] font-semibold uppercase tracking-wide text-orange-200/60"
-        aria-hidden="true"
-      >
-        {product.imageUrl ? "Foto" : "Na brasa"}
-      </div>
+      <ProductMenuThumbnail
+        name={product.name}
+        imageUrl={product.imageUrl}
+        available={product.available}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col gap-2">
         <div className="flex items-start justify-between gap-2">
