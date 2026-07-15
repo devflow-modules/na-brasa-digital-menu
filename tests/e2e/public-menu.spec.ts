@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { ensureOfficialStoreDisplayNameForE2e, ensurePilotMenuForE2e } from "./helpers/db";
+import {
+  createE2eMenuCategory,
+  createE2eMenuProduct,
+  ensureOfficialStoreDisplayNameForE2e,
+  ensurePilotMenuForE2e,
+} from "./helpers/db";
 import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
 import { CART_STORAGE_KEY, OFFICIAL_STORE_DISPLAY_NAME } from "./helpers/test-data";
 import { PILOT_BURGER_PRODUCT_NAME } from "../../prisma/na-braza-pilot-menu";
@@ -95,4 +100,159 @@ test.describe("public menu", () => {
       page.getByRole("button", { name: /Remover .+ do carrinho/ }).first(),
     ).toBeVisible();
   });
+
+  test("product card renders local image with accessible alt and dimensions", async ({
+    page,
+  }) => {
+    const productName = `E2E Image Product ${Date.now()}`;
+    const category = await createE2eMenuCategory({
+      name: `E2E Image Cat ${Date.now()}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      imageUrl: "/vercel.svg",
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName })
+      .first();
+    await expect(card).toBeVisible();
+
+    const image = card.getByTestId("product-menu-thumbnail-image");
+    await expect(image).toBeVisible();
+    await expect(image).toHaveAttribute("alt", productName);
+    await expect(image).toHaveAttribute("width", "72");
+    await expect(image).toHaveAttribute("height", "72");
+    await expect(card.getByTestId("open-add-to-cart-button")).toBeEnabled();
+  });
+
+  test("product card without imageUrl shows generic fallback", async ({
+    page,
+  }) => {
+    const productName = `E2E No Image Product ${Date.now()}`;
+    const category = await createE2eMenuCategory({
+      name: `E2E No Image Cat ${Date.now()}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      imageUrl: null,
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName })
+      .first();
+    await expect(card).toBeVisible();
+    await expect(card.getByTestId("product-menu-thumbnail-fallback")).toBeVisible();
+    await expect(card.getByTestId("product-menu-thumbnail-image")).toHaveCount(0);
+    await expect(card).not.toContainText(/Na brasa/i);
+    await expect(card).not.toContainText("Foto");
+    await expect(card.getByRole("heading", { level: 3 })).toHaveText(productName);
+    await expect(card.getByTestId("open-add-to-cart-button")).toBeEnabled();
+  });
+
+  test("product card rejects http remote imageUrl and shows fallback", async ({
+    page,
+  }) => {
+    const productName = `E2E Http Url Product ${Date.now()}`;
+    const category = await createE2eMenuCategory({
+      name: `E2E Http Url Cat ${Date.now()}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      imageUrl: "http://example.com/insecure.jpg",
+    });
+
+    let externalRequest = false;
+    page.on("request", (request) => {
+      if (request.url().includes("example.com")) {
+        externalRequest = true;
+      }
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName })
+      .first();
+    await expect(card.getByTestId("product-menu-thumbnail-fallback")).toBeVisible();
+    await expect(card.getByTestId("product-menu-thumbnail-image")).toHaveCount(0);
+    expect(externalRequest).toBe(false);
+  });
+
+  test("product card rejects https remote imageUrl and shows fallback", async ({
+    page,
+  }) => {
+    const productName = `E2E Https Url Product ${Date.now()}`;
+    const category = await createE2eMenuCategory({
+      name: `E2E Https Url Cat ${Date.now()}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      imageUrl: "https://example.com/product.jpg",
+    });
+
+    let externalRequest = false;
+    page.on("request", (request) => {
+      if (request.url().includes("example.com")) {
+        externalRequest = true;
+      }
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName })
+      .first();
+    await expect(card.getByTestId("product-menu-thumbnail-fallback")).toBeVisible();
+    await expect(card.getByTestId("product-menu-thumbnail-image")).toHaveCount(0);
+    expect(externalRequest).toBe(false);
+  });
+
+  test("product card rejects protocol-relative imageUrl and shows fallback", async ({
+    page,
+  }) => {
+    const productName = `E2E Protocol Relative Product ${Date.now()}`;
+    const category = await createE2eMenuCategory({
+      name: `E2E Protocol Relative Cat ${Date.now()}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      imageUrl: "//example.com/product.jpg",
+    });
+
+    let externalRequest = false;
+    page.on("request", (request) => {
+      if (request.url().includes("example.com")) {
+        externalRequest = true;
+      }
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName })
+      .first();
+    await expect(card.getByTestId("product-menu-thumbnail-fallback")).toBeVisible();
+    await expect(card.getByTestId("product-menu-thumbnail-image")).toHaveCount(0);
+    expect(externalRequest).toBe(false);
+  });
+
+  // Falha de carga local (onError após abort/404): cobertura E2E com page.route().abort()
+  // ficou instável neste ambiente (img permanece visível sem disparar fallback de forma confiável).
+  // O componente mantém onError + naturalWidth === 0; recomenda-se teste unitário futuro
+  // (ex.: @testing-library/react) para ProductMenuThumbnail.
 });

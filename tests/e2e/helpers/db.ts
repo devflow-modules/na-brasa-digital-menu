@@ -354,6 +354,7 @@ export async function createE2eMenuProduct(options: {
   priceCents?: number;
   active?: boolean;
   available?: boolean;
+  imageUrl?: string | null;
 }): Promise<{
   id: string;
   name: string;
@@ -373,6 +374,7 @@ export async function createE2eMenuProduct(options: {
       sortOrder: 999,
       active: options.active ?? true,
       available: options.available ?? true,
+      ...(options.imageUrl !== undefined ? { imageUrl: options.imageUrl } : {}),
     },
     select: {
       id: true,
