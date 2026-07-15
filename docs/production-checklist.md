@@ -189,6 +189,17 @@ Rodar dry-run antes; apply só com `CONFIRM_CLEAN_NA_BRAZA_TEST_DATA=true` e `DA
 - [ ] Lucas (`theluksvm@gmail.com`) continua **ativo** e consegue login
 - [ ] `/master` continua **bloqueado** para STORE_OWNER
 
+## Na Braza — após `pnpm data:purge-na-braza-tests` (apply)
+
+Rodar dry-run antes; apply só com `CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS=true` e `DATABASE_URL` de produção. Executar **depois** da limpeza (`data:clean-na-braza-tests`) quando quiser painel sem registros técnicos.
+
+- [ ] `/admin` sem pedidos Smoke/E2E (nem cancelados)
+- [ ] `/admin/cardapio` sem produtos E2E/técnicos
+- [ ] Select de categoria sem categorias E2E
+- [ ] `/na-brasa` só com cardápio piloto real
+- [ ] Lucas (`theluksvm@gmail.com`) login OK
+- [ ] `/master` bloqueado para STORE_OWNER
+
 ## Resultado
 
 | Resultado | Critério |

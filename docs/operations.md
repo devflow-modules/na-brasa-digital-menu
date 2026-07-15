@@ -75,6 +75,37 @@ $env:CONFIRM_CLEAN_NA_BRAZA_TEST_DATA="true"; pnpm data:clean-na-braza-tests
 - Não altera `MASTER`, `theluksvm@gmail.com`, Store settings nem preços do cardápio piloto.
 - Pedidos de teste viram `CANCELLED` (não são apagados).
 
+## Purga final antes do handoff
+
+Para entregar o painel ao cliente **sem** pedidos Smoke/E2E cancelados na lista nem produtos/categorias técnicos no `/admin/cardapio`, use a **purga** depois da limpeza acima.
+
+| Etapa | Script | Efeito |
+| --- | --- | --- |
+| Limpeza | `pnpm data:clean-na-braza-tests` | Cancela pedidos de teste, desativa usuários E2E, oculta catálogo fora do piloto |
+| Purga | `pnpm data:purge-na-braza-tests` | **Remove** definitivamente apenas registros técnicos identificados (pedidos, catálogo E2E, usuários `@example.com`) |
+
+**Dry-run (padrão):**
+
+```bash
+pnpm data:purge-na-braza-tests
+```
+
+**Apply (somente após revisar o dry-run):**
+
+```bash
+CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS=true pnpm data:purge-na-braza-tests
+```
+
+PowerShell:
+
+```powershell
+$env:CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS="true"; pnpm data:purge-na-braza-tests
+```
+
+- Protege Lucas, usuários `MASTER` e todo o cardápio definido em `prisma/na-braza-pilot-menu.ts`.
+- Não usa `Teste` genérico em nomes de cliente para delete automático (apenas aviso no dry-run).
+- Idempotente: após purga bem-sucedida, novo dry-run deve listar **0** candidatos.
+
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
