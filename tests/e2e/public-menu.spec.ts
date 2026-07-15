@@ -4,10 +4,24 @@ import {
   createE2eMenuProduct,
   ensureOfficialStoreDisplayNameForE2e,
   ensurePilotMenuForE2e,
+  getOfficialStoreMinimumOrderAmountCentsForE2e,
+  setOfficialStoreMinimumOrderAmountCentsForE2e,
 } from "./helpers/db";
-import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
+import {
+  addFirstProductToCart,
+  addProductToCartByName,
+  clearCartStorage,
+} from "./helpers/menu";
 import { CART_STORAGE_KEY, OFFICIAL_STORE_DISPLAY_NAME } from "./helpers/test-data";
 import { PILOT_BURGER_PRODUCT_NAME } from "../../prisma/na-braza-pilot-menu";
+
+/** Same pt-BR currency formatting used by the storefront `formatMoney`. */
+function formatMoneyBr(cents: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(cents / 100);
+}
 
 test.describe("public menu", () => {
   test.beforeEach(async ({ page }) => {
@@ -255,4 +269,103 @@ test.describe("public menu", () => {
   // ficou instável neste ambiente (img permanece visível sem disparar fallback de forma confiável).
   // O componente mantém onError + naturalWidth === 0; recomenda-se teste unitário futuro
   // (ex.: @testing-library/react) para ProductMenuThumbnail.
+
+  test.describe("cart minimum order indicator", () => {
+    const PRODUCT_PRICE_CENTS = 2_000;
+    const MINIMUM_ORDER_CENTS = 5_000;
+    const remainingCents = MINIMUM_ORDER_CENTS - PRODUCT_PRICE_CENTS;
+    const quantityToMeetMinimum = Math.ceil(
+      MINIMUM_ORDER_CENTS / PRODUCT_PRICE_CENTS,
+    );
+    const expectedBelowMinimumMessage = `Faltam ${formatMoneyBr(remainingCents)} para atingir o pedido mínimo de ${formatMoneyBr(MINIMUM_ORDER_CENTS)}.`;
+
+    let originalMinimumOrderAmountCents: number | null = null;
+    let e2eProductName = "";
+
+    test.beforeEach(async () => {
+      originalMinimumOrderAmountCents =
+        await getOfficialStoreMinimumOrderAmountCentsForE2e();
+      await setOfficialStoreMinimumOrderAmountCentsForE2e(MINIMUM_ORDER_CENTS);
+
+      const category = await createE2eMenuCategory({
+        name: `E2E Menu Min Order Cat ${Date.now()}`,
+      });
+      const product = await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: `E2E Menu Min Order Product ${Date.now()}`,
+        priceCents: PRODUCT_PRICE_CENTS,
+      });
+      e2eProductName = product.name;
+    });
+
+    test.afterEach(async () => {
+      if (originalMinimumOrderAmountCents !== null) {
+        await setOfficialStoreMinimumOrderAmountCentsForE2e(
+          originalMinimumOrderAmountCents,
+        );
+      }
+    });
+
+    test("empty cart does not show minimum-order gap message", async ({
+      page,
+    }) => {
+      await page.goto("/na-brasa");
+      await expect(page.getByTestId("store-hero")).toBeVisible();
+      await expect(page.getByTestId("cart-summary")).toHaveCount(0);
+      await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveCount(
+        0,
+      );
+    });
+
+    test("shows remaining amount when cart is below store minimum", async ({
+      page,
+    }) => {
+      await addProductToCartByName(page, e2eProductName, { quantity: 1 });
+
+      const indicator = page.getByTestId("cart-minimum-order-indicator");
+      await expect(indicator).toBeVisible();
+      await expect(indicator).toHaveText(expectedBelowMinimumMessage);
+      await expect(page.getByTestId("checkout-cta")).toBeVisible();
+    });
+
+    test("shows reached message when cart meets store minimum", async ({
+      page,
+    }) => {
+      await addProductToCartByName(page, e2eProductName, {
+        quantity: quantityToMeetMinimum,
+      });
+
+      const indicator = page.getByTestId("cart-minimum-order-indicator");
+      await expect(indicator).toBeVisible();
+      await expect(indicator).toHaveText("Pedido mínimo atingido.");
+    });
+
+    test("keeps minimum-order message correct after reload", async ({ page }) => {
+      await addProductToCartByName(page, e2eProductName, { quantity: 1 });
+
+      await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveText(
+        expectedBelowMinimumMessage,
+      );
+
+      await page.reload();
+      await expect(page.getByTestId("cart-summary")).toBeVisible();
+      await expect(page.getByTestId("cart-subtotal")).toBeVisible();
+      await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveText(
+        expectedBelowMinimumMessage,
+      );
+    });
+
+    test("hides indicator when store has no minimum order", async ({ page }) => {
+      // Schema field is Int (non-null); 0 means no minimum in app logic.
+      await setOfficialStoreMinimumOrderAmountCentsForE2e(0);
+
+      await addProductToCartByName(page, e2eProductName, { quantity: 1 });
+
+      await expect(page.getByTestId("cart-summary")).toBeVisible();
+      await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveCount(
+        0,
+      );
+    });
+  });
 });

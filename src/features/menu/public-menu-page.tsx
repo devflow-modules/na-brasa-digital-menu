@@ -12,6 +12,7 @@ export function PublicMenuPage({ menu }: PublicMenuPageProps) {
       <StoreHero store={menu.store} />
       <MenuOrderingExperience
         storeIsOpen={menu.store.isOpen}
+        minimumOrderAmountCents={menu.store.minimumOrderAmountCents}
         menu={{
           categories: menu.categories,
           featuredProducts: menu.featuredProducts,

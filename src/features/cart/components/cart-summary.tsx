@@ -8,6 +8,8 @@ import type { CartState } from "@/features/cart/types";
 type CartSummaryProps = {
   cart: CartState;
   storeIsOpen?: boolean;
+  /** Store-configured minimum; presentation only — server remains source of truth. */
+  minimumOrderAmountCents?: number;
   onIncrease: (itemId: string) => void;
   onDecrease: (itemId: string) => void;
   onRemove: (itemId: string) => void;
@@ -16,6 +18,7 @@ type CartSummaryProps = {
 export function CartSummary({
   cart,
   storeIsOpen = true,
+  minimumOrderAmountCents = 0,
   onIncrease,
   onDecrease,
   onRemove,
@@ -26,6 +29,13 @@ export function CartSummary({
 
   const itemLabel =
     cart.totalQuantity === 1 ? "1 item" : `${cart.totalQuantity} itens`;
+
+  // Same base as create-order.service: subtotal of products+addons vs store minimum.
+  const remainingMinimumCents =
+    minimumOrderAmountCents > 0
+      ? Math.max(minimumOrderAmountCents - cart.subtotalCents, 0)
+      : 0;
+  const showMinimumOrderIndicator = minimumOrderAmountCents > 0;
 
   return (
     <div
@@ -52,6 +62,23 @@ export function CartSummary({
             </p>
           </div>
         </div>
+
+        {showMinimumOrderIndicator ? (
+          <p
+            data-testid="cart-minimum-order-indicator"
+            role="status"
+            aria-live="polite"
+            className={`text-xs leading-snug ${
+              remainingMinimumCents > 0
+                ? "font-medium text-amber-100"
+                : "text-stone-400"
+            }`}
+          >
+            {remainingMinimumCents > 0
+              ? `Faltam ${formatMoney(remainingMinimumCents)} para atingir o pedido mínimo de ${formatMoney(minimumOrderAmountCents)}.`
+              : "Pedido mínimo atingido."}
+          </p>
+        ) : null}
 
         <div className="max-h-48 space-y-2 overflow-y-auto pr-1">
           {cart.items.map((item) => (
