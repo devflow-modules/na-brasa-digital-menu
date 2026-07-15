@@ -7,9 +7,8 @@ Dados recebidos via Forms, prints do iFood e confirmações diretas do cliente.
 Status geral:
 
 - Store data: applied via seed + `pnpm store:apply-na-braza-settings`
-- Menu data: ready to apply via PR `content(menu): apply Na Braza pilot menu` and `pnpm menu:apply-na-braza-pilot`
-- Admin users: partially ready
-- Production menu: pending manual `pnpm menu:apply-na-braza-pilot` after merge (when applicable)
+- Menu data: applied via `pnpm menu:apply-na-braza-pilot`
+- Admin users: Lucas prepared via PR/script; Renan pending
 
 ## Implementation tracking
 
@@ -17,9 +16,10 @@ Status geral:
 | --- | --- |
 | Store settings (code/seed/script) | Merged — apply in production with `pnpm store:apply-na-braza-settings` if needed |
 | Store settings (production DB) | Apply manually when not yet run |
-| Pilot menu (code/seed/script) | In PR `content(menu): apply Na Braza pilot menu` |
-| Pilot menu (production DB) | Pending `pnpm menu:apply-na-braza-pilot` after merge |
-| Lucas `STORE_OWNER` | Pending separate PR |
+| Pilot menu (code/seed/script) | Merged — `pnpm menu:apply-na-braza-pilot` |
+| Pilot menu (production DB) | Apply manually when not yet run |
+| Lucas `STORE_OWNER` | In PR `chore(client-data): create Na Braza store owner access` — `pnpm store:create-na-braza-owner` |
+| Renan `STORE_OWNER` | Pending contact data |
 
 ## Sources
 
@@ -155,9 +155,10 @@ The base product is Pão Carne Queijo. The customer adds optional extras; the pr
 
 - Name: Lucas Araújo
 - Email: theluksvm@gmail.com
-- WhatsApp: 13981091971
+- WhatsApp (contato operacional, não é campo em `User`): 13981091971
 - Role intent: Sócio / owner
 - Recommended role: `STORE_OWNER`
+- Provisioning: manual script `pnpm store:create-na-braza-owner` (senha temporária via env `NA_BRAZA_LUCAS_PASSWORD`, mínimo 12 caracteres)
 
 ### Renan
 

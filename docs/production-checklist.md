@@ -168,6 +168,17 @@ Rodar após merge do cardápio piloto e com `DATABASE_URL` de produção. Confer
 - [ ] Itens fictícios antigos (ex.: Burger Na Braza) **não** aparecem no público
 - [ ] Pedido teste com Pão Carne Queijo + adicional ≥ R$ 30,00 finaliza e abre WhatsApp correto
 
+## Na Braza — após `pnpm store:create-na-braza-owner`
+
+Rodar com `DATABASE_URL` de produção e `NA_BRAZA_LUCAS_PASSWORD` (mín. 12 caracteres). Conferir com o e-mail real do Lucas:
+
+- [ ] Login em `/admin/login` com `theluksvm@gmail.com`
+- [ ] Acesso a `/admin` (dashboard de pedidos)
+- [ ] Acesso a `/admin/cardapio`
+- [ ] Acesso a `/admin/configuracoes`
+- [ ] `/master` **bloqueado** para STORE_OWNER
+- [ ] Logout funciona (sessão encerrada)
+
 ## Resultado
 
 | Resultado | Critério |
