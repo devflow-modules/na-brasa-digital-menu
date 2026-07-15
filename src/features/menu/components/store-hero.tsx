@@ -6,6 +6,10 @@ type StoreHeroProps = {
   store: PublicMenuStore;
 };
 
+/** PLATFORM fallback when Store.description is null/empty. */
+const STORE_DESCRIPTION_FALLBACK =
+  "Escolha seus itens e faça seu pedido online.";
+
 function OperationalChip({
   label,
   positive,
@@ -29,10 +33,13 @@ function OperationalChip({
   );
 }
 
+function resolveStoreDescription(description: string | null): string {
+  const trimmed = description?.trim();
+  return trimmed ? trimmed : STORE_DESCRIPTION_FALLBACK;
+}
+
 export function StoreHero({ store }: StoreHeroProps) {
-  const tagline =
-    store.description ??
-    "Lanches artesanais e espetinhos na brasa, feitos com cuidado.";
+  const description = resolveStoreDescription(store.description);
 
   return (
     <header
@@ -41,8 +48,11 @@ export function StoreHero({ store }: StoreHeroProps) {
     >
       <div className="mx-auto flex w-full max-w-lg flex-col gap-5">
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300/90">
-            Cardápio online oficial do Na Braza
+          <p
+            data-testid="store-hero-eyebrow"
+            className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300/90"
+          >
+            Cardápio online
           </p>
           <p className="text-sm font-medium text-orange-200/90">
             Pedido direto pelo WhatsApp
@@ -53,7 +63,12 @@ export function StoreHero({ store }: StoreHeroProps) {
           <h1 className="text-3xl font-semibold tracking-tight text-orange-50 sm:text-4xl">
             {store.name}
           </h1>
-          <p className="text-sm leading-relaxed text-stone-300">{tagline}</p>
+          <p
+            data-testid="store-hero-description"
+            className="text-sm leading-relaxed text-stone-300"
+          >
+            {description}
+          </p>
           <p className="text-sm leading-relaxed text-stone-400">
             Escolha seus itens, revise o pedido e finalize com a equipe pelo
             WhatsApp.
