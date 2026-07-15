@@ -1,6 +1,7 @@
 "use client";
 
 import type { CartState } from "@/features/cart/types";
+import { getCheckoutEstimatedTotalCents } from "@/features/checkout/get-checkout-estimated-total-cents";
 import { formatMoney } from "@/features/menu/format-money";
 
 type CheckoutCartSummaryProps = {
@@ -14,8 +15,11 @@ export function CheckoutCartSummary({
   deliveryFeeCents,
   showDeliveryFee,
 }: CheckoutCartSummaryProps) {
-  const estimatedTotalCents =
-    cart.subtotalCents + (showDeliveryFee ? deliveryFeeCents : 0);
+  const estimatedTotalCents = getCheckoutEstimatedTotalCents({
+    subtotalCents: cart.subtotalCents,
+    deliveryFeeCents,
+    showDeliveryFee,
+  });
 
   const itemLabel =
     cart.totalQuantity === 1

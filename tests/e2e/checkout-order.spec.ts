@@ -17,6 +17,26 @@ test.describe("checkout order", () => {
     await clearCartStorage(page);
   });
 
+  test("desktop checkout keeps in-flow summary without mobile sticky bar", async ({
+    page,
+  }) => {
+    await addProductToCartByName(page, PILOT_BURGER_PRODUCT_NAME, {
+      quantity: 1,
+    });
+    await page.getByTestId("checkout-cta").click();
+    await expect(page).toHaveURL(/\/na-brasa\/checkout/);
+
+    await expect(page.getByTestId("checkout-order-summary")).toBeVisible();
+    await expect(page.getByTestId("checkout-estimated-total")).toBeVisible();
+    await expect(page.getByTestId("checkout-mobile-sticky-summary")).toBeHidden();
+    await expect(page.getByTestId("checkout-submit-button")).toHaveCount(1);
+
+    const barPosition = await page
+      .getByTestId("checkout-submit-bar")
+      .evaluate((el) => getComputedStyle(el).position);
+    expect(barPosition).toBe("static");
+  });
+
   test("creates order, opens wa.me, clears cart, and persists PENDING order", async ({
     page,
   }) => {

@@ -10,10 +10,19 @@ import {
   setOfficialStoreMinimumOrderAmountCentsForE2e,
 } from "./helpers/db";
 import { clearCartStorage } from "./helpers/menu";
-import { OFFICIAL_STORE_DISPLAY_NAME } from "./helpers/test-data";
+import {
+  e2ePhone,
+  OFFICIAL_STORE_DISPLAY_NAME,
+} from "./helpers/test-data";
 
 const PRODUCT_PRICE_CENTS = 2_000;
 const MINIMUM_ORDER_CENTS = 5_000;
+
+type Box = { x: number; y: number; width: number; height: number };
+
+function boxesOverlapVertically(a: Box, b: Box): boolean {
+  return a.y < b.y + b.height && b.y < a.y + a.height;
+}
 
 function formatMoneyBr(cents: number): string {
   return new Intl.NumberFormat("pt-BR", {
@@ -179,6 +188,123 @@ test.describe("mobile storefront", () => {
     await expect(card.getByTestId("menu-product-unavailable-badge")).toBeVisible();
     await expect(card.getByTestId("open-add-to-cart-button")).toBeDisabled();
     await expectNoHorizontalOverflow(page);
+  });
+
+  test("checkout keeps sticky total and single CTA accessible while scrolling", async ({
+    page,
+  }) => {
+    const stamp = Date.now();
+    const productName = `E2E Menu Mobile Sticky Checkout ${stamp}`;
+    const expectedTotal = formatMoneyBr(PRODUCT_PRICE_CENTS);
+
+    const category = await createE2eMenuCategory({
+      name: `E2E Menu Mobile Sticky Cat ${stamp}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      priceCents: PRODUCT_PRICE_CENTS,
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName });
+    await card.getByTestId("open-add-to-cart-button").click();
+    await page.getByTestId("add-to-cart-button").click();
+    await page.getByTestId("checkout-cta").click();
+    await expect(page).toHaveURL(/\/na-brasa\/checkout/);
+
+    const stickySummary = page.getByTestId("checkout-mobile-sticky-summary");
+    const stickyTotal = page.getByTestId("checkout-sticky-total");
+    const submit = page.getByTestId("checkout-submit-button");
+    const submitBar = page.getByTestId("checkout-submit-bar");
+
+    await expect(stickySummary).toBeVisible();
+    await expect(stickyTotal).toHaveText(expectedTotal);
+    await expect(page.getByTestId("checkout-estimated-total")).toHaveText(
+      expectedTotal,
+    );
+    await expect(submit).toBeVisible();
+    await expect(submit).toBeEnabled();
+    await expect(submit).toHaveCount(1);
+
+    const barPosition = await submitBar.evaluate(
+      (el) => getComputedStyle(el).position,
+    );
+    expect(barPosition).toBe("fixed");
+
+    const notes = page.getByLabel("Observações do pedido");
+    await notes.focus();
+    await expect(stickyTotal).toBeInViewport();
+    await expect(submit).toBeInViewport();
+    await expect(submit).toBeVisible();
+
+    const notesBox = await notes.boundingBox();
+    const barBox = await submitBar.boundingBox();
+    expect(notesBox).not.toBeNull();
+    expect(barBox).not.toBeNull();
+    if (notesBox && barBox) {
+      // Useful portion of the focused field must sit above the sticky bar
+      // (not just a few unusable pixels). Full field above the bar is fine.
+      const visibleHeightAboveBar = barBox.y - notesBox.y;
+      expect(visibleHeightAboveBar).toBeGreaterThanOrEqual(
+        Math.min(notesBox.height, 48),
+      );
+    }
+
+    await expectNoHorizontalOverflow(page);
+  });
+
+  test("checkout sticky bar does not cover near-end validation errors on mobile", async ({
+    page,
+  }) => {
+    const stamp = Date.now();
+    const productName = `E2E Menu Mobile Checkout Errors ${stamp}`;
+
+    const category = await createE2eMenuCategory({
+      name: `E2E Menu Mobile Checkout Errors Cat ${stamp}`,
+    });
+    await createE2eMenuProduct({
+      categoryId: category.id,
+      storeId: category.storeId,
+      name: productName,
+      priceCents: PRODUCT_PRICE_CENTS,
+    });
+
+    await page.goto("/na-brasa");
+    const card = page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: productName });
+    await card.getByTestId("open-add-to-cart-button").click();
+    await page.getByTestId("add-to-cart-button").click();
+    await page.getByTestId("checkout-cta").click();
+    await expect(page).toHaveURL(/\/na-brasa\/checkout/);
+
+    // Fill early required fields so the only error is near the end (troco).
+    await page.getByLabel("Nome").fill("Cliente E2E Mobile");
+    await page.getByLabel("WhatsApp para contato").fill(e2ePhone);
+    await page.getByText("Dinheiro", { exact: true }).click();
+    await page.getByLabel("Preciso de troco").check();
+
+    await page.getByTestId("checkout-submit-button").click();
+
+    const changeError = page.getByText("Informe o valor para troco");
+    await expect(changeError).toBeVisible();
+    await changeError.scrollIntoViewIfNeeded();
+
+    const errorBox = await changeError.boundingBox();
+    const barBox = await page.getByTestId("checkout-submit-bar").boundingBox();
+    expect(errorBox).not.toBeNull();
+    expect(barBox).not.toBeNull();
+    if (errorBox && barBox) {
+      expect(boxesOverlapVertically(errorBox, barBox)).toBe(false);
+      expect(errorBox.y + errorBox.height).toBeLessThanOrEqual(barBox.y + 1);
+    }
+
+    await expect(page.getByTestId("checkout-sticky-total")).toBeInViewport();
+    await expect(page.getByTestId("checkout-submit-button")).toBeInViewport();
   });
 
   test("closed store shows status and closed checkout CTA on mobile", async ({
