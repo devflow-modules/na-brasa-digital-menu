@@ -11,9 +11,11 @@ Decisão de produto/plataforma: [ADR 0002 — Database-backed multi-admin and ma
 | `Store` desde a V1 | Isola dados da loja (`slug`) |
 | Dinheiro em centavos (`*Cents` / `Int`) | Evita `Decimal` e floating point no cardápio simples |
 | Snapshots em `OrderItem` / `OrderItemAddon` | Pedido histórico não muda se o cardápio mudar |
-| `OrderSource` | Diferencia pedido direto, iFood (futuro) e outros |
+| `OrderSource` | Diferencia `DIRECT`, `COUNTER` (balcão), iFood (futuro) e outros |
 | Totais em `Order` | Recalculados no server na criação |
 | `User` + `UserRole` no banco | Auth multi-tenant; `/admin` por loja; `/master` para plataforma |
+| Telefone / pagamento opcionais no domínio | Comanda `COUNTER` abre sem telefone e sem pagamento; `DIRECT` continua exigindo ambos no create público |
+| `createdByUserId` / `paidAt` | Operador que abriu a comanda; confirmação de pagamento no fechamento posterior (ainda não entregue) |
 
 ## Entidades
 
@@ -52,6 +54,13 @@ Login **runtime** em `/admin/login` usa `User` + bcrypt. Sessão JWT inclui `use
 
 - **Order** — cliente, entrega, pagamento, totais, `status`, `source`, `whatsappMessage`
 - **OrderItem** / **OrderItemAddon** — snapshots; FKs opcionais com `onDelete: SetNull`
+- **`OrderSource.COUNTER`** — origem preparada para comanda digital de balcão (criação/fechamento ainda não entregues; não é PDV completo)
+- **`customerPhone` / `paymentMethod`** — opcionais no modelo persistido compartilhado; o checkout público `DIRECT` continua exigindo ambos
+- **`createdByUserId`** — operador que abriu a comanda (`onDelete: SetNull`); preenchido só por service autenticado futuro; nunca do payload livre do client
+- **`paidAt`** — confirmação de pagamento no fechamento posterior; pedidos existentes permanecem `null` (não reinterpretar `DIRECT` como “não pago” só por isso)
+- **`changeForCents`** — já existia; valor entregue pelo cliente para troco (uso no fechamento futuro, típico de `CASH`)
+
+Regra multi-tenant futura (service, não schema): `storeId` e `createdByUserId` vêm do contexto autenticado; o service valida vínculo do usuário com a Store; o catálogo resolve pelo mesmo `storeId`.
 
 ## Enums
 
@@ -96,3 +105,4 @@ Histórico: migrations em `prisma/migrations/`.
 - Onboarding self-service de novos tenants
 - Storefront público dinâmico por slug (piloto usa rota `/na-brasa`)
 - Billing, planos e limites por tenant
+- Criação autenticada de pedido `COUNTER`, UI `/admin/balcao`, fechamento com recebimento e `paidAt`

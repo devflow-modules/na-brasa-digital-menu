@@ -31,7 +31,13 @@ export function formatDeliveryType(type: AdminDeliveryType): string {
   return type === "DELIVERY" ? "Entrega" : "Retirada";
 }
 
-export function formatPaymentMethod(method: AdminPaymentMethod): string {
+export function formatPaymentMethod(
+  method: AdminPaymentMethod | null,
+): string {
+  if (method == null) {
+    return "Pagamento pendente";
+  }
+
   switch (method) {
     case "PIX":
       return "Pix";
@@ -50,6 +56,8 @@ export function formatOrderSource(source: AdminOrderSource): string {
       return "iFood";
     case "OTHER":
       return "Outro";
+    case "COUNTER":
+      return "Balcão";
   }
 }
 
@@ -60,7 +68,11 @@ export function formatDateTime(date: Date): string {
   }).format(date);
 }
 
-export function formatPhone(phone: string): string {
+export function formatPhone(phone: string | null): string {
+  if (phone == null || phone.trim() === "") {
+    return "Sem telefone";
+  }
+
   const digits = phone.replace(/\D/g, "");
 
   if (digits.length === 11) {

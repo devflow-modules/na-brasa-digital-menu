@@ -123,6 +123,8 @@ Schema e seed: [database.md](database.md). Decisão: [adr/0002-database-backed-m
 
 Resumo do schema: [database.md](database.md). Centavos no server; não confiar em preços do client.
 
+**Comanda digital de balcão (foundation de domínio):** `OrderSource.COUNTER` está modelado; `customerPhone` e `paymentMethod` são opcionais no domínio persistido compartilhado; `createdByUserId` e `paidAt` preparam abertura por operador e confirmação de pagamento posterior. Pedidos públicos `DIRECT` continuam exigindo telefone e forma de pagamento no create. Criação autenticada, UI `/admin/balcao` e fechamento com recebimento **ainda não foram entregues** — não é PDV completo.
+
 ### Configurações da loja (`/admin/configuracoes`)
 
 - Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.
@@ -170,6 +172,7 @@ Não prometer ao cliente Na Braza sem decisão de produto:
 - Zonas de entrega, horário por dia da semana estruturado
 - CRUD de lojas no `/master`
 - Storefront dinâmico por slug para novos tenants
+- PDV completo, caixa, fiscal, impressão ou fluxo de balcão operacional (além da foundation de domínio)
 
 ## Roadmap
 
