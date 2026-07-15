@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { AddToCartPanel } from "@/features/cart/components/add-to-cart-panel";
 import { CartSummary } from "@/features/cart/components/cart-summary";
 import { useCart } from "@/features/cart/use-cart";
@@ -24,6 +24,10 @@ export function MenuOrderingExperience({
   const { cart, addItem, setItemQuantity, removeItem } = useCart();
   const [selectedProduct, setSelectedProduct] =
     useState<PublicMenuProduct | null>(null);
+
+  const handleCloseAddToCart = useCallback(() => {
+    setSelectedProduct(null);
+  }, []);
 
   const hasProducts = categories.length > 0;
   const hasCartItems = cart.items.length > 0;
@@ -138,7 +142,7 @@ export function MenuOrderingExperience({
       {selectedProduct ? (
         <AddToCartPanel
           product={selectedProduct}
-          onClose={() => setSelectedProduct(null)}
+          onClose={handleCloseAddToCart}
           onConfirm={({ quantity, selectedAddons }) => {
             addItem({
               productId: selectedProduct.id,
@@ -148,7 +152,7 @@ export function MenuOrderingExperience({
               selectedAddons,
               quantity,
             });
-            setSelectedProduct(null);
+            handleCloseAddToCart();
           }}
         />
       ) : null}
