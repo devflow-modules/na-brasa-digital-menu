@@ -467,4 +467,163 @@ test.describe("public menu", () => {
       );
     });
   });
+
+  test.describe("featured product deduplication", () => {
+    test("featured product appears once in Destaques and not again in category", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const categoryName = `E2E Menu Featured Cat ${stamp}`;
+      const featuredName = `E2E Menu Featured Product ${stamp}`;
+      const regularName = `E2E Menu Regular Product ${stamp}`;
+
+      const category = await createE2eMenuCategory({ name: categoryName });
+      await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: featuredName,
+        featured: true,
+      });
+      await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: regularName,
+        featured: false,
+      });
+
+      await page.goto("/na-brasa");
+
+      const featuredSection = page.getByTestId("menu-featured-section");
+      await expect(featuredSection).toBeVisible();
+      await expect(
+        featuredSection.getByTestId("menu-product-card").filter({
+          hasText: featuredName,
+        }),
+      ).toHaveCount(1);
+
+      await expect(
+        page.getByTestId("menu-product-card").filter({ hasText: featuredName }),
+      ).toHaveCount(1);
+
+      const categorySection = page.getByRole("region", { name: categoryName });
+      await expect(categorySection).toBeVisible();
+      await expect(
+        categorySection.getByTestId("menu-product-card").filter({
+          hasText: featuredName,
+        }),
+      ).toHaveCount(0);
+      await expect(
+        categorySection.getByTestId("menu-product-card").filter({
+          hasText: regularName,
+        }),
+      ).toHaveCount(1);
+
+      await expect(
+        featuredSection.getByTestId("menu-product-card").filter({
+          hasText: regularName,
+        }),
+      ).toHaveCount(0);
+    });
+
+    test("category with only featured products is not rendered after filter", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const categoryName = `E2E Menu Featured Only Cat ${stamp}`;
+      const featuredName = `E2E Menu Featured Only Product ${stamp}`;
+
+      const category = await createE2eMenuCategory({ name: categoryName });
+      await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: featuredName,
+        featured: true,
+      });
+
+      await page.goto("/na-brasa");
+
+      await expect(
+        page.getByTestId("menu-featured-section").getByTestId("menu-product-card").filter({
+          hasText: featuredName,
+        }),
+      ).toHaveCount(1);
+      await expect(
+        page.getByTestId("menu-product-card").filter({ hasText: featuredName }),
+      ).toHaveCount(1);
+      await expect(
+        page.getByRole("heading", { name: categoryName, level: 2 }),
+      ).toHaveCount(0);
+    });
+
+    test("regular product stays in category and never in Destaques", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const categoryName = `E2E Menu No Featured Cat ${stamp}`;
+      const regularName = `E2E Menu No Featured Product ${stamp}`;
+
+      const category = await createE2eMenuCategory({ name: categoryName });
+      await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: regularName,
+        featured: false,
+      });
+
+      await page.goto("/na-brasa");
+
+      const categorySection = page.getByRole("region", { name: categoryName });
+      await expect(categorySection).toBeVisible();
+      await expect(
+        categorySection.getByTestId("menu-product-card").filter({
+          hasText: regularName,
+        }),
+      ).toHaveCount(1);
+
+      const featuredSection = page.getByTestId("menu-featured-section");
+      if ((await featuredSection.count()) > 0) {
+        await expect(
+          featuredSection.getByTestId("menu-product-card").filter({
+            hasText: regularName,
+          }),
+        ).toHaveCount(0);
+      }
+    });
+
+    test("unavailable featured product appears once with disabled add button", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const categoryName = `E2E Menu Featured Unavailable Cat ${stamp}`;
+      const featuredName = `E2E Menu Featured Unavailable ${stamp}`;
+
+      const category = await createE2eMenuCategory({ name: categoryName });
+      await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: featuredName,
+        featured: true,
+        available: false,
+      });
+
+      await page.goto("/na-brasa");
+
+      const cards = page
+        .getByTestId("menu-product-card")
+        .filter({ hasText: featuredName });
+      await expect(cards).toHaveCount(1);
+
+      const card = cards.first();
+      await expect(card.getByTestId("menu-product-unavailable-badge")).toBeVisible();
+      await expect(card.getByTestId("open-add-to-cart-button")).toBeDisabled();
+      await expect(
+        page.getByTestId("menu-featured-section").getByTestId("menu-product-card").filter({
+          hasText: featuredName,
+        }),
+      ).toHaveCount(1);
+      await expect(
+        page.getByRole("heading", { name: categoryName, level: 2 }),
+      ).toHaveCount(0);
+    });
+  });
 });

@@ -24,9 +24,16 @@ test.describe("Na Braza pilot menu", () => {
     await expect(page.getByText("R$ 25,00").first()).toBeVisible();
     await expect(page.getByText("Burger Na Braza")).toHaveCount(0);
 
+    // Featured-only categories are omitted from the catalog after UI deduplication.
+    await expect(page.getByTestId("menu-featured-section")).toBeVisible();
+    await expect(
+      page.getByTestId("menu-product-card").filter({
+        hasText: PILOT_BURGER_PRODUCT_NAME,
+      }),
+    ).toHaveCount(1);
     await expect(
       page.getByRole("heading", { name: "Lanches artesanais", level: 2 }),
-    ).toBeVisible();
+    ).toHaveCount(0);
     await expect(
       page.getByRole("heading", { name: "Espetinhos na Brasa", level: 2 }),
     ).toBeVisible();

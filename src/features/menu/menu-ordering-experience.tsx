@@ -31,6 +31,19 @@ export function MenuOrderingExperience({
     setSelectedProduct(null);
   }, []);
 
+  // Presentation-only: keep featured products out of category lists (by id).
+  const featuredProductIds = new Set(
+    featuredProducts.map((product) => product.id),
+  );
+  const catalogCategories = categories
+    .map((category) => ({
+      ...category,
+      products: category.products.filter(
+        (product) => !featuredProductIds.has(product.id),
+      ),
+    }))
+    .filter((category) => category.products.length > 0);
+
   const hasProducts = categories.length > 0;
   const hasCartItems = cart.items.length > 0;
 
@@ -58,6 +71,7 @@ export function MenuOrderingExperience({
           <>
             {featuredProducts.length > 0 ? (
               <section
+                data-testid="menu-featured-section"
                 className="flex flex-col gap-4"
                 aria-labelledby="featured-heading"
               >
@@ -102,7 +116,7 @@ export function MenuOrderingExperience({
                 </p>
               </div>
 
-              {categories.map((category) => (
+              {catalogCategories.map((category) => (
                 <CategorySection
                   key={category.id}
                   category={category}
