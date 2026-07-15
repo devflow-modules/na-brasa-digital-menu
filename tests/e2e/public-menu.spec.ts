@@ -626,4 +626,130 @@ test.describe("public menu", () => {
       ).toHaveCount(0);
     });
   });
+
+  test.describe("category jump navigation", () => {
+    test("lists visible catalog categories with matching section anchors", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const catAName = `E2E Menu Jump Cat A ${stamp}`;
+      const catBName = `E2E Menu Jump Cat B ${stamp}`;
+      const featuredOnlyCatName = `E2E Menu Jump Featured Only Cat ${stamp}`;
+
+      const catA = await createE2eMenuCategory({
+        name: catAName,
+        sortOrder: 9100,
+      });
+      const catB = await createE2eMenuCategory({
+        name: catBName,
+        sortOrder: 9101,
+      });
+      const featuredOnlyCat = await createE2eMenuCategory({
+        name: featuredOnlyCatName,
+        sortOrder: 9102,
+      });
+
+      await createE2eMenuProduct({
+        categoryId: catA.id,
+        storeId: catA.storeId,
+        name: `E2E Menu Jump Product A ${stamp}`,
+      });
+      await createE2eMenuProduct({
+        categoryId: catB.id,
+        storeId: catB.storeId,
+        name: `E2E Menu Jump Product B ${stamp}`,
+      });
+      await createE2eMenuProduct({
+        categoryId: featuredOnlyCat.id,
+        storeId: featuredOnlyCat.storeId,
+        name: `E2E Menu Jump Featured Only Product ${stamp}`,
+        featured: true,
+      });
+
+      await page.goto("/na-brasa");
+
+      const nav = page.getByRole("navigation", {
+        name: "Categorias do cardápio",
+      });
+      await expect(nav).toBeVisible();
+
+      const linkA = nav.getByRole("link", { name: catAName });
+      const linkB = nav.getByRole("link", { name: catBName });
+      await expect(linkA).toBeVisible();
+      await expect(linkB).toBeVisible();
+      await expect(linkA).toHaveAttribute("href", `#category-${catA.id}`);
+      await expect(linkB).toHaveAttribute("href", `#category-${catB.id}`);
+      await expect(
+        nav.getByRole("link", { name: featuredOnlyCatName }),
+      ).toHaveCount(0);
+      await expect(nav.getByRole("link", { name: "Destaques" })).toHaveCount(0);
+
+      const linkOrder = await nav.evaluate((element, names) => {
+        const labels = [...element.querySelectorAll("a")].map((anchor) =>
+          (anchor.textContent ?? "").trim(),
+        );
+        return labels.indexOf(names[0]!) < labels.indexOf(names[1]!);
+      }, [catAName, catBName]);
+      expect(linkOrder).toBe(true);
+
+      await expect(page.locator(`#category-${catA.id}`)).toBeVisible();
+      await expect(page.locator(`#category-${catB.id}`)).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: catAName, level: 2 }),
+      ).toBeVisible();
+      await expect(
+        page.getByRole("heading", { name: featuredOnlyCatName, level: 2 }),
+      ).toHaveCount(0);
+      await expect(page.getByTestId("menu-featured-section")).toBeVisible();
+    });
+
+    test("click and keyboard activate category jump links", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const catAName = `E2E Menu Jump Nav Cat A ${stamp}`;
+      const catBName = `E2E Menu Jump Nav Cat B ${stamp}`;
+
+      const catA = await createE2eMenuCategory({
+        name: catAName,
+        sortOrder: 9200,
+      });
+      const catB = await createE2eMenuCategory({
+        name: catBName,
+        sortOrder: 9201,
+      });
+      await createE2eMenuProduct({
+        categoryId: catA.id,
+        storeId: catA.storeId,
+        name: `E2E Menu Jump Nav Product A ${stamp}`,
+      });
+      await createE2eMenuProduct({
+        categoryId: catB.id,
+        storeId: catB.storeId,
+        name: `E2E Menu Jump Nav Product B ${stamp}`,
+      });
+
+      await page.goto("/na-brasa");
+
+      const nav = page.getByRole("navigation", {
+        name: "Categorias do cardápio",
+      });
+      const linkA = nav.getByRole("link", { name: catAName });
+      const linkB = nav.getByRole("link", { name: catBName });
+
+      await linkB.click();
+      await expect(page).toHaveURL(new RegExp(`#category-${catB.id}$`));
+      await expect(
+        page.getByRole("heading", { name: catBName, level: 2 }),
+      ).toBeInViewport();
+
+      await linkA.focus();
+      await expect(linkA).toBeFocused();
+      await page.keyboard.press("Enter");
+      await expect(page).toHaveURL(new RegExp(`#category-${catA.id}$`));
+      await expect(
+        page.getByRole("heading", { name: catAName, level: 2 }),
+      ).toBeInViewport();
+    });
+  });
 });

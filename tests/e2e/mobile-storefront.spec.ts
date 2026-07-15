@@ -307,6 +307,90 @@ test.describe("mobile storefront", () => {
     await expect(page.getByTestId("checkout-submit-button")).toBeInViewport();
   });
 
+  test("category jump navigation scrolls horizontally and jumps without page overflow", async ({
+    page,
+  }) => {
+    const stamp = Date.now();
+    const catAName = `E2E Menu Mobile Jump Cat A ${stamp}`;
+    const catBName = `E2E Menu Mobile Jump Cat B ${stamp}`;
+    const longCatName = `E2E Menu Mobile Jump Cat Long Name ${stamp} Bebidas Geladas e Sobremesas Especiais`;
+
+    const catA = await createE2eMenuCategory({
+      name: catAName,
+      sortOrder: 9300,
+    });
+    const catB = await createE2eMenuCategory({
+      name: catBName,
+      sortOrder: 9301,
+    });
+    const catLong = await createE2eMenuCategory({
+      name: longCatName,
+      sortOrder: 9302,
+    });
+
+    await createE2eMenuProduct({
+      categoryId: catA.id,
+      storeId: catA.storeId,
+      name: `E2E Menu Mobile Jump Product A ${stamp}`,
+      priceCents: PRODUCT_PRICE_CENTS,
+    });
+    await createE2eMenuProduct({
+      categoryId: catB.id,
+      storeId: catB.storeId,
+      name: `E2E Menu Mobile Jump Product B ${stamp}`,
+      priceCents: PRODUCT_PRICE_CENTS,
+    });
+    await createE2eMenuProduct({
+      categoryId: catLong.id,
+      storeId: catLong.storeId,
+      name: `E2E Menu Mobile Jump Product Long ${stamp}`,
+      priceCents: PRODUCT_PRICE_CENTS,
+    });
+
+    await page.goto("/na-brasa");
+
+    const nav = page.getByRole("navigation", {
+      name: "Categorias do cardápio",
+    });
+    await expect(nav).toBeVisible();
+
+    const navBox = await nav.boundingBox();
+    const viewport = page.viewportSize();
+    expect(navBox).not.toBeNull();
+    expect(viewport).not.toBeNull();
+    if (navBox && viewport) {
+      expect(navBox.width).toBeLessThanOrEqual(viewport.width + 1);
+    }
+
+    const scrollMetrics = await nav.evaluate((element) => {
+      const scroller = element.querySelector("ul");
+      if (!scroller) {
+        return { scrollWidth: 0, clientWidth: 0 };
+      }
+      return {
+        scrollWidth: scroller.scrollWidth,
+        clientWidth: scroller.clientWidth,
+      };
+    });
+    expect(scrollMetrics.scrollWidth).toBeGreaterThan(scrollMetrics.clientWidth);
+
+    await page
+      .getByTestId("menu-product-card")
+      .filter({ hasText: `E2E Menu Mobile Jump Product A ${stamp}` })
+      .getByTestId("open-add-to-cart-button")
+      .click();
+    await page.getByTestId("add-to-cart-button").click();
+    await expect(page.getByTestId("cart-summary")).toBeVisible();
+
+    await nav.getByRole("link", { name: catBName }).click();
+    await expect(page).toHaveURL(new RegExp(`#category-${catB.id}$`));
+    await expect(
+      page.getByRole("heading", { name: catBName, level: 2 }),
+    ).toBeInViewport();
+    await expect(page.getByTestId("cart-summary")).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  });
+
   test("closed store shows status and closed checkout CTA on mobile", async ({
     page,
   }) => {

@@ -423,6 +423,7 @@ export const E2E_MENU_PREFIX = "E2E Menu";
 export async function createE2eMenuCategory(options?: {
   storeSlug?: string;
   name?: string;
+  sortOrder?: number;
 }): Promise<{ id: string; name: string; storeId: string }> {
   const prisma = getPrisma();
   const storeSlug = options?.storeSlug ?? getStoreSlug();
@@ -436,7 +437,7 @@ export async function createE2eMenuCategory(options?: {
       storeId: store.id,
       name,
       description: "Categoria técnica E2E",
-      sortOrder: 999,
+      sortOrder: options?.sortOrder ?? 999,
       active: true,
     },
     select: { id: true, name: true, storeId: true },
