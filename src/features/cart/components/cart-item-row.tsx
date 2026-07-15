@@ -58,7 +58,8 @@ export function CartItemRow({
         <button
           type="button"
           onClick={() => onRemove(item.id)}
-          className="text-xs font-medium text-stone-400 underline-offset-2 hover:text-orange-300 hover:underline"
+          aria-label={`Remover ${item.productName} do carrinho`}
+          className="text-xs font-medium text-stone-400 underline-offset-2 hover:text-orange-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
         >
           Remover
         </button>

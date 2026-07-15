@@ -82,7 +82,7 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
                 if (!product.available) return;
                 onAdd(product);
               }}
-              className="min-h-10 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 shadow-sm shadow-orange-950/30 disabled:cursor-not-allowed disabled:bg-stone-800 disabled:text-stone-500 disabled:shadow-none"
+              className="min-h-10 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 shadow-sm shadow-orange-950/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:bg-stone-800 disabled:text-stone-500 disabled:shadow-none"
             >
               {product.available ? "Adicionar" : "Indisponível"}
             </button>
