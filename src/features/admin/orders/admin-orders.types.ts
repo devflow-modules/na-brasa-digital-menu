@@ -11,16 +11,16 @@ export type AdminDeliveryType = "PICKUP" | "DELIVERY";
 
 export type AdminPaymentMethod = "CASH" | "PIX" | "CARD";
 
-export type AdminOrderSource = "DIRECT" | "IFOOD" | "OTHER";
+export type AdminOrderSource = "DIRECT" | "IFOOD" | "OTHER" | "COUNTER";
 
 export type AdminOrderListItem = {
   id: string;
   code: string;
   status: AdminOrderStatus;
   customerName: string;
-  customerPhone: string;
+  customerPhone: string | null;
   deliveryType: AdminDeliveryType;
-  paymentMethod: AdminPaymentMethod;
+  paymentMethod: AdminPaymentMethod | null;
   totalCents: number;
   createdAt: Date;
 };
@@ -47,10 +47,10 @@ export type AdminOrderDetail = {
   status: AdminOrderStatus;
   source: AdminOrderSource;
   customerName: string;
-  customerPhone: string;
+  customerPhone: string | null;
   deliveryType: AdminDeliveryType;
   deliveryAddress: string | null;
-  paymentMethod: AdminPaymentMethod;
+  paymentMethod: AdminPaymentMethod | null;
   changeForCents: number | null;
   notes: string | null;
   subtotalCents: number;

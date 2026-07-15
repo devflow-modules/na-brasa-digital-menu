@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/features/admin/auth/admin-permissions.test.ts",
+    "test": "tsx --test src/features/admin/auth/admin-permissions.test.ts src/features/admin/orders/admin-orders-formatters.test.ts src/features/orders/schemas/create-order.schema.test.ts",
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

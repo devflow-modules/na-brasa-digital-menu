@@ -32,6 +32,7 @@ enum OrderSource {
   DIRECT
   IFOOD
   OTHER
+  COUNTER
 }
 
 /// Platform and store operator roles (ADR 0002).
@@ -80,7 +81,8 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  store Store? @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  store             Store?  @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdOrders     Order[] @relation("OrderCreatedByUser")
 
   @@index([storeId])
   @@index([role])
@@ -161,27 +163,34 @@ model ProductAddon {
 }
 
 model Order {
-  id                String        @id @default(cuid())
+  id                String         @id @default(cuid())
   storeId           String
-  code              String        @unique
+  code              String         @unique
   customerName      String
-  customerPhone     String
+  /// Optional on persisted domain: COUNTER may omit phone. DIRECT still requires it in public create.
+  customerPhone     String?
   deliveryType      DeliveryType
   deliveryAddress   String?
-  paymentMethod     PaymentMethod
+  /// Optional on persisted domain: COUNTER opens before payment. DIRECT still requires it in public create.
+  paymentMethod     PaymentMethod?
   changeForCents    Int?
   notes             String?
   subtotalCents     Int
-  deliveryFeeCents  Int           @default(0)
+  deliveryFeeCents  Int            @default(0)
   totalCents        Int
-  status            OrderStatus   @default(PENDING)
-  source            OrderSource   @default(DIRECT)
+  status            OrderStatus    @default(PENDING)
+  source            OrderSource    @default(DIRECT)
   whatsappMessage   String?
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  /// Set when payment is confirmed (future COUNTER checkout). Existing rows stay null.
+  paidAt            DateTime?
+  /// Operator who opened the order (COUNTER). Never accepted from untrusted client payload.
+  createdByUserId   String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
 
-  store Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  items OrderItem[]
+  store         Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdByUser User?       @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  items         OrderItem[]
 
   @@index([storeId, createdAt])
   @@index([storeId, status])
