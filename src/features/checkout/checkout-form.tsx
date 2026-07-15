@@ -15,7 +15,9 @@ import { CustomerFields } from "@/features/checkout/components/customer-fields";
 import { DeliveryAddressFields } from "@/features/checkout/components/delivery-address-fields";
 import { DeliveryTypeField } from "@/features/checkout/components/delivery-type-field";
 import { PaymentMethodField } from "@/features/checkout/components/payment-method-field";
+import { getCheckoutEstimatedTotalCents } from "@/features/checkout/get-checkout-estimated-total-cents";
 import type { CheckoutStoreInfo } from "@/features/checkout/types";
+import { formatMoney } from "@/features/menu/format-money";
 import { createOrderAction } from "@/features/orders/actions/create-order-action";
 
 type CheckoutFormProps = {
@@ -52,6 +54,11 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
   const deliveryType = watch("deliveryType");
   const showDeliveryFee = deliveryType === "DELIVERY" && store.deliveryEnabled;
+  const estimatedTotalCents = getCheckoutEstimatedTotalCents({
+    subtotalCents: cart.subtotalCents,
+    deliveryFeeCents: store.deliveryFeeCents,
+    showDeliveryFee,
+  });
 
   const emptyCart = useMemo(
     () => hydrated && cart.items.length === 0 && !whatsappFallbackUrl,
@@ -170,7 +177,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
 
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="flex flex-col gap-5"
+        className="flex flex-col gap-5 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:pb-0"
         noValidate
       >
         <CustomerFields register={register} errors={errors} />
@@ -204,7 +211,7 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
               rows={3}
               placeholder="Exemplo: sem cebola, ponto da carne, referência para entrega."
               {...register("notes")}
-              className="rounded-xl border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100 outline-none ring-orange-500/40 focus:ring-2"
+              className="scroll-mb-36 rounded-xl border border-stone-700 bg-stone-950 px-3 py-2 text-stone-100 outline-none ring-orange-500/40 focus:ring-2 md:scroll-mb-0"
             />
             {errors.notes ? (
               <span className="text-xs text-red-400">{errors.notes.message}</span>
@@ -219,21 +226,6 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
             Pedido mínimo estimado: o valor será validado ao finalizar.
           </p>
         ) : null}
-
-        <div className="flex flex-col gap-2">
-          <p className="text-center text-xs leading-relaxed text-stone-500">
-            Ao continuar, seu pedido será salvo e você será redirecionado para o
-            WhatsApp.
-          </p>
-          <button
-            type="submit"
-            data-testid="checkout-submit-button"
-            disabled={isPending || cart.items.length === 0 || !store.isOpen}
-            className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-bold text-stone-950 shadow-md shadow-orange-950/30 ring-1 ring-orange-400/25 disabled:opacity-60"
-          >
-            {isPending ? "Enviando pedido..." : "Enviar pedido pelo WhatsApp"}
-          </button>
-        </div>
 
         {errorMessage ? (
           <p
@@ -261,6 +253,50 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
             .
           </p>
         ) : null}
+
+        {/*
+          One submit control: fixed bottom bar on mobile (matches cart pattern),
+          static in-flow footer on md+ so desktop layout stays unchanged.
+        */}
+        <div
+          data-testid="checkout-submit-bar"
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-orange-500/30 bg-stone-950/98 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md md:static md:z-auto md:mt-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none"
+        >
+          <div className="mx-auto flex w-full max-w-lg flex-col gap-2">
+            <div
+              data-testid="checkout-mobile-sticky-summary"
+              className="flex items-end justify-between gap-3 md:hidden"
+            >
+              <div className="min-w-0">
+                <p className="text-[10px] font-medium uppercase tracking-wide text-stone-500">
+                  Total estimado
+                </p>
+                {showDeliveryFee ? (
+                  <p className="text-xs text-stone-400">Inclui taxa de entrega</p>
+                ) : null}
+              </div>
+              <p
+                data-testid="checkout-sticky-total"
+                className="shrink-0 text-xl font-bold tabular-nums text-orange-300"
+              >
+                {formatMoney(estimatedTotalCents)}
+              </p>
+            </div>
+
+            <p className="hidden text-center text-xs leading-relaxed text-stone-500 md:block">
+              Ao continuar, seu pedido será salvo e você será redirecionado para
+              o WhatsApp.
+            </p>
+            <button
+              type="submit"
+              data-testid="checkout-submit-button"
+              disabled={isPending || cart.items.length === 0 || !store.isOpen}
+              className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-bold text-stone-950 shadow-md shadow-orange-950/30 ring-1 ring-orange-400/25 disabled:opacity-60"
+            >
+              {isPending ? "Enviando pedido..." : "Enviar pedido pelo WhatsApp"}
+            </button>
+          </div>
+        </div>
       </form>
     </div>
   );
