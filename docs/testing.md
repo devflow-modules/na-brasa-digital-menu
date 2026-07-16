@@ -78,8 +78,12 @@ Arquivos relevantes:
 - `src/features/admin/orders/new-order-cursor.test.ts` (cursor / empate / avanço)
 - `src/features/admin/orders/poll-new-admin-orders.service.test.ts` (bootstrap/delta/hasMore/tenant)
 - `src/features/admin/orders/actions/poll-new-admin-orders-action.test.ts` (soft-auth / codes)
+- `src/features/admin/orders/new-order-notifications/new-order-notification-controller.test.ts` (polling state machine / dedupe / backoff)
+- `src/features/admin/orders/new-order-notifications/new-order-sound-preference.test.ts` (preferência e play seguro)
 
-A foundation de novos pedidos **não** inclui E2E nesta etapa (UI/polling pendente).
+E2E de notificações **ainda pendente**. Contador `data-sound-play-count` existe só em `development`/`test` (não em produção). Em E2E preferir stubar `Audio.play`.
+
+Limite visual: no máximo **3** banners; pedidos excedentes entram no dedupe (não reaparecem) mas não ficam todos na tela.
 
 ## Rodar E2E
 
