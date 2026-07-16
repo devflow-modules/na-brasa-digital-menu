@@ -11,14 +11,18 @@ import { updateOrderStatusAction } from "@/features/admin/orders/actions/update-
 import { getOrderStatusActions } from "@/features/admin/orders/admin-order-status-transitions";
 import type {
   AdminDeliveryType,
+  AdminOrderSource,
   AdminOrderStatus,
 } from "@/features/admin/orders/admin-orders.types";
+import { filterGenericStatusActionsForOrder } from "@/features/admin/orders/counter-order-status-actions";
 
 type OrderStatusActionsProps = {
   orderId: string;
   status: AdminOrderStatus;
   deliveryType: AdminDeliveryType;
   role: UserRole;
+  source: AdminOrderSource;
+  paidAt: Date | null;
 };
 
 export function OrderStatusActions({
@@ -26,17 +30,29 @@ export function OrderStatusActions({
   status,
   deliveryType,
   role,
+  source,
+  paidAt,
 }: OrderStatusActionsProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const workflowActions = getOrderStatusActions(status, deliveryType);
-  const actions = getPermittedOrderStatusActions(role, status, deliveryType);
+  const workflowActions = filterGenericStatusActionsForOrder(
+    getOrderStatusActions(status, deliveryType),
+    { source, paidAt },
+  );
+  const actions = filterGenericStatusActionsForOrder(
+    getPermittedOrderStatusActions(role, status, deliveryType),
+    { source, paidAt },
+  );
   const roleLabel = formatAdminRoleLabel(role);
   const emptyMessage =
     workflowActions.length === 0
-      ? "Pedido finalizado. Nenhuma ação disponível."
-      : "Nenhuma ação disponível para o seu perfil neste status.";
+      ? source === "COUNTER" && paidAt == null && status === "READY"
+        ? "Use Receber e finalizar para concluir este pedido de balcão."
+        : "Pedido finalizado. Nenhuma ação disponível."
+      : source === "COUNTER" && paidAt == null && status === "READY"
+        ? "Use Receber e finalizar para concluir. Demais ações dependem do seu perfil."
+        : "Nenhuma ação disponível para o seu perfil neste status.";
 
   if (actions.length === 0) {
     return (

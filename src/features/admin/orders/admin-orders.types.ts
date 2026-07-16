@@ -52,6 +52,7 @@ export type AdminOrderDetail = {
   deliveryAddress: string | null;
   paymentMethod: AdminPaymentMethod | null;
   changeForCents: number | null;
+  paidAt: Date | null;
   notes: string | null;
   subtotalCents: number;
   deliveryFeeCents: number;

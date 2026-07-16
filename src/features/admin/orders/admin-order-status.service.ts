@@ -15,6 +15,16 @@ export type UpdateOrderStatusResult =
   | { ok: true; status: AdminOrderStatus }
   | { ok: false; message: string };
 
+export type UpdateAdminOrderStatusDeps = {
+  findOrderStatusForUpdate: typeof findOrderStatusForUpdate;
+  updateOrderStatus: typeof updateOrderStatus;
+};
+
+const defaultDeps: UpdateAdminOrderStatusDeps = {
+  findOrderStatusForUpdate,
+  updateOrderStatus,
+};
+
 /**
  * Updates order status within a specific store scope.
  * Caller must resolve storeId and role from session (never from client input).
@@ -23,6 +33,7 @@ export async function updateAdminOrderStatus(
   rawInput: unknown,
   storeId: string,
   role: UserRole,
+  deps: UpdateAdminOrderStatusDeps = defaultDeps,
 ): Promise<UpdateOrderStatusResult> {
   const parsed = updateOrderStatusSchema.safeParse(rawInput);
 
@@ -31,11 +42,23 @@ export async function updateAdminOrderStatus(
   }
 
   const { orderId, nextStatus } = parsed.data;
-  const order = await findOrderStatusForUpdate(orderId, storeId);
+  const order = await deps.findOrderStatusForUpdate(orderId, storeId);
 
   if (!order) {
     // Generic — do not reveal whether the order exists in another store.
     return { ok: false, message: "Pedido não encontrado." };
+  }
+
+  if (
+    nextStatus === "COMPLETED" &&
+    order.source === "COUNTER" &&
+    order.paidAt == null
+  ) {
+    return {
+      ok: false,
+      message:
+        "Pedidos de balcão devem ser recebidos por Receber e finalizar.",
+    };
   }
 
   if (!isTransitionAllowed(order.status, nextStatus, order.deliveryType)) {
@@ -54,7 +77,7 @@ export async function updateAdminOrderStatus(
   }
 
   try {
-    const updated = await updateOrderStatus(orderId, storeId, nextStatus);
+    const updated = await deps.updateOrderStatus(orderId, storeId, nextStatus);
     return { ok: true, status: updated.status };
   } catch (error) {
     if (error instanceof Error && error.message === "ORDER_NOT_IN_STORE") {
