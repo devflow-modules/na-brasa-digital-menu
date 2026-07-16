@@ -93,6 +93,13 @@ test.describe("counter order operational flow", () => {
     await expect(page.getByTestId("counter-order-success")).toBeVisible({
       timeout: 15_000,
     });
+    await expect(page).toHaveURL(/\/admin\/balcao/);
+    await expect(page.getByTestId("counter-order-new-order")).toBeVisible();
+    await expect(page.getByTestId("counter-order-view-order")).toBeVisible();
+    await expect(page.getByTestId("counter-order-go-to-orders")).toBeVisible();
+    await expect(page.getByTestId("counter-order-draft-total")).toContainText(
+      "0,00",
+    );
 
     const createdOrder = await findLatestOrderByCustomerName(customerLabel);
     expect(createdOrder).not.toBeNull();
@@ -100,10 +107,11 @@ test.describe("counter order operational flow", () => {
       return;
     }
 
-    await page
-      .getByTestId("counter-order-success")
-      .getByRole("link", { name: "Ver pedido" })
-      .click();
+    await expect(page.getByTestId("counter-order-success-code")).toHaveText(
+      createdOrder.code,
+    );
+
+    await page.getByTestId("counter-order-view-order").click();
 
     await expect(page.getByTestId("admin-order-detail")).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/admin/pedidos/${createdOrder.id}`));
@@ -196,6 +204,90 @@ test.describe("counter order operational flow", () => {
     expect(paid.paymentMethod).toBe("CASH");
     expect(paid.paidAt).not.toBeNull();
     expect(paid.changeForCents).toBe(tenderedCents);
+  });
+
+  test("OPERATOR registers two consecutive COUNTER orders without leaving Balcão", async ({
+    page,
+  }) => {
+    const catalog = await seedCounterOrderE2eCatalog({
+      suffix: `consecutive-${Date.now()}`,
+    });
+    const firstLabel = uniqueCustomerName("Balcao Consecutive A");
+    const secondLabel = uniqueCustomerName("Balcao Consecutive B");
+    const operator = await ensureE2eStoreUser({
+      role: "OPERATOR",
+      email: "e2e-counter-operator-consecutive@example.com",
+    });
+
+    await loginAsUser(page, operator);
+    await page.goto("/admin/balcao");
+    await expect(page.getByTestId("admin-counter-order-page")).toBeVisible();
+
+    await page
+      .getByTestId(`counter-order-product-${catalog.plainProduct.id}`)
+      .click();
+    await page.getByTestId("counter-order-open-review").click();
+    await page.getByTestId("counter-order-customer-label").fill(firstLabel);
+    await page.getByTestId("counter-order-submit").click();
+
+    await expect(page.getByTestId("counter-order-success")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page).toHaveURL(/\/admin\/balcao/);
+
+    const firstOrder = await findLatestOrderByCustomerName(firstLabel);
+    expect(firstOrder).not.toBeNull();
+    if (!firstOrder) {
+      return;
+    }
+    await expect(page.getByTestId("counter-order-success-code")).toHaveText(
+      firstOrder.code,
+    );
+
+    // Starting the next draft must not drop Ver pedido for the first order.
+    await page
+      .getByTestId(`counter-order-product-${catalog.plainProduct.id}`)
+      .click();
+    await expect(page.getByTestId("counter-order-success")).toBeVisible();
+    await expect(page.getByTestId("counter-order-view-order")).toHaveAttribute(
+      "href",
+      `/admin/pedidos/${firstOrder.id}`,
+    );
+    await expect(page.getByTestId("counter-order-open-review")).toBeEnabled();
+    await expect(page.getByTestId("counter-order-draft-total")).toHaveText(
+      /R\$\s*20,00/,
+    );
+
+    // Nova comanda dismisses confirmation without wiping the in-progress draft.
+    await page.getByTestId("counter-order-new-order").click();
+    await expect(page.getByTestId("counter-order-success")).toHaveCount(0);
+    await expect(page.getByTestId("counter-order-open-review")).toBeEnabled();
+    await expect(page.getByTestId("counter-order-draft-total")).toHaveText(
+      /R\$\s*20,00/,
+    );
+
+    await page.getByTestId("counter-order-open-review").click();
+    await page.getByTestId("counter-order-customer-label").fill(secondLabel);
+    await page.getByTestId("counter-order-submit").click();
+
+    await expect(page.getByTestId("counter-order-success")).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page).toHaveURL(/\/admin\/balcao/);
+
+    const secondOrder = await findLatestOrderByCustomerName(secondLabel);
+    expect(secondOrder).not.toBeNull();
+    if (!secondOrder) {
+      return;
+    }
+    expect(secondOrder.id).not.toBe(firstOrder.id);
+    await expect(page.getByTestId("counter-order-success-code")).toHaveText(
+      secondOrder.code,
+    );
+    await expect(page.getByTestId("counter-order-view-order")).toHaveAttribute(
+      "href",
+      `/admin/pedidos/${secondOrder.id}`,
+    );
   });
 
   test("COUNTER READY can be finalized with PIX without change", async ({

@@ -11,6 +11,8 @@ This document guides the first real-store validation with the owner/operator. Au
 
 ```text
 registrar comanda
+→ confirmação no próprio Balcão (sem redirect)
+→ formulário limpo · Nova comanda | Ver pedido | Ir para pedidos
 → preparar
 → READY
 → receber
@@ -22,6 +24,8 @@ Operational distinction preserved:
 ```text
 criar comanda ≠ receber pagamento ≠ concluir pedido
 ```
+
+Post-create continuity: the operator can register two consecutive counter orders without leaving `/admin/balcao`.
 
 ## Pré-condições do piloto
 
@@ -43,6 +47,8 @@ criar comanda ≠ receber pagamento ≠ concluir pedido
 - [ ] encontra produtos rapidamente
 - [ ] adicionais corretos
 - [ ] total de apresentação correto
+- [ ] após registrar, permanece no Balcão com código e ações claras
+- [ ] consegue registrar duas comandas seguidas sem sair da tela
 - [ ] pedido aparece na fila de pedidos
 - [ ] status acompanha o preparo até READY
 - [ ] pagamento é registrado em Receber e finalizar

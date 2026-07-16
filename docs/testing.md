@@ -22,8 +22,8 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: CRUD, vínculos, público, permissões, order validation |
 | `tests/e2e/admin-store-settings.spec.ts` | `/admin/configuracoes`: permissões, público, loja fechada, entrega/retirada, escopo Store, WhatsApp; **restaura** settings da loja seed |
 | `tests/e2e/mobile-storefront.spec.ts` | Fluxo crítico do storefront em viewport mobile (Pixel 5) |
-| `tests/e2e/counter-order-flow.spec.ts` | Comanda COUNTER: criar → READY → receber/finalizar, KITCHEN, tenant, bypass, duplicidade, DIRECT |
-| `tests/e2e/mobile-counter-order.spec.ts` | Balcão + recebimento em viewport mobile (Pixel 5) |
+| `tests/e2e/counter-order-flow.spec.ts` | Comanda COUNTER: criar (fica no Balcão) → READY → receber/finalizar; duas comandas consecutivas; KITCHEN, tenant, bypass, duplicidade, DIRECT |
+| `tests/e2e/mobile-counter-order.spec.ts` | Balcão + pós-criação in-place + recebimento em viewport mobile (Pixel 5) |
 | `tests/e2e/admin-new-order-notifications.spec.ts` | Notificações admin: login lifecycle, bootstrap, DIRECT, som, dismiss, COUNTER, tenant, badge |
 | `tests/e2e/mobile-admin-new-order-notifications.spec.ts` | Banner/badge/link de notificações no viewport Pixel 5 |
 

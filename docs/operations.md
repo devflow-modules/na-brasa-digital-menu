@@ -197,6 +197,13 @@ Rotina recomendada para o Na Braza no piloto (sem feature nova — uso do que j�
 2. Avance status conforme a role (retirada vs entrega).
 3. Compare com a mensagem no WhatsApp do cliente quando necessário.
 
+### Comanda de balcão
+
+1. Em `/admin/balcao`, monte e registre a comanda.
+2. Após o sucesso, a tela **permanece no Balcão** com o código criado — não abre o detalhe sozinha.
+3. Use **Nova comanda** para seguir o próximo cliente, **Ver pedido** para o detalhe, ou **Ir para pedidos** para a fila.
+4. Pagamento continua só em **Receber e finalizar** quando o pedido estiver Pronto.
+
 ### Novos pedidos online (alerta in-app)
 
 1. Com o painel `/admin` **aberto** (após login), novos pedidos `DIRECT` geram banner e atualizam o badge de pendentes (polling ~8s; pausa se a aba estiver oculta). Em `/admin/login` não há chrome nem polling contínuo.
