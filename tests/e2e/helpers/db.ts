@@ -411,6 +411,128 @@ export async function getOrderStatus(orderId: string): Promise<OrderStatus> {
   return order.status;
 }
 
+export type E2eOrderPaymentSnapshot = {
+  id: string;
+  storeId: string;
+  code: string;
+  source: Order["source"];
+  status: OrderStatus;
+  paymentMethod: PaymentMethod | null;
+  changeForCents: number | null;
+  paidAt: Date | null;
+  totalCents: number;
+  createdByUserId: string | null;
+  customerName: string;
+};
+
+export async function getOrderPaymentSnapshot(
+  orderId: string,
+): Promise<E2eOrderPaymentSnapshot> {
+  const prisma = getPrisma();
+  return prisma.order.findUniqueOrThrow({
+    where: { id: orderId },
+    select: {
+      id: true,
+      storeId: true,
+      code: true,
+      source: true,
+      status: true,
+      paymentMethod: true,
+      changeForCents: true,
+      paidAt: true,
+      totalCents: true,
+      createdByUserId: true,
+      customerName: true,
+    },
+  });
+}
+
+/**
+ * Seeds a COUNTER order for focused finalization / authz E2E cases.
+ * customerName must use the E2E prefix for cleanup.
+ */
+export async function createE2eCounterOrder(options?: {
+  customerName?: string;
+  status?: OrderStatus;
+  storeSlug?: string;
+  createdByUserId?: string | null;
+  paymentMethod?: PaymentMethod | null;
+  paidAt?: Date | null;
+  changeForCents?: number | null;
+  totalCents?: number;
+}): Promise<Order> {
+  const prisma = getPrisma();
+  const storeSlug = options?.storeSlug ?? getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+  });
+
+  if (!store) {
+    throw new Error(
+      `Store "${storeSlug}" not found. Run pnpm prisma db seed before E2E.`,
+    );
+  }
+
+  let product = await prisma.product.findFirst({
+    where: { storeId: store.id, active: true, available: true },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  if (!product) {
+    product = await prisma.product.create({
+      data: {
+        storeId: store.id,
+        categoryId: await ensureE2eCategoryId(store.id),
+        name: "E2E Counter Product",
+        description: "Produto técnico E2E balcão",
+        priceCents: 2000,
+        active: true,
+        available: true,
+        sortOrder: 1,
+      },
+    });
+  }
+
+  const customerName =
+    options?.customerName ?? uniqueCustomerName("Counter Order");
+  const quantity = 1;
+  const unitPriceCents = options?.totalCents ?? product.priceCents;
+  const subtotalCents = unitPriceCents * quantity;
+  const code = `E2C${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 90 + 10)}`;
+
+  return prisma.order.create({
+    data: {
+      storeId: store.id,
+      code,
+      customerName,
+      customerPhone: null,
+      deliveryType: "PICKUP",
+      paymentMethod: options?.paymentMethod ?? null,
+      changeForCents: options?.changeForCents ?? null,
+      paidAt: options?.paidAt ?? null,
+      subtotalCents,
+      deliveryFeeCents: 0,
+      totalCents: subtotalCents,
+      status: options?.status ?? "PENDING",
+      source: "COUNTER",
+      whatsappMessage: null,
+      createdByUserId: options?.createdByUserId ?? null,
+      items: {
+        create: [
+          {
+            productId: product.id,
+            productNameSnapshot: product.name,
+            productDescriptionSnapshot: product.description,
+            quantity,
+            unitPriceCents,
+            totalCents: subtotalCents,
+          },
+        ],
+      },
+    },
+  });
+}
+
 export async function disconnectE2ePrisma(): Promise<void> {
   if (globalForPrisma.e2ePrisma) {
     await globalForPrisma.e2ePrisma.$disconnect();
