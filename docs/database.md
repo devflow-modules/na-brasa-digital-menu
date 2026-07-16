@@ -97,7 +97,8 @@ Histórico: migrations em `prisma/migrations/`.
 - Gestão de usuários por loja (`/master/stores/[storeId]/users`)
 - Contexto administrativo por loja em `/admin` (`requireAdminStoreContext`)
 - Soft-auth `getAdminStoreContextOrNull` para actions que não podem redirect (ex.: poll)
-- Consulta incremental de novos pedidos `DIRECT` após cursor `(createdAt, id)` + `pendingCount` (sem UI/polling ainda)
+- Consulta incremental de novos pedidos `DIRECT` após cursor `(createdAt, id)` + `pendingCount`
+- UI admin: polling visibility-aware (8s), banner, badge PENDING live, som opcional local (`public/sounds/new-order.wav`)
 - Isolamento por `storeId` em pedidos e operações admin tenant-scoped
 - Snapshots históricos em itens de pedido
 

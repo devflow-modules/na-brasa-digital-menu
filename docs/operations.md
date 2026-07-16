@@ -197,6 +197,16 @@ Rotina recomendada para o Na Braza no piloto (sem feature nova — uso do que j�
 2. Avance status conforme a role (retirada vs entrega).
 3. Compare com a mensagem no WhatsApp do cliente quando necessário.
 
+### Novos pedidos online (alerta in-app)
+
+1. Com o painel `/admin` **aberto**, novos pedidos `DIRECT` geram banner e atualizam o badge de pendentes (polling ~8s; pausa se a aba estiver oculta).
+2. Som fica **desligado** por padrão — marque **Ativar som de novos pedidos** no chrome do admin (preferência só neste navegador).
+3. Pedidos de balcão (`COUNTER`) **não** disparam alerta.
+4. Com o navegador fechado ou aba em outro site, **não** há notificação (sem Web Push).
+5. Duas abas do admin podem alertar o mesmo pedido.
+6. No máximo 3 banners visíveis; pedidos a mais não reaparecem depois (já contam como alertados).
+7. Ativar o som toca uma prévia curta; pedidos antigos do bootstrap **não** soam.
+
 ### Se algo sair errado nas configurações
 
 1. Volte como `MANAGER`/`STORE_OWNER` em `/admin/configuracoes`.
