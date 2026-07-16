@@ -68,3 +68,20 @@ export type AdminOrdersSummary = {
   revenueTodayCents: number;
   displayedCount: number;
 };
+
+/** Serializable cursor for admin new-order polling (DIRECT only). */
+export type AdminNewOrderCursor = {
+  createdAt: string;
+  id: string;
+};
+
+/** Minimal payload for a new DIRECT order alert (no PII beyond display name). */
+export type AdminNewOrderNotificationItem = {
+  id: string;
+  code: string;
+  source: "DIRECT";
+  status: AdminOrderStatus;
+  customerName: string;
+  totalCents: number;
+  createdAt: string;
+};
