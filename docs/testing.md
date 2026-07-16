@@ -72,7 +72,14 @@ Sem Vitest — usa o runner nativo do Node via `tsx`:
 pnpm test
 ```
 
-Arquivo: `src/features/admin/auth/admin-permissions.test.ts` (role × transição).
+Arquivos relevantes:
+
+- `src/features/admin/auth/admin-permissions.test.ts` (role × transição)
+- `src/features/admin/orders/new-order-cursor.test.ts` (cursor / empate / avanço)
+- `src/features/admin/orders/poll-new-admin-orders.service.test.ts` (bootstrap/delta/hasMore/tenant)
+- `src/features/admin/orders/actions/poll-new-admin-orders-action.test.ts` (soft-auth / codes)
+
+A foundation de novos pedidos **não** inclui E2E nesta etapa (UI/polling pendente).
 
 ## Rodar E2E
 

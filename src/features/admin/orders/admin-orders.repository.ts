@@ -3,10 +3,28 @@ import { prisma } from "@/lib/prisma";
 import type {
   AdminOrderDetail,
   AdminOrderListItem,
+  AdminOrderStatus,
   AdminOrdersSummary,
 } from "@/features/admin/orders/admin-orders.types";
+import {
+  buildDirectOrdersAfterCursorWhere,
+  type AdminNewOrderCursorPoint,
+} from "@/features/admin/orders/new-order-cursor";
 
 const RECENT_ORDERS_LIMIT = 50;
+
+/** Fixed page size for new-order delta polls (not client-configurable). */
+export const ADMIN_NEW_ORDERS_TAKE = 20;
+
+export type AdminNewOrderRow = {
+  id: string;
+  code: string;
+  source: "DIRECT";
+  status: AdminOrderStatus;
+  customerName: string;
+  totalCents: number;
+  createdAt: Date;
+};
 
 /**
  * Start of the current local day on the server machine.
@@ -232,5 +250,74 @@ export async function updateOrderStatus(
       source: true,
       paidAt: true,
     },
+  });
+}
+
+const newOrderNotificationSelect = {
+  id: true,
+  code: true,
+  source: true,
+  status: true,
+  customerName: true,
+  totalCents: true,
+  createdAt: true,
+} as const;
+
+/**
+ * Latest DIRECT order tip for bootstrap cursor (no alert payload).
+ * storeId must come from authenticated admin context.
+ */
+export async function findLatestDirectOrderCursor(
+  storeId: string,
+): Promise<AdminNewOrderCursorPoint | null> {
+  const order = await prisma.order.findFirst({
+    where: { storeId, source: "DIRECT" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+    select: { id: true, createdAt: true },
+  });
+
+  return order;
+}
+
+/**
+ * DIRECT orders strictly after cursor for the given store.
+ * Fetches `take` rows; caller may request take+1 to detect hasMore.
+ */
+export async function listDirectOrdersAfterCursor(
+  storeId: string,
+  cursor: AdminNewOrderCursorPoint,
+  take: number,
+): Promise<AdminNewOrderRow[]> {
+  const orders = await prisma.order.findMany({
+    where: {
+      storeId,
+      source: "DIRECT",
+      ...buildDirectOrdersAfterCursorWhere(cursor),
+    },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    take,
+    select: newOrderNotificationSelect,
+  });
+
+  return orders.map((order) => ({
+    id: order.id,
+    code: order.code,
+    source: "DIRECT" as const,
+    status: order.status,
+    customerName: order.customerName,
+    totalCents: order.totalCents,
+    createdAt: order.createdAt,
+  }));
+}
+
+/**
+ * Operational pending load for the store (all OrderSource values).
+ * Not "unread notifications".
+ */
+export async function countPendingOrdersForStore(
+  storeId: string,
+): Promise<number> {
+  return prisma.order.count({
+    where: { storeId, status: "PENDING" },
   });
 }

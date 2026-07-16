@@ -96,6 +96,8 @@ Histórico: migrations em `prisma/migrations/`.
 - Usuários por `Store` e painel `/master`
 - Gestão de usuários por loja (`/master/stores/[storeId]/users`)
 - Contexto administrativo por loja em `/admin` (`requireAdminStoreContext`)
+- Soft-auth `getAdminStoreContextOrNull` para actions que não podem redirect (ex.: poll)
+- Consulta incremental de novos pedidos `DIRECT` após cursor `(createdAt, id)` + `pendingCount` (sem UI/polling ainda)
 - Isolamento por `storeId` em pedidos e operações admin tenant-scoped
 - Snapshots históricos em itens de pedido
 

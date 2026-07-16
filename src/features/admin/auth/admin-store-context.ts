@@ -25,16 +25,16 @@ function getDefaultStoreSlug(): string {
 }
 
 /**
- * Resolves the effective Store for /admin after authentication.
- * - MASTER: transitional access to Store from NEXT_PUBLIC_STORE_SLUG
- * - Store roles: must have session.storeId
+ * Soft resolve for Server Actions that must not redirect (e.g. polling).
+ * Returns null when session is missing, role is unsupported, or Store cannot
+ * be resolved — never redirects or calls notFound().
  * Store id is never taken from querystring/body.
  */
-export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
+export async function getAdminStoreContextOrNull(): Promise<AdminStoreContext | null> {
   const session = await getAdminSession();
 
   if (!session) {
-    redirect("/admin/login");
+    return null;
   }
 
   if (session.role === "MASTER") {
@@ -45,7 +45,7 @@ export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
     });
 
     if (!store) {
-      notFound();
+      return null;
     }
 
     return {
@@ -60,7 +60,7 @@ export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
 
   if (STORE_ROLES.has(session.role)) {
     if (!session.storeId) {
-      notFound();
+      return null;
     }
 
     const store = await prisma.store.findUnique({
@@ -69,7 +69,7 @@ export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
     });
 
     if (!store) {
-      notFound();
+      return null;
     }
 
     return {
@@ -82,5 +82,25 @@ export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
     };
   }
 
-  notFound();
+  return null;
+}
+
+/**
+ * Resolves the effective Store for /admin after authentication.
+ * - MASTER: transitional access to Store from NEXT_PUBLIC_STORE_SLUG
+ * - Store roles: must have session.storeId
+ * Store id is never taken from querystring/body.
+ */
+export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
+  const context = await getAdminStoreContextOrNull();
+
+  if (!context) {
+    const session = await getAdminSession();
+    if (!session) {
+      redirect("/admin/login");
+    }
+    notFound();
+  }
+
+  return context;
 }

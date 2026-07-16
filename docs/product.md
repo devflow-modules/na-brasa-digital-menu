@@ -156,6 +156,8 @@ Validação no server: adicional ativo e vinculado ao produto; preço do banco.
 
 `PENDING` → … → `COMPLETED` / `CANCELLED`; matriz por role (OPERATOR/KITCHEN com restrições). Sem WhatsApp API nem tempo real.
 
+**Consulta de novos pedidos (foundation):** Server Action soft-auth `pollNewAdminOrdersAction` com cursor `(createdAt, id)`, somente `OrderSource.DIRECT`, `orders.read`, isolamento por `storeId` do contexto, payload mínimo e `pendingCount` (todos os `PENDING` da Store). Bootstrap não reproduz pedidos antigos; delta pagina com `hasMore`. **Notification query foundation complete · Admin notification UI pending · Product hypothesis pending validation.** Sem polling no browser, banner, som, Web Push ou migration nesta entrega.
+
 | Role | Ver | Confirmar | Preparar / pronto | Despachar / concluir | Cancelar |
 | --- | --- | --- | --- | --- | --- |
 | `MASTER` | sim (transicional) | sim | sim | sim | sim |
