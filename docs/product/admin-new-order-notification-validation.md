@@ -68,8 +68,8 @@ O processo Playwright `--debug` interrompido anteriormente **não** faz parte da
 5. Dismiss — impede replay e não altera som.
 6. COUNTER via UI de balcão — silencioso; badge PENDING pode subir.
 7. Tenant isolation — DIRECT da Store B não alerta Store A.
-8. Badge — dismiss não muda; confirmar status reduz PENDING no próximo poll.
-9. Mobile — banner/chrome utilizáveis, sem overflow horizontal, Abrir/Dispensar tocáveis.
+8. Badge — dismiss não muda; badge navega para `/admin`; confirmar status reduz PENDING no próximo poll.
+9. Mobile — banner/chrome utilizáveis, sem overflow horizontal, Abrir pedido / Dispensar aviso / badge tocáveis.
 
 ## Como ativar o som
 
@@ -94,8 +94,10 @@ Em `production` o atributo não é renderizado — E2E **não** altera produçã
 
 - Conta pedidos `PENDING` da Store (todas as fontes).
 - Não é contador de “não lidas”.
-- Dispensar banner não altera o badge.
+- É um link para a fila canônica `/admin`.
+- `Dispensar aviso` no banner não altera o badge.
 - Mudança de status (ex.: CONFIRMED) reduz no próximo poll.
+- Sem refresh automático da lista; sem filtro por origem/status.
 
 ## Mobile
 

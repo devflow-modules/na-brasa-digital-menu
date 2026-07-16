@@ -207,12 +207,15 @@ Rotina recomendada para o Na Braza no piloto (sem feature nova — uso do que j�
 ### Novos pedidos online (alerta in-app)
 
 1. Com o painel `/admin` **aberto** (após login), novos pedidos `DIRECT` geram banner e atualizam o badge de pendentes (polling ~8s; pausa se a aba estiver oculta). Em `/admin/login` não há chrome nem polling contínuo.
-2. Som fica **desligado** por padrão — marque **Ativar som de novos pedidos** no chrome do admin (preferência só neste navegador).
-3. Pedidos de balcão (`COUNTER`) **não** disparam alerta.
-4. Com o navegador fechado ou aba em outro site, **não** há notificação (sem Web Push).
-5. Duas abas do admin podem alertar o mesmo pedido.
-6. No máximo 3 banners visíveis; pedidos a mais não reaparecem depois (já contam como alertados).
-7. Ativar o som toca uma prévia curta; pedidos antigos do bootstrap **não** soam.
+2. O badge **Pendentes** conta pedidos `PENDING` da loja (online e balcão) e abre a fila em `/admin`. Não é contador de “não lidas”.
+3. No banner: **Abrir pedido** vai ao detalhe; **Dispensar aviso** remove só o alerta visual (pedido continua pendente; o badge não muda).
+4. Som fica **desligado** por padrão — marque **Ativar som de novos pedidos** no chrome do admin (preferência só neste navegador).
+5. Pedidos de balcão (`COUNTER`) **não** disparam alerta (mas entram no badge se estiverem pendentes).
+6. Com o navegador fechado ou aba em outro site, **não** há notificação (sem Web Push).
+7. Duas abas do admin podem alertar o mesmo pedido.
+8. No máximo 3 banners visíveis; pedidos a mais não reaparecem depois (já contam como alertados).
+9. Ativar o som toca uma prévia curta; pedidos antigos do bootstrap **não** soam.
+10. A lista não atualiza sozinha — atualize a página se precisar ver pedidos novos na fila.
 
 ### Se algo sair errado nas configurações
 
