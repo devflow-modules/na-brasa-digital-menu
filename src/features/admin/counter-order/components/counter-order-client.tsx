@@ -97,7 +97,7 @@ export function CounterOrderClient({
   const draftItemCount = getDraftItemCount(draftLines);
 
   function handleProductTap(product: CounterCatalogProduct) {
-    setSuccess(null);
+    // Keep success (orderId/code + Ver pedido) until Nova comanda or next submit.
     setErrorMessage(null);
 
     if (product.addons.length === 0) {
@@ -124,7 +124,6 @@ export function CounterOrderClient({
       return;
     }
 
-    setSuccess(null);
     setDraftLines((current) => [
       ...current,
       buildDraftLine({
@@ -135,6 +134,25 @@ export function CounterOrderClient({
       }),
     ]);
     setEditingProduct(null);
+  }
+
+  function resetDraftForNextOrder() {
+    setDraftLines([]);
+    setCustomerLabel("");
+    setSearch("");
+    setActiveCategoryId("all");
+    setEditingProduct(null);
+    setShowReview(false);
+    setErrorMessage(null);
+  }
+
+  function handleStartNewOrder() {
+    // Dismiss confirmation only. Draft was already cleared on success; if the
+    // operator already started the next order, keep those lines.
+    setSuccess(null);
+    setErrorMessage(null);
+    setEditingProduct(null);
+    setShowReview(false);
   }
 
   function handleSubmit() {
@@ -160,9 +178,8 @@ export function CounterOrderClient({
           return;
         }
 
-        setDraftLines([]);
-        setCustomerLabel("");
-        setShowReview(false);
+        // Stay on /admin/balcao — confirmation in place, draft ready for next.
+        resetDraftForNextOrder();
         setSuccess({
           orderId: result.orderId,
           orderCode: result.orderCode,
@@ -268,16 +285,41 @@ export function CounterOrderClient({
             data-testid="counter-order-success"
             className="mb-4 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100"
           >
-            <p className="font-semibold">Comanda {success.orderCode} criada</p>
-            <p className="mt-1 text-emerald-100/80">
-              Pedido na fila · pagamento depois.
+            <p className="font-semibold">
+              Comanda{" "}
+              <span data-testid="counter-order-success-code">
+                {success.orderCode}
+              </span>{" "}
+              criada
             </p>
-            <Link
-              href={`/admin/pedidos/${success.orderId}`}
-              className="mt-2 inline-flex text-sm font-medium text-orange-200 underline-offset-2 hover:underline"
-            >
-              Ver pedido
-            </Link>
+            <p className="mt-1 text-emerald-100/80">
+              Pedido na fila · pagamento depois. Use Nova comanda ou continue
+              montando a próxima — Ver pedido permanece disponível.
+            </p>
+            <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+              <button
+                type="button"
+                data-testid="counter-order-new-order"
+                onClick={handleStartNewOrder}
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-orange-500 px-4 text-sm font-semibold text-stone-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
+              >
+                Nova comanda
+              </button>
+              <Link
+                href={`/admin/pedidos/${success.orderId}`}
+                data-testid="counter-order-view-order"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-orange-500/40 bg-orange-500/10 px-4 text-sm font-semibold text-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
+              >
+                Ver pedido
+              </Link>
+              <Link
+                href="/admin"
+                data-testid="counter-order-go-to-orders"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-600 bg-stone-900 px-4 text-sm font-semibold text-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
+              >
+                Ir para pedidos
+              </Link>
+            </div>
           </div>
         ) : null}
 
@@ -359,7 +401,6 @@ export function CounterOrderClient({
             disabled={draftLines.length === 0}
             onClick={() => {
               setErrorMessage(null);
-              setSuccess(null);
               setShowReview(true);
             }}
             className="flex h-12 w-full items-center justify-center rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:cursor-not-allowed disabled:bg-stone-700 disabled:text-stone-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"

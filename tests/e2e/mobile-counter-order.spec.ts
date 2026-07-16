@@ -65,6 +65,10 @@ test.describe("mobile counter order", () => {
     await expect(page.getByTestId("counter-order-success")).toBeVisible({
       timeout: 15_000,
     });
+    await expect(page).toHaveURL(/\/admin\/balcao/);
+    await expect(page.getByTestId("counter-order-new-order")).toBeVisible();
+    await expect(page.getByTestId("counter-order-view-order")).toBeVisible();
+    await expect(page.getByTestId("counter-order-go-to-orders")).toBeVisible();
 
     const created = await findLatestOrderByCustomerName(customerLabel);
     expect(created).not.toBeNull();
