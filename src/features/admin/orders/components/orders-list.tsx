@@ -7,6 +7,7 @@ import {
   formatPhone,
 } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminOrderListItem } from "@/features/admin/orders/admin-orders.types";
+import { OrderSourceBadge } from "@/features/admin/orders/components/order-source-badge";
 import { OrderStatusBadge } from "@/features/admin/orders/components/order-status-badge";
 
 type OrdersListProps = {
@@ -16,12 +17,16 @@ type OrdersListProps = {
 export function OrdersList({ orders }: OrdersListProps) {
   if (orders.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-stone-700 bg-stone-900/40 px-5 py-10 text-center">
+      <div
+        data-testid="admin-orders-empty"
+        className="rounded-2xl border border-dashed border-stone-700 bg-stone-900/40 px-5 py-10 text-center"
+      >
         <p className="text-base font-medium text-stone-100">
-          Nenhum pedido recebido ainda.
+          Nenhum pedido na fila.
         </p>
         <p className="mt-2 text-sm text-stone-400">
-          Quando um cliente finalizar pelo cardápio, o pedido aparecerá aqui.
+          Quando chegar um pedido online ou uma comanda de balcão, ele aparecerá
+          aqui.
         </p>
       </div>
     );
@@ -34,6 +39,7 @@ export function OrdersList({ orders }: OrdersListProps) {
           <thead className="bg-stone-900/80 text-xs uppercase tracking-wide text-stone-400">
             <tr>
               <th className="px-4 py-3 font-medium">Pedido</th>
+              <th className="px-4 py-3 font-medium">Origem</th>
               <th className="px-4 py-3 font-medium">Status</th>
               <th className="px-4 py-3 font-medium">Cliente</th>
               <th className="px-4 py-3 font-medium">Tipo</th>
@@ -45,9 +51,17 @@ export function OrdersList({ orders }: OrdersListProps) {
           </thead>
           <tbody className="divide-y divide-stone-800 bg-stone-950/40">
             {orders.map((order) => (
-              <tr key={order.id} className="text-stone-200">
+              <tr
+                key={order.id}
+                data-testid="admin-order-row"
+                data-order-id={order.id}
+                className="text-stone-200"
+              >
                 <td className="px-4 py-3 font-medium text-orange-100">
                   #{order.code}
+                </td>
+                <td className="px-4 py-3">
+                  <OrderSourceBadge source={order.source} />
                 </td>
                 <td className="px-4 py-3">
                   <OrderStatusBadge status={order.status} />
@@ -90,21 +104,26 @@ export function OrdersList({ orders }: OrdersListProps) {
         {orders.map((order) => (
           <li
             key={order.id}
+            data-testid="admin-order-card"
+            data-order-id={order.id}
             className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
           >
             <div className="flex items-start justify-between gap-3">
-              <div>
+              <div className="min-w-0">
                 <p className="text-sm font-semibold text-orange-100">
                   #{order.code}
                 </p>
-                <p className="mt-1 text-sm text-stone-200">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <OrderSourceBadge source={order.source} />
+                  <OrderStatusBadge status={order.status} />
+                </div>
+                <p className="mt-2 text-sm text-stone-200">
                   {order.customerName}
                 </p>
                 <p className="text-xs text-stone-400">
                   {formatPhone(order.customerPhone)}
                 </p>
               </div>
-              <OrderStatusBadge status={order.status} />
             </div>
 
             <dl className="mt-4 grid grid-cols-2 gap-2 text-xs text-stone-300">

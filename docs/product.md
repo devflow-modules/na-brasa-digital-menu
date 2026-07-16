@@ -125,6 +125,8 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 **Comanda digital de balcão:** fluxo técnico completo — criação autenticada (`/admin/balcao`), preparo na fila existente, recebimento e finalização atômica em READY (`paymentMethod` + `paidAt` + `COMPLETED`). Permissões: `orders.create` / `orders.status.complete` para `MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado. Bypass genérico para COUNTER unpaid está fechado. E2E Playwright cobre o fluxo ponta a ponta (desktop + mobile) e isolamento/tenant/duplicidade; validação operacional em loja ainda pendente — ver [counter-order-operational-validation.md](product/counter-order-operational-validation.md). Sem caixa, conciliação, fiscal, estoque, impressão ou gateway. Não é PDV completo.
 
+**Origem do pedido na fila:** lista e detalhe mostram badge de origem com labels oficiais `DIRECT`→Online, `COUNTER`→Balcão, `IFOOD`→iFood, `OTHER`→Outro (fonte única `formatOrderSource`). Objetivo: o operador distinguir online vs balcão sem abrir o detalhe. **Order source visibility complete · Filtering by source not implemented · Navigation audit backlog in progress.**
+
 ### Configurações da loja (`/admin/configuracoes`)
 
 - Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.

@@ -8,13 +8,13 @@ import {
 } from "@/features/admin/orders/admin-orders-formatters";
 
 describe("admin-orders-formatters domain compatibility", () => {
-  it("recognizes OrderSource.COUNTER as Balcão", () => {
+  it("maps every OrderSource to the operational UI label", () => {
+    assert.equal(OrderSource.DIRECT, "DIRECT");
     assert.equal(OrderSource.COUNTER, "COUNTER");
+    assert.equal(formatOrderSource("DIRECT"), "Online");
     assert.equal(formatOrderSource("COUNTER"), "Balcão");
-  });
-
-  it("keeps DIRECT label unchanged", () => {
-    assert.equal(formatOrderSource("DIRECT"), "Direto");
+    assert.equal(formatOrderSource("IFOOD"), "iFood");
+    assert.equal(formatOrderSource("OTHER"), "Outro");
   });
 
   it("formats null phone without throwing", () => {

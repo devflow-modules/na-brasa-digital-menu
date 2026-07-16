@@ -51,13 +51,13 @@ export function formatPaymentMethod(
 export function formatOrderSource(source: AdminOrderSource): string {
   switch (source) {
     case "DIRECT":
-      return "Direto";
+      return "Online";
+    case "COUNTER":
+      return "Balcão";
     case "IFOOD":
       return "iFood";
     case "OTHER":
       return "Outro";
-    case "COUNTER":
-      return "Balcão";
   }
 }
 

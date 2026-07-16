@@ -250,11 +250,12 @@ Pedidos novos entram com status **Pendente** (`PENDING`).
 ## Como acompanhar status
 
 1. Em `/admin`, veja a lista (últimos pedidos) e os resumos do dia
-2. Toque/clique no pedido para abrir `/admin/pedidos/[id]`
-3. No detalhe, use os botões de ação para avançar (ou cancelar, quando permitido pela sua role)
-4. Só aparecem ações **válidas** para o status, o tipo de entrega e a **role** atuais; o servidor rejeita transição ou permissão inválida
+2. Cada pedido mostra a **origem** ao lado do status: **Online** (cardápio), **Balcão** (comanda), e no futuro iFood/Outro
+3. Toque/clique no pedido para abrir `/admin/pedidos/[id]` — a origem também aparece no cabeçalho
+4. No detalhe, use os botões de ação para avançar (ou cancelar, quando permitido pela sua role)
+5. Só aparecem ações **válidas** para o status, o tipo de entrega e a **role** atuais; o servidor rejeita transição ou permissão inválida
 
-Não há atualização automática em tempo real: atualize a página para ver pedidos novos ou mudanças de outra aba.
+Não há filtro por origem nesta versão. Não há atualização automática em tempo real: atualize a página para ver pedidos novos ou mudanças de outra aba.
 
 ## Significado dos status
 
