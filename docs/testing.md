@@ -78,6 +78,7 @@ Arquivos relevantes:
 - `src/features/admin/orders/new-order-cursor.test.ts` (cursor / empate / avanço)
 - `src/features/admin/orders/poll-new-admin-orders.service.test.ts` (bootstrap/delta/hasMore/tenant)
 - `src/features/admin/orders/actions/poll-new-admin-orders-action.test.ts` (soft-auth / codes)
+- `src/features/admin/orders/new-order-notifications/admin-login-route-gating.test.ts` (não inicia polling em `/admin/login`)
 - `src/features/admin/orders/new-order-notifications/new-order-notification-controller.test.ts` (polling state machine / dedupe / backoff)
 - `src/features/admin/orders/new-order-notifications/new-order-sound-preference.test.ts` (preferência e play seguro)
 

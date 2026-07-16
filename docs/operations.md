@@ -199,7 +199,7 @@ Rotina recomendada para o Na Braza no piloto (sem feature nova — uso do que j�
 
 ### Novos pedidos online (alerta in-app)
 
-1. Com o painel `/admin` **aberto**, novos pedidos `DIRECT` geram banner e atualizam o badge de pendentes (polling ~8s; pausa se a aba estiver oculta).
+1. Com o painel `/admin` **aberto** (após login), novos pedidos `DIRECT` geram banner e atualizam o badge de pendentes (polling ~8s; pausa se a aba estiver oculta). Em `/admin/login` não há chrome nem polling contínuo.
 2. Som fica **desligado** por padrão — marque **Ativar som de novos pedidos** no chrome do admin (preferência só neste navegador).
 3. Pedidos de balcão (`COUNTER`) **não** disparam alerta.
 4. Com o navegador fechado ou aba em outro site, **não** há notificação (sem Web Push).
