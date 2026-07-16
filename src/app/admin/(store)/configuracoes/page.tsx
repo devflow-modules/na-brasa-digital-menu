@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { canReadStoreSettings } from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
+import { AdminAccessDenied } from "@/features/admin/chrome/admin-access-denied";
 import { getAdminStoreSettings } from "@/features/admin/settings/admin-store-settings.repository";
 import { AdminStoreSettingsPage } from "@/features/admin/settings/components/admin-store-settings-page";
 
@@ -16,7 +17,11 @@ export default async function AdminStoreSettingsRoutePage() {
   const context = await requireAdminStoreContext();
 
   if (!canReadStoreSettings(context.role)) {
-    notFound();
+    return (
+      <main>
+        <AdminAccessDenied role={context.role} />
+      </main>
+    );
   }
 
   const settings = await getAdminStoreSettings(context.storeId);

@@ -152,6 +152,8 @@ Em qualquer tela autenticada do `/admin`, use a barra superior compartilhada:
 
 O badge **Pendentes** (notificações) continua acima, separado dos links. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md).
 
+Se um perfil autenticado abrir por URL uma área operacional bloqueada (exemplo: Cozinha em **Balcão**), a tela mostra **Acesso não permitido** com um botão para voltar à área permitida (em geral Pedidos). Pedidos inexistentes ou de outra loja continuam como “não encontrado”, sem revelar existência.
+
 ## Cardápio (`/admin/cardapio`)
 
 1. Na navegação do chrome, use **Gerenciar cardápio** (ou **Ver cardápio** para operador).

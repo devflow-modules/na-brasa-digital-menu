@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import type { UserRole } from "@prisma/client";
 import {
   ADMIN_NAVIGATION_ITEMS,
+  getAdminSafeDestination,
   getVisibleAdminNavigationItems,
   isAdminNavigationItemActive,
   isAdminNavigationItemVisible,
@@ -233,5 +234,34 @@ describe("isAdminNavigationItemActive", () => {
     for (const pathname of unknownPaths) {
       assert.equal(activeItemsFor(pathname).length, 0, pathname);
     }
+  });
+});
+
+describe("getAdminSafeDestination", () => {
+  it("returns the first permitted chrome item for every real role", () => {
+    for (const role of REAL_ROLES) {
+      const destination = getAdminSafeDestination(role);
+      const first = getVisibleAdminNavigationItems(role)[0];
+      assert.ok(first);
+      assert.equal(destination.href, first.href);
+      assert.ok(destination.label.startsWith("Voltar para "));
+      assert.equal(destination.label.includes("permission"), false);
+      assert.equal(destination.label.includes(role), false);
+    }
+  });
+
+  it("points KITCHEN and OPERATOR to Pedidos without looping to Balcão", () => {
+    assert.deepEqual(getAdminSafeDestination("KITCHEN"), {
+      href: "/admin",
+      label: "Voltar para Pedidos",
+    });
+    assert.deepEqual(getAdminSafeDestination("OPERATOR"), {
+      href: "/admin",
+      label: "Voltar para Pedidos",
+    });
+  });
+
+  it("never uses a blocked counter destination for KITCHEN", () => {
+    assert.notEqual(getAdminSafeDestination("KITCHEN").href, "/admin/balcao");
   });
 });
