@@ -7,11 +7,11 @@ import {
   formatDateTime,
   formatDeliveryType,
   formatMoney,
-  formatOrderSource,
   formatPaymentMethod,
   formatPhone,
 } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminOrderDetail } from "@/features/admin/orders/admin-orders.types";
+import { OrderSourceBadge } from "@/features/admin/orders/components/order-source-badge";
 import { OrderStatusBadge } from "@/features/admin/orders/components/order-status-badge";
 import { OrderStatusActions } from "@/features/admin/orders/components/order-status-actions";
 
@@ -42,11 +42,14 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
           <h1 className="mt-1 text-2xl font-semibold text-orange-50">
             #{order.code}
           </h1>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <OrderSourceBadge source={order.source} />
+            <OrderStatusBadge status={order.status} />
+          </div>
           <p className="mt-2 text-sm text-stone-400">
-            {formatDateTime(order.createdAt)} · {formatOrderSource(order.source)}
+            {formatDateTime(order.createdAt)}
           </p>
         </div>
-        <OrderStatusBadge status={order.status} />
       </div>
 
       {canReceiveCounter ? (

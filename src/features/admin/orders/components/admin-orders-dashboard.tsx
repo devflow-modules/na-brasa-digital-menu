@@ -44,7 +44,7 @@ export function AdminOrdersDashboard({
             Pedidos — {storeName}
           </h1>
           <p className="mt-2 text-sm text-stone-400">
-            Pedidos da sua loja recebidos pelo cardápio.
+            Fila da loja: pedidos online e comandas de balcão.
           </p>
           <p className="mt-2 text-xs text-stone-500">Sessão: {sessionEmail}</p>
           {isMasterTransitional ? (

@@ -14,7 +14,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/master-dashboard.spec.ts` | `/master` auth: redirect, MASTER ok, non-MASTER blocked, lista `na-brasa`, logout |
 | `tests/e2e/master-store-users.spec.ts` | usuários por Store: auth, create OPERATOR, login `/admin`, block MASTER role option, e-mail duplicado, isActive |
 | `tests/e2e/admin-store-scope.spec.ts` | Isolamento por Store no `/admin` (lista/detalhe/status/MASTER transicional) |
-| `tests/e2e/admin-orders.spec.ts` | Lista + detalhe de pedido E2E |
+| `tests/e2e/admin-orders.spec.ts` | Lista + detalhe; badge de origem Online (DIRECT) e Balcão (COUNTER) |
 | `tests/e2e/admin-status.spec.ts` | PICKUP: PENDING → … → COMPLETED |
 | `tests/e2e/admin-role-permissions.spec.ts` | Permissões por role (OWNER/MANAGER/OPERATOR/KITCHEN/MASTER) + bypass server-side |
 | `tests/e2e/admin-menu-management.spec.ts` | `/admin/cardapio`: CRUD simples, toggles, escopo por Store, publicação (`active`) |

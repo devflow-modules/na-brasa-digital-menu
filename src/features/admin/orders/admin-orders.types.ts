@@ -17,6 +17,7 @@ export type AdminOrderListItem = {
   id: string;
   code: string;
   status: AdminOrderStatus;
+  source: AdminOrderSource;
   customerName: string;
   customerPhone: string | null;
   deliveryType: AdminDeliveryType;
