@@ -340,7 +340,8 @@ test.describe("counter order operational flow", () => {
     await expect(page.getByTestId("admin-counter-nav-link")).toHaveCount(0);
 
     const balcao = await page.goto("/admin/balcao");
-    expect(balcao?.status()).toBe(404);
+    expect(balcao?.status()).toBe(200);
+    await expect(page.getByTestId("admin-access-denied")).toBeVisible();
     await expect(page.getByTestId("admin-counter-order-page")).toHaveCount(0);
 
     await page.goto(`/admin/pedidos/${order.id}`);

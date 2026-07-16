@@ -132,6 +132,8 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 **Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações no chrome; acesso direto read-only continua permitido e mutações seguem bloqueadas no server. `MASTER` em `/admin` usa Store piloto por slug configurado (transicional; sem picker). Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
 
+**Acesso negado explícito (admin):** rotas operacionais com Store context válido e permissão de página negada (ex.: KITCHEN em `/admin/balcao`) renderizam `Acesso não permitido` dentro do chrome, com destino seguro derivado da navegação. `notFound()` permanece para recurso inexistente, pedido de outro tenant, Store context inválido e `/master` sem MASTER. Sessão ausente continua indo para login. **Explicit admin access-denied UX complete · Tenant resource concealment preserved · Session redirect behavior unchanged · Backend authorization unchanged · Navigation audit backlog in progress.**
+
 ### Configurações da loja (`/admin/configuracoes`)
 
 - Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.

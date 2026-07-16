@@ -8,6 +8,9 @@ Shared authenticated shell for `/admin` tenant routes. **UI visibility ≠ autho
 Role-aware admin chrome complete
 Shared admin navigation complete
 Local navigation duplication reduced
+Explicit admin access-denied UX complete
+Tenant resource concealment preserved
+Session redirect behavior unchanged
 Backend authorization unchanged
 Navigation audit backlog in progress
 ```
@@ -63,6 +66,25 @@ There is no `ATTENDANT` / `ADMIN` role in the schema.
 - Balcão / Cardápio / Configurações: exact ou prefixo com fronteira de segmento (`href/`)
 - Prefixo controlado: qualquer filho sob `/admin/cardapio/` ativa Cardápio (inclui rotas hipotéticas como `/admin/cardapio/adicionais-extra`)
 
+## Access-denied UX (safe cases only)
+
+When an authenticated Store user with **valid Store context** opens an operational route blocked by page-level permission (example: KITCHEN → `/admin/balcao`), the page renders `AdminAccessDenied` **inside** the chrome:
+
+- Title: `Acesso não permitido`
+- Body: `Seu perfil não possui acesso a esta área.`
+- Primary action: first permitted chrome destination (`getAdminSafeDestination`) — usually `Voltar para Pedidos`
+
+`notFound()` remains for:
+
+- missing resources (order id, settings row);
+- cross-tenant concealment (order of another Store);
+- invalid Store context after session exists;
+- non-MASTER hitting `/master`.
+
+Session missing still redirects to `/admin/login` (not the access-denied page).
+
+Next.js `forbidden()` / `forbidden.tsx` exist in 15.5.x but require `experimental.authInterrupts` — **not enabled** in this project; local render is used instead.
+
 ## Out of scope
 
-Backend auth changes, new roles/permissions, polling/notification changes, MASTER landing/store picker, full page redesign.
+Backend auth changes, new roles/permissions, polling/notification changes, MASTER landing/store picker, full page redesign, enabling experimental auth interrupts.

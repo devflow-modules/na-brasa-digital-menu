@@ -119,6 +119,39 @@ export function getVisibleAdminNavigationItems(
   });
 }
 
+export type AdminSafeDestination = {
+  href: string;
+  label: string;
+};
+
+/**
+ * First permitted chrome destination for access-denied recovery.
+ * Reuses the shared navigation config — does not invent a second matrix.
+ * Falls back to `/admin` when the role has no visible items.
+ */
+export function getAdminSafeDestination(role: UserRole): AdminSafeDestination {
+  const first = getVisibleAdminNavigationItems(role)[0];
+
+  if (!first) {
+    return {
+      href: "/admin",
+      label: "Voltar para Pedidos",
+    };
+  }
+
+  const areaLabel =
+    first.id === "orders"
+      ? "Pedidos"
+      : first.id === "menu"
+        ? "Cardápio"
+        : first.label;
+
+  return {
+    href: first.href,
+    label: `Voltar para ${areaLabel}`,
+  };
+}
+
 /**
  * Active route rules (after trailing-slash normalization):
  * - Pedidos: exact `/admin` OR `/admin/pedidos/*` (not other `/admin/*`)

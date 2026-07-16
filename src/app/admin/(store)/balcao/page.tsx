@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
 import { canCreateOrder } from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
+import { AdminAccessDenied } from "@/features/admin/chrome/admin-access-denied";
 import { getCounterOrderCatalog } from "@/features/admin/counter-order/counter-order-catalog";
 import { CounterOrderClient } from "@/features/admin/counter-order/components/counter-order-client";
 
@@ -16,7 +16,11 @@ export default async function AdminCounterOrderPage() {
   const context = await requireAdminStoreContext();
 
   if (!canCreateOrder(context.role)) {
-    notFound();
+    return (
+      <main>
+        <AdminAccessDenied role={context.role} />
+      </main>
+    );
   }
 
   const categories = await getCounterOrderCatalog(context.storeId);

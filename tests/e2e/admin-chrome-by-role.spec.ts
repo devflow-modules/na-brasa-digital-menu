@@ -126,7 +126,9 @@ test.describe("role-aware admin chrome", () => {
     await expect(page.getByTestId("admin-logout-button")).toBeVisible();
 
     const balcao = await page.goto("/admin/balcao");
-    expect(balcao?.status()).toBe(404);
+    expect(balcao?.status()).toBe(200);
+    await expect(page.getByTestId("admin-access-denied")).toBeVisible();
+    await expect(page.getByTestId("admin-counter-order-page")).toHaveCount(0);
 
     const menu = await page.goto("/admin/cardapio");
     expect(menu?.status()).toBe(200);
