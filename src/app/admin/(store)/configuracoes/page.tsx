@@ -25,14 +25,8 @@ export default async function AdminStoreSettingsRoutePage() {
   }
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
-      <AdminStoreSettingsPage
-        storeName={context.storeName}
-        sessionEmail={context.session.email}
-        role={context.role}
-        isMasterTransitional={context.isMaster}
-        settings={settings}
-      />
+    <main>
+      <AdminStoreSettingsPage role={context.role} settings={settings} />
     </main>
   );
 }

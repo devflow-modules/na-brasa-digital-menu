@@ -27,13 +27,13 @@ export default defineConfig({
     {
       name: "chromium",
       testIgnore:
-        /mobile-(storefront|counter-order|admin-new-order-notifications)\.spec\.ts/,
+        /mobile-(storefront|counter-order|admin-new-order-notifications|admin-chrome)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "mobile-chrome",
       testMatch:
-        /mobile-(storefront|counter-order|admin-new-order-notifications)\.spec\.ts/,
+        /mobile-(storefront|counter-order|admin-new-order-notifications|admin-chrome)\.spec\.ts/,
       use: { ...devices["Pixel 5"] },
     },
   ],

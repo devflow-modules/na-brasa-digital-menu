@@ -22,12 +22,8 @@ export default async function AdminCounterOrderPage() {
   const categories = await getCounterOrderCatalog(context.storeId);
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
-      <CounterOrderClient
-        storeName={context.storeName}
-        sessionEmail={context.session.email}
-        categories={categories}
-      />
+    <main>
+      <CounterOrderClient categories={categories} />
     </main>
   );
 }

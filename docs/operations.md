@@ -110,7 +110,7 @@ $env:CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS="true"; pnpm data:purge-na-braza-tests
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
 2. Entre com o **e-mail e senha do usuário** cadastrado no banco (ex.: `MASTER` criado via seed `MASTER_ADMIN_*`)
-3. Após o login, você é levado ao dashboard `/admin`
+3. Após o login, você é levado ao dashboard `/admin` com o **chrome compartilhado** (nome da loja, links Pedidos / Balcão / Cardápio / Configurações conforme o perfil, e **Sair**)
 4. Use **Sair** (logout) ao terminar o turno, principalmente em aparelho compartilhado
 
 A sessão fica em cookie **HttpOnly** (não aparece em `localStorage`). Em produção o cookie só trafega em HTTPS (`Secure`).
@@ -140,9 +140,21 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (operação de pl
 - `MASTER` continua com acesso transicional ao `/admin`.
 - A matriz pode evoluir por cliente/plano no futuro.
 
+## Navegação do painel
+
+Em qualquer tela autenticada do `/admin`, use a barra superior compartilhada:
+
+- **Pedidos** — fila (`/admin`) e detalhe (`/admin/pedidos/...`)
+- **Balcão** — comanda (`/admin/balcao`); não aparece para Cozinha
+- **Cardápio** / **Ver cardápio** — catálogo; Cozinha não vê o link (URL direta read-only ainda possível)
+- **Configurações** — settings da loja; Cozinha não vê o link
+- **Sair** — logout (sempre no chrome; não no login)
+
+O badge **Pendentes** (notificações) continua acima, separado dos links. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md).
+
 ## Cardápio (`/admin/cardapio`)
 
-1. No dashboard `/admin`, use **Gerenciar cardápio** (ou **Ver cardápio** para perfis só leitura).
+1. Na navegação do chrome, use **Gerenciar cardápio** (ou **Ver cardápio** para operador).
 2. Categorias e produtos são sempre da **sua Store** (`storeId` da sessão).
 3. Dono/gerente podem criar categoria, criar/editar produto e ativar/desativar.
 4. Operador pode marcar produto **disponível/indisponível** (`Product.available`); produto indisponível continua visível no cardápio público, mas não pode ser pedido.
@@ -160,7 +172,7 @@ Nota: usuários `MASTER` devem preferir o painel **`/master`** (operação de pl
 
 ## Configurações da loja (`/admin/configuracoes`)
 
-1. No dashboard `/admin`, use **Configurações** (visível para todas as roles que podem ver pedidos/cardápio conforme matriz).
+1. Na navegação do chrome, use **Configurações** (visível para dono, gerente, operador e MASTER transicional; Cozinha não vê o link).
 2. Dono/gerente editam WhatsApp, endereço, taxa de entrega (R$ na tela, centavos no banco), retirada/entrega e texto de horário.
 3. Operador **não** altera dados estruturais, mas pode **abrir ou fechar** a loja para pedidos (`isOpen`).
 4. Cozinha só visualiza.

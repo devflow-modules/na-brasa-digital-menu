@@ -22,14 +22,8 @@ export default async function AdminAddonsRoutePage() {
   const catalog = await getAdminAddonsCatalog(context.storeId);
 
   return (
-    <main className="min-h-screen bg-stone-950 text-stone-100">
-      <AdminAddonsPage
-        storeName={context.storeName}
-        sessionEmail={context.session.email}
-        role={context.role}
-        isMasterTransitional={context.isMaster}
-        catalog={catalog}
-      />
+    <main>
+      <AdminAddonsPage role={context.role} catalog={catalog} />
     </main>
   );
 }

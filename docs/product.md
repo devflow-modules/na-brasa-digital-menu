@@ -68,8 +68,9 @@ Detalhes: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dados operacio
 **Estado atual:** **`/admin`** (login em `/admin/login`), **store-scoped** via `requireAdminStoreContext`.
 
 - Pedidos, cardápio, adicionais, configurações — permissões por role no server.
+- **Chrome compartilhado** nas rotas autenticadas (`app/admin/(store)`): navegação única filtrada por papel/permissão operacional, logout consistente, identidade da loja; login fora do chrome. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md).
 - Usuários de loja: contexto de `session.storeId`.
-- `MASTER` em `/admin`: contexto **transitório** da loja definida por `NEXT_PUBLIC_STORE_SLUG` (piloto: `na-brasa`) — não é seleção livre de tenant.
+- `MASTER` em `/admin`: contexto **transitório** da loja definida por `NEXT_PUBLIC_STORE_SLUG` (piloto: `na-brasa`) — não é seleção livre de tenant; `/master` permanece fora do chrome de tenant.
 
 ### Painel master
 
@@ -129,6 +130,8 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 **Origem do pedido na fila:** lista e detalhe mostram badge de origem com labels oficiais `DIRECT`→Online, `COUNTER`→Balcão, `IFOOD`→iFood, `OTHER`→Outro (fonte única `formatOrderSource`). Objetivo: o operador distinguir online vs balcão sem abrir o detalhe. **Order source visibility complete · Filtering by source not implemented · Navigation audit backlog in progress.**
 
+**Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações no chrome; acesso direto read-only continua permitido e mutações seguem bloqueadas no server. `MASTER` em `/admin` usa Store piloto por slug configurado (transicional; sem picker). Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
+
 ### Configurações da loja (`/admin/configuracoes`)
 
 - Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.
@@ -160,7 +163,7 @@ Validação no server: adicional ativo e vinculado ao produto; preço do banco.
 
 `PENDING` → … → `COMPLETED` / `CANCELLED`; matriz por role (OPERATOR/KITCHEN com restrições). Sem WhatsApp API nem tempo real.
 
-**Notificações de novos pedidos (admin aberto):** foundation soft-auth `pollNewAdminOrdersAction` (cursor `(createdAt, id)`, só `DIRECT`, `orders.read`, `pendingCount` de todos os `PENDING`) + UI in-app: provider no layout `/admin`, polling a cada 8s com pausa em aba oculta, sync ao voltar, banner “Novo pedido online” (`Abrir pedido` / `Dispensar aviso`), badge live de pendentes (todas as origens) navegável para a fila `/admin`, e som opcional (`admin.newOrderSound`, padrão off). Bootstrap não reproduz pedidos antigos; `COUNTER` não alerta. **Pending badge navigation complete · Notification copy clarified · Automatic queue refresh not implemented · Navigation audit backlog in progress.** Sem Web Push, SSE, WebSocket, migration, filtro ou histórico persistente. Múltiplas abas podem tocar o mesmo alerta.
+**Notificações de novos pedidos (admin aberto):** foundation soft-auth `pollNewAdminOrdersAction` (cursor `(createdAt, id)`, só `DIRECT`, `orders.read`, `pendingCount` de todos os `PENDING`) + UI in-app: provider no layout `/admin`, polling a cada 8s com pausa em aba oculta, sync ao voltar, banner “Novo pedido online” (`Abrir pedido` / `Dispensar aviso`), badge live de pendentes (todas as origens) navegável para a fila `/admin`, e som opcional (`admin.newOrderSound`, padrão off). Bootstrap não reproduz pedidos antigos; `COUNTER` não alerta. Badge permanece no provider (não no chrome de links). **Pending badge navigation complete · Notification copy clarified · Automatic queue refresh not implemented · Navigation audit backlog in progress.** Sem Web Push, SSE, WebSocket, migration, filtro ou histórico persistente. Múltiplas abas podem tocar o mesmo alerta.
 
 | Role | Ver | Confirmar | Preparar / pronto | Despachar / concluir | Cancelar |
 | --- | --- | --- | --- | --- | --- |
