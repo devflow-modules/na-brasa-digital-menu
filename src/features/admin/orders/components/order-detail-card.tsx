@@ -1,5 +1,8 @@
 import type { UserRole } from "@prisma/client";
 import Link from "next/link";
+import { hasAdminPermission } from "@/features/admin/auth/admin-permissions";
+import { CounterOrderFinalizePanel } from "@/features/admin/counter-order/components/counter-order-finalize-panel";
+import { computeCashChangeCents } from "@/features/admin/counter-order/counter-order-change";
 import {
   formatDateTime,
   formatDeliveryType,
@@ -18,6 +21,17 @@ type OrderDetailCardProps = {
 };
 
 export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
+  const canReceiveCounter =
+    order.source === "COUNTER" &&
+    order.status === "READY" &&
+    order.paidAt == null &&
+    hasAdminPermission(role, "orders.status.complete");
+
+  const cashChangeCents =
+    order.paymentMethod === "CASH" && typeof order.changeForCents === "number"
+      ? computeCashChangeCents(order.totalCents, order.changeForCents)
+      : null;
+
   return (
     <div data-testid="admin-order-detail" className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -35,11 +49,20 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
         <OrderStatusBadge status={order.status} />
       </div>
 
+      {canReceiveCounter ? (
+        <CounterOrderFinalizePanel
+          orderId={order.id}
+          totalCents={order.totalCents}
+        />
+      ) : null}
+
       <OrderStatusActions
         orderId={order.id}
         status={order.status}
         deliveryType={order.deliveryType}
         role={role}
+        source={order.source}
+        paidAt={order.paidAt}
       />
 
       <section className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4">
@@ -65,7 +88,8 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
             <dt className="text-xs text-stone-500">Pagamento</dt>
             <dd className="mt-1 text-stone-100">
               {formatPaymentMethod(order.paymentMethod)}
-              {typeof order.changeForCents === "number" ? (
+              {order.source !== "COUNTER" &&
+              typeof order.changeForCents === "number" ? (
                 <span className="text-stone-400">
                   {" "}
                   · troco para {formatMoney(order.changeForCents)}
@@ -73,6 +97,33 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
               ) : null}
             </dd>
           </div>
+          {order.paidAt ? (
+            <div>
+              <dt className="text-xs text-stone-500">Recebido em</dt>
+              <dd
+                data-testid="order-paid-at"
+                className="mt-1 text-stone-100"
+              >
+                {formatDateTime(order.paidAt)}
+              </dd>
+            </div>
+          ) : null}
+          {order.source === "COUNTER" &&
+          order.paymentMethod === "CASH" &&
+          typeof order.changeForCents === "number" ? (
+            <div className="sm:col-span-2">
+              <dt className="text-xs text-stone-500">Dinheiro</dt>
+              <dd
+                data-testid="order-cash-tender"
+                className="mt-1 text-stone-100"
+              >
+                Recebido {formatMoney(order.changeForCents)}
+                {cashChangeCents != null
+                  ? ` · troco ${formatMoney(cashChangeCents)}`
+                  : null}
+              </dd>
+            </div>
+          ) : null}
           {order.deliveryType === "DELIVERY" && order.deliveryAddress ? (
             <div className="sm:col-span-2">
               <dt className="text-xs text-stone-500">Endereço</dt>

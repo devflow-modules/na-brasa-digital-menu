@@ -1,3 +1,4 @@
+import type { PaymentMethod } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type {
   AdminOrderDetail,
@@ -89,6 +90,7 @@ export async function getAdminOrderById(
       deliveryAddress: true,
       paymentMethod: true,
       changeForCents: true,
+      paidAt: true,
       notes: true,
       subtotalCents: true,
       deliveryFeeCents: true,
@@ -125,6 +127,8 @@ export type AdminOrderStatusRecord = {
   status: AdminOrderDetail["status"];
   deliveryType: AdminOrderDetail["deliveryType"];
   storeId: string;
+  source: AdminOrderDetail["source"];
+  paidAt: Date | null;
 };
 
 export async function findOrderStatusForUpdate(
@@ -138,8 +142,68 @@ export async function findOrderStatusForUpdate(
       status: true,
       deliveryType: true,
       storeId: true,
+      source: true,
+      paidAt: true,
     },
   });
+}
+
+export type CounterFinalizeOrderRecord = {
+  id: string;
+  storeId: string;
+  source: AdminOrderDetail["source"];
+  status: AdminOrderDetail["status"];
+  deliveryType: AdminOrderDetail["deliveryType"];
+  paymentMethod: AdminOrderDetail["paymentMethod"];
+  changeForCents: number | null;
+  paidAt: Date | null;
+  totalCents: number;
+};
+
+export async function findOrderForCounterFinalize(
+  orderId: string,
+  storeId: string,
+): Promise<CounterFinalizeOrderRecord | null> {
+  return prisma.order.findFirst({
+    where: { id: orderId, storeId },
+    select: {
+      id: true,
+      storeId: true,
+      source: true,
+      status: true,
+      deliveryType: true,
+      paymentMethod: true,
+      changeForCents: true,
+      paidAt: true,
+      totalCents: true,
+    },
+  });
+}
+
+export async function finalizeCounterOrderPayment(input: {
+  orderId: string;
+  storeId: string;
+  paymentMethod: PaymentMethod;
+  changeForCents: number | null;
+  paidAt: Date;
+}): Promise<{ updated: boolean }> {
+  const result = await prisma.order.updateMany({
+    where: {
+      id: input.orderId,
+      storeId: input.storeId,
+      source: "COUNTER",
+      status: "READY",
+      paidAt: null,
+    },
+    data: {
+      paymentMethod: input.paymentMethod,
+      changeForCents: input.changeForCents,
+      paidAt: input.paidAt,
+      status: "COMPLETED",
+    },
+  });
+
+  return { updated: result.count === 1 };
 }
 
 export async function updateOrderStatus(
@@ -165,6 +229,8 @@ export async function updateOrderStatus(
       status: true,
       deliveryType: true,
       storeId: true,
+      source: true,
+      paidAt: true,
     },
   });
 }

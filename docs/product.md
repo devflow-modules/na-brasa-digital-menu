@@ -123,7 +123,7 @@ Schema e seed: [database.md](database.md). Decisão: [adr/0002-database-backed-m
 
 Resumo do schema: [database.md](database.md). Centavos no server; não confiar em preços do client.
 
-**Comanda digital de balcão:** domínio `COUNTER` modelado; criação autenticada via `createCounterOrder` / `createCounterOrderAction` com permissão `orders.create` (`MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado). UI mobile em `/admin/balcao` registra a comanda (itens + identificação opcional) e entra na fila existente como `PENDING`, sem telefone, pagamento, `paidAt` ou WhatsApp. Recebimento e fechamento **ainda não entregues**. Não é PDV completo (sem caixa, fiscal, estoque ou impressão).
+**Comanda digital de balcão:** domínio `COUNTER` modelado; criação autenticada via `createCounterOrder` / `createCounterOrderAction` com permissão `orders.create` (`MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado). UI mobile em `/admin/balcao` registra a comanda (itens + identificação opcional) e entra na fila existente como `PENDING`, sem telefone, pagamento, `paidAt` ou WhatsApp. Após preparo (`READY`), o detalhe do pedido oferece **Receber e finalizar**: confirma `CASH` / `PIX` / `CARD`, preenche `paidAt` no servidor e conclui atomicamente como `COMPLETED` (`orders.status.complete`; `KITCHEN` bloqueado). A action genérica de status **não** pode concluir COUNTER sem pagamento. Sem caixa, conciliação, fiscal, estoque, impressão ou confirmação eletrônica de Pix/cartão. Não é PDV completo.
 
 ### Configurações da loja (`/admin/configuracoes`)
 
