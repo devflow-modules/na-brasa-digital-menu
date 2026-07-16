@@ -123,7 +123,7 @@ Schema e seed: [database.md](database.md). Decisão: [adr/0002-database-backed-m
 
 Resumo do schema: [database.md](database.md). Centavos no server; não confiar em preços do client.
 
-**Comanda digital de balcão:** domínio `COUNTER` modelado; criação autenticada via `createCounterOrder` / `createCounterOrderAction` com permissão `orders.create` (`MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado). UI mobile em `/admin/balcao` registra a comanda (itens + identificação opcional) e entra na fila existente como `PENDING`, sem telefone, pagamento, `paidAt` ou WhatsApp. Após preparo (`READY`), o detalhe do pedido oferece **Receber e finalizar**: confirma `CASH` / `PIX` / `CARD`, preenche `paidAt` no servidor e conclui atomicamente como `COMPLETED` (`orders.status.complete`; `KITCHEN` bloqueado). A action genérica de status **não** pode concluir COUNTER sem pagamento. Sem caixa, conciliação, fiscal, estoque, impressão ou confirmação eletrônica de Pix/cartão. Não é PDV completo.
+**Comanda digital de balcão:** fluxo técnico completo — criação autenticada (`/admin/balcao`), preparo na fila existente, recebimento e finalização atômica em READY (`paymentMethod` + `paidAt` + `COMPLETED`). Permissões: `orders.create` / `orders.status.complete` para `MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado. Bypass genérico para COUNTER unpaid está fechado. E2E Playwright cobre o fluxo ponta a ponta (desktop + mobile) e isolamento/tenant/duplicidade; validação operacional em loja ainda pendente — ver [counter-order-operational-validation.md](product/counter-order-operational-validation.md). Sem caixa, conciliação, fiscal, estoque, impressão ou gateway. Não é PDV completo.
 
 ### Configurações da loja (`/admin/configuracoes`)
 
@@ -172,10 +172,11 @@ Não prometer ao cliente Na Braza sem decisão de produto:
 - Zonas de entrega, horário por dia da semana estruturado
 - CRUD de lojas no `/master`
 - Storefront dinâmico por slug para novos tenants
-- PDV completo, caixa, fiscal, impressão ou fluxo de balcão operacional (além da foundation de domínio)
+- PDV completo, caixa, fiscal, impressão; validação operacional do balcão em loja real ainda pendente
 
 ## Roadmap
 
+- Validação operacional da comanda de balcão ([product/counter-order-operational-validation.md](product/counter-order-operational-validation.md))
 - Validação controlada do piloto ([product/pilot-validation-plan.md](product/pilot-validation-plan.md))
 - Aceite e dados reais do piloto Na Braza
 - Storefront por slug e onboarding de tenants

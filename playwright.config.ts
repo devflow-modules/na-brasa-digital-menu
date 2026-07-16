@@ -26,12 +26,12 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      testIgnore: /mobile-storefront\.spec\.ts/,
+      testIgnore: /mobile-(storefront|counter-order)\.spec\.ts/,
       use: { ...devices["Desktop Chrome"] },
     },
     {
       name: "mobile-chrome",
-      testMatch: /mobile-storefront\.spec\.ts/,
+      testMatch: /mobile-(storefront|counter-order)\.spec\.ts/,
       use: { ...devices["Pixel 5"] },
     },
   ],
