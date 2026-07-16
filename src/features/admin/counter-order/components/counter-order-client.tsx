@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useRef, useState, useTransition } from "react";
-import { LogoutButton } from "@/features/admin/auth/components/logout-button";
 import { CounterOrderItemEditor } from "@/features/admin/counter-order/components/counter-order-item-editor";
 import {
   buildCreateCounterOrderPayload,
@@ -24,8 +23,6 @@ import { formatMoney } from "@/features/menu/format-money";
 import { createCounterOrderAction } from "@/features/orders/actions/create-counter-order-action";
 
 type CounterOrderClientProps = {
-  storeName: string;
-  sessionEmail: string;
   categories: CounterCatalogCategory[];
 };
 
@@ -35,8 +32,6 @@ type SuccessState = {
 };
 
 export function CounterOrderClient({
-  storeName,
-  sessionEmail,
   categories,
 }: CounterOrderClientProps) {
   const [search, setSearch] = useState("");
@@ -195,29 +190,12 @@ export function CounterOrderClient({
       data-testid="admin-counter-order-page"
       className="mx-auto flex min-h-screen w-full max-w-3xl flex-col bg-stone-950 text-stone-100"
     >
-      <header className="sticky top-0 z-20 border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-orange-300/80">
-              Balcão
-            </p>
-            <h1 className="mt-1 text-xl font-semibold text-orange-50">
-              Nova comanda
-            </h1>
-            <p className="mt-1 text-xs text-stone-500">
-              {storeName} · {sessionEmail}
-            </p>
-          </div>
-          <div className="flex flex-col items-end gap-2">
-            <Link
-              href="/admin"
-              data-testid="counter-order-back-link"
-              className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 bg-stone-900 px-3 text-sm font-medium text-stone-100"
-            >
-              Pedidos
-            </Link>
-            <LogoutButton className="border-stone-700 bg-stone-900 text-stone-100 hover:bg-stone-800" />
-          </div>
+      <div className="sticky top-0 z-20 border-b border-stone-800 bg-stone-950/95 px-4 py-3 backdrop-blur">
+        <div>
+          <h1 className="text-xl font-semibold text-orange-50">Nova comanda</h1>
+          <p className="mt-1 text-sm text-stone-400">
+            Monte a comanda e registre no balcão.
+          </p>
         </div>
 
         <label className="mt-3 block">
@@ -275,7 +253,7 @@ export function CounterOrderClient({
             </button>
           ))}
         </div>
-      </header>
+      </div>
 
       <div className="flex-1 px-4 pb-36 pt-4">
         {success ? (

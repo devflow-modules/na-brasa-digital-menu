@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import type { UserRole } from "@prisma/client";
+import { cache } from "react";
 import { getAdminSession } from "@/features/admin/auth/admin-session";
 import type { AdminSessionPayload } from "@/features/admin/auth/types";
 import { prisma } from "@/lib/prisma";
@@ -29,61 +30,64 @@ function getDefaultStoreSlug(): string {
  * Returns null when session is missing, role is unsupported, or Store cannot
  * be resolved — never redirects or calls notFound().
  * Store id is never taken from querystring/body.
+ * Cached per request so authenticated layout + page share one resolve.
  */
-export async function getAdminStoreContextOrNull(): Promise<AdminStoreContext | null> {
-  const session = await getAdminSession();
+export const getAdminStoreContextOrNull = cache(
+  async (): Promise<AdminStoreContext | null> => {
+    const session = await getAdminSession();
 
-  if (!session) {
+    if (!session) {
+      return null;
+    }
+
+    if (session.role === "MASTER") {
+      const slug = getDefaultStoreSlug();
+      const store = await prisma.store.findUnique({
+        where: { slug },
+        select: { id: true, slug: true, name: true },
+      });
+
+      if (!store) {
+        return null;
+      }
+
+      return {
+        session,
+        storeId: store.id,
+        storeSlug: store.slug,
+        storeName: store.name,
+        role: session.role,
+        isMaster: true,
+      };
+    }
+
+    if (STORE_ROLES.has(session.role)) {
+      if (!session.storeId) {
+        return null;
+      }
+
+      const store = await prisma.store.findUnique({
+        where: { id: session.storeId },
+        select: { id: true, slug: true, name: true },
+      });
+
+      if (!store) {
+        return null;
+      }
+
+      return {
+        session,
+        storeId: store.id,
+        storeSlug: store.slug,
+        storeName: store.name,
+        role: session.role,
+        isMaster: false,
+      };
+    }
+
     return null;
-  }
-
-  if (session.role === "MASTER") {
-    const slug = getDefaultStoreSlug();
-    const store = await prisma.store.findUnique({
-      where: { slug },
-      select: { id: true, slug: true, name: true },
-    });
-
-    if (!store) {
-      return null;
-    }
-
-    return {
-      session,
-      storeId: store.id,
-      storeSlug: store.slug,
-      storeName: store.name,
-      role: session.role,
-      isMaster: true,
-    };
-  }
-
-  if (STORE_ROLES.has(session.role)) {
-    if (!session.storeId) {
-      return null;
-    }
-
-    const store = await prisma.store.findUnique({
-      where: { id: session.storeId },
-      select: { id: true, slug: true, name: true },
-    });
-
-    if (!store) {
-      return null;
-    }
-
-    return {
-      session,
-      storeId: store.id,
-      storeSlug: store.slug,
-      storeName: store.name,
-      role: session.role,
-      isMaster: false,
-    };
-  }
-
-  return null;
-}
+  },
+);
 
 /**
  * Resolves the effective Store for /admin after authentication.

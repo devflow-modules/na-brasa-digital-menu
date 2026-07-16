@@ -26,13 +26,15 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/mobile-counter-order.spec.ts` | Balcão + pós-criação in-place + recebimento em viewport mobile (Pixel 5) |
 | `tests/e2e/admin-new-order-notifications.spec.ts` | Notificações admin: login lifecycle, bootstrap, DIRECT, som, Dispensar aviso, COUNTER, tenant, badge → fila `/admin` |
 | `tests/e2e/mobile-admin-new-order-notifications.spec.ts` | Banner/badge navegável/Dispensar aviso no viewport Pixel 5 |
+| `tests/e2e/admin-chrome-by-role.spec.ts` | Chrome por papel: links filtrados, active state, login sem chrome, KITCHEN só Pedidos |
+| `tests/e2e/mobile-admin-chrome.spec.ts` | Chrome admin utilizável no Pixel 5 |
 
 Browsers / projetos Playwright:
 
 | Projeto | Device | Specs |
 | --- | --- | --- |
 | `chromium` | Desktop Chrome | Toda a suíte, exceto `mobile-*.spec.ts` |
-| `mobile-chrome` | Pixel 5 | `mobile-storefront.spec.ts`, `mobile-counter-order.spec.ts`, `mobile-admin-new-order-notifications.spec.ts` |
+| `mobile-chrome` | Pixel 5 | `mobile-storefront.spec.ts`, `mobile-counter-order.spec.ts`, `mobile-admin-new-order-notifications.spec.ts`, `mobile-admin-chrome.spec.ts` |
 
 ## Pré-requisitos
 
@@ -77,6 +79,7 @@ pnpm test
 Arquivos relevantes:
 
 - `src/features/admin/auth/admin-permissions.test.ts` (role × transição)
+- `src/features/admin/chrome/admin-navigation.test.ts` (matriz de links + active route)
 - `src/features/admin/orders/new-order-cursor.test.ts` (cursor / empate / avanço)
 - `src/features/admin/orders/poll-new-admin-orders.service.test.ts` (bootstrap/delta/hasMore/tenant)
 - `src/features/admin/orders/actions/poll-new-admin-orders-action.test.ts` (soft-auth / codes)
