@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -8,6 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { pollNewAdminOrdersAction } from "@/features/admin/orders/actions/poll-new-admin-orders-action";
+import { shouldStartAdminNotificationPolling } from "@/features/admin/orders/new-order-notifications/admin-login-route-gating";
 import { NewOrderNotificationBanner } from "@/features/admin/orders/new-order-notifications/new-order-notification-banner";
 import {
   applyPollFailure,
@@ -38,6 +40,9 @@ const isDevInstrumentation =
 export function AdminNewOrderNotificationsProvider({
   children,
 }: AdminNewOrderNotificationsProviderProps) {
+  const pathname = usePathname();
+  const onLoginRoute = !shouldStartAdminNotificationPolling(pathname);
+
   const [state, setState] = useState<NewOrderNotificationControllerState>(() =>
     createInitialNotificationState(),
   );
@@ -67,6 +72,20 @@ export function AdminNewOrderNotificationsProvider({
   }, []);
 
   useEffect(() => {
+    // Login stays under the shared admin layout. Client-side redirect after
+    // login does not remount this provider, so polling must not start (and
+    // permanently stop on UNAUTHORIZED) while still on /admin/login.
+    if (onLoginRoute) {
+      sessionIdRef.current += 1;
+      inFlightRef.current = false;
+      clearTimer();
+      const idle = createInitialNotificationState();
+      stateRef.current = idle;
+      setState(idle);
+      setSessionActive(false);
+      return;
+    }
+
     const sessionId = ++sessionIdRef.current;
     inFlightRef.current = false;
     setSoundEnabled(readNewOrderSoundPreference() === "on");
@@ -207,7 +226,7 @@ export function AdminNewOrderNotificationsProvider({
       clearTimer();
       document.removeEventListener("visibilitychange", onVisibility);
     };
-  }, [clearTimer]);
+  }, [clearTimer, onLoginRoute]);
 
   const handleDismiss = useCallback((orderId: string) => {
     const next = dismissNotificationBanner(stateRef.current, orderId);
