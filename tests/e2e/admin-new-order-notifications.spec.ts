@@ -163,7 +163,7 @@ test.describe("admin new-order notifications E2E", () => {
     });
     expect(await readSoundPlayCount(page)).toBe(0);
 
-    await quietBanner.getByRole("button", { name: "Dispensar" }).click();
+    await quietBanner.getByRole("button", { name: "Dispensar aviso" }).click();
     await expect(quietBanner).toHaveCount(0);
 
     const soundAfterToggle = await enableNotificationSound(page);
@@ -183,7 +183,7 @@ test.describe("admin new-order notifications E2E", () => {
       .toBe(soundAfterToggle + 1);
 
     const soundAfterAlert = await readSoundPlayCount(page);
-    await loudBanner.getByRole("button", { name: "Dispensar" }).click();
+    await loudBanner.getByRole("button", { name: "Dispensar aviso" }).click();
     await expect(loudBanner).toHaveCount(0);
 
     await expect
@@ -316,7 +316,7 @@ test.describe("admin new-order notifications E2E", () => {
       .toBe(true);
   });
 
-  test("PENDING badge tracks status changes and ignore dismiss", async ({
+  test("PENDING badge tracks status changes, dismiss copy, and queue navigation", async ({
     page,
   }) => {
     const fixture = await createNotifyFixture("badge");
@@ -330,12 +330,37 @@ test.describe("admin new-order notifications E2E", () => {
     });
     const banner = bannerForCustomer(page, customer);
     await expect(banner).toBeVisible({ timeout: NOTIFICATION_POLL_TIMEOUT_MS });
+    await expect(banner.getByRole("link", { name: "Abrir pedido" })).toBeVisible();
+    await expect(
+      banner.getByRole("button", { name: "Dispensar aviso" }),
+    ).toBeVisible();
 
     const pendingWithOrder = await readPendingBadgeCount(page);
     expect(pendingWithOrder).toBeGreaterThanOrEqual(1);
 
-    await banner.getByRole("button", { name: "Dispensar" }).click();
+    const badge = page.getByTestId("admin-pending-count-badge");
+    await expect(badge).toHaveAttribute("href", "/admin");
+    await expect(badge).toHaveAttribute(
+      "aria-label",
+      new RegExp(
+        `Abrir fila com ${pendingWithOrder} pedidos? pendentes? de todas as origens`,
+      ),
+    );
+
+    await banner.getByRole("button", { name: "Dispensar aviso" }).click();
     await expect(banner).toHaveCount(0);
+    await expect
+      .poll(async () => readPendingBadgeCount(page), {
+        timeout: NOTIFICATION_POLL_TIMEOUT_MS,
+      })
+      .toBe(pendingWithOrder);
+
+    await page.goto("/admin/balcao");
+    await waitForNotificationChrome(page);
+    await expect(page.getByTestId("admin-pending-count-badge")).toBeVisible();
+    await page.getByTestId("admin-pending-count-badge").click();
+    await expect(page).toHaveURL(/\/admin\/?$/);
+    await expect(page.getByTestId("admin-orders-dashboard")).toBeVisible();
     await expect
       .poll(async () => readPendingBadgeCount(page), {
         timeout: NOTIFICATION_POLL_TIMEOUT_MS,

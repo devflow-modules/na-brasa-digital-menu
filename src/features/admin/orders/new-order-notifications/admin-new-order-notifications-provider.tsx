@@ -265,13 +265,14 @@ export function AdminNewOrderNotificationsProvider({
           data-testid="admin-new-order-chrome"
         >
           <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 text-sm text-stone-200">
-              <span className="font-medium">Pedidos pendentes</span>
+            {state.pendingCount > 0 ? (
               <NewOrderPendingBadge
                 pendingCount={state.pendingCount}
                 visible={sessionActive}
               />
-            </div>
+            ) : (
+              <span className="text-sm text-stone-400">Pendentes</span>
+            )}
             <NewOrderSoundToggle
               enabled={soundEnabled}
               onChange={(value) => {

@@ -46,10 +46,11 @@ export function NewOrderNotificationBanner({
               </Link>
               <button
                 type="button"
+                data-testid="admin-new-order-dismiss"
                 onClick={() => onDismiss(banner.id)}
-                className="inline-flex min-h-10 items-center justify-center rounded-lg border border-stone-600 px-3 text-sm font-medium text-stone-200"
+                className="inline-flex min-h-10 items-center justify-center rounded-lg border border-stone-600 px-3 text-sm font-medium text-stone-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
               >
-                Dispensar
+                Dispensar aviso
               </button>
             </div>
           </article>

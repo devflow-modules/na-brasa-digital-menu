@@ -51,8 +51,12 @@ test.describe("mobile admin new-order notifications", () => {
     await expect(banner).toBeVisible({ timeout: NOTIFICATION_POLL_TIMEOUT_MS });
     await expect(banner.getByRole("link", { name: "Abrir pedido" })).toBeVisible();
     await expect(
-      banner.getByRole("button", { name: "Dispensar" }),
+      banner.getByRole("button", { name: "Dispensar aviso" }),
     ).toBeVisible();
+
+    const badge = page.getByTestId("admin-pending-count-badge");
+    await expect(badge).toBeVisible();
+    await expect(badge).toHaveAttribute("href", "/admin");
 
     const bannerBox = await banner.boundingBox();
     expect(bannerBox).not.toBeNull();
@@ -65,19 +69,15 @@ test.describe("mobile admin new-order notifications", () => {
     await expect(page).toHaveURL(new RegExp(`/admin/pedidos/${order.id}`));
     await expect(page.getByTestId("admin-order-detail")).toBeVisible();
 
-    await page.goto("/admin");
-    await waitForNotificationChrome(page);
+    // Banner overlays the sticky chrome on mobile — dismiss before tapping badge.
+    await bannerForCustomer(page, customer)
+      .getByRole("button", { name: "Dispensar aviso" })
+      .click();
+    await expect(bannerForCustomer(page, customer)).toHaveCount(0);
 
-    const secondCustomer = uniqueCustomerName("Notify Mobile Dismiss");
-    await createE2ePickupOrder({
-      customerName: secondCustomer,
-      storeSlug: fixture.store.slug,
-    });
-    const secondBanner = bannerForCustomer(page, secondCustomer);
-    await expect(secondBanner).toBeVisible({
-      timeout: NOTIFICATION_POLL_TIMEOUT_MS,
-    });
-    await secondBanner.getByRole("button", { name: "Dispensar" }).click();
-    await expect(secondBanner).toHaveCount(0);
+    await page.getByTestId("admin-pending-count-badge").click();
+    await expect(page).toHaveURL(/\/admin\/?$/);
+    await expect(page.getByTestId("admin-orders-dashboard")).toBeVisible();
+    await expect(page.getByTestId("admin-pending-count-badge")).toBeVisible();
   });
 });

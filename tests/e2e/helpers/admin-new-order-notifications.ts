@@ -63,7 +63,9 @@ export async function readPendingBadgeCount(page: Page): Promise<number> {
     return 0;
   }
   const label = await badge.getAttribute("aria-label");
-  return Number(label?.match(/\d+/)?.[0] ?? "0");
+  // "Abrir fila com 3 pedidos pendentes..." or "...mais de 99..."
+  const match = label?.match(/(\d+)/);
+  return Number(match?.[1] ?? "0");
 }
 
 export async function readSoundPlayCount(page: Page): Promise<number> {
