@@ -24,13 +24,15 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/mobile-storefront.spec.ts` | Fluxo crítico do storefront em viewport mobile (Pixel 5) |
 | `tests/e2e/counter-order-flow.spec.ts` | Comanda COUNTER: criar → READY → receber/finalizar, KITCHEN, tenant, bypass, duplicidade, DIRECT |
 | `tests/e2e/mobile-counter-order.spec.ts` | Balcão + recebimento em viewport mobile (Pixel 5) |
+| `tests/e2e/admin-new-order-notifications.spec.ts` | Notificações admin: login lifecycle, bootstrap, DIRECT, som, dismiss, COUNTER, tenant, badge |
+| `tests/e2e/mobile-admin-new-order-notifications.spec.ts` | Banner/badge/link de notificações no viewport Pixel 5 |
 
 Browsers / projetos Playwright:
 
 | Projeto | Device | Specs |
 | --- | --- | --- |
 | `chromium` | Desktop Chrome | Toda a suíte, exceto `mobile-*.spec.ts` |
-| `mobile-chrome` | Pixel 5 | `mobile-storefront.spec.ts`, `mobile-counter-order.spec.ts` |
+| `mobile-chrome` | Pixel 5 | `mobile-storefront.spec.ts`, `mobile-counter-order.spec.ts`, `mobile-admin-new-order-notifications.spec.ts` |
 
 ## Pré-requisitos
 
@@ -82,7 +84,7 @@ Arquivos relevantes:
 - `src/features/admin/orders/new-order-notifications/new-order-notification-controller.test.ts` (polling state machine / dedupe / backoff)
 - `src/features/admin/orders/new-order-notifications/new-order-sound-preference.test.ts` (preferência e play seguro)
 
-E2E de notificações **ainda pendente**. Contador `data-sound-play-count` existe só em `development`/`test` (não em produção). Em E2E preferir stubar `Audio.play`.
+E2E de notificações: ver `docs/product/admin-new-order-notification-validation.md`. Contador `data-sound-play-count` existe só em `development`/`test` (webServer E2E usa `pnpm dev`). Em produção o atributo não é renderizado.
 
 Limite visual: no máximo **3** banners; pedidos excedentes entram no dedupe (não reaparecem) mas não ficam todos na tela.
 
