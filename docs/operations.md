@@ -234,7 +234,7 @@ Rotina recomendada para o Na Braza no piloto (sem feature nova — uso do que j�
 7. Duas abas do admin podem alertar o mesmo pedido.
 8. No máximo 3 banners visíveis; pedidos a mais não reaparecem depois (já contam como alertados).
 9. Ativar o som toca uma prévia curta; pedidos antigos do bootstrap **não** soam.
-10. A lista não atualiza sozinha — atualize a página se precisar ver pedidos novos na fila.
+10. A fila `/admin` atualiza sozinha quando o polling detecta pedido novo (ou mudança de pendentes), ao voltar para a aba (um refresh após o poll retomado), após mudar status com sucesso, ou ao abrir Pedidos depois de criar comanda — sem F5 e sem segundo polling. O aviso “Atualizando pedidos…” indica que a atualização foi pedida, não que já terminou. Se a lista falhar em sincronizar, o banner continua permitindo abrir o pedido; o próximo poll/visibility tenta de novo.
 
 ### Se algo sair errado nas configurações
 

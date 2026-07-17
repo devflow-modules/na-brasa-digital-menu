@@ -1,7 +1,6 @@
 "use client";
 
 import type { UserRole } from "@prisma/client";
-import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import {
   formatAdminRoleLabel,
@@ -15,6 +14,7 @@ import type {
   AdminOrderStatus,
 } from "@/features/admin/orders/admin-orders.types";
 import { filterGenericStatusActionsForOrder } from "@/features/admin/orders/counter-order-status-actions";
+import { requestAdminOrdersRefresh } from "@/features/admin/orders/live-refresh/admin-orders-refresh";
 
 type OrderStatusActionsProps = {
   orderId: string;
@@ -33,7 +33,6 @@ export function OrderStatusActions({
   source,
   paidAt,
 }: OrderStatusActionsProps) {
-  const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const workflowActions = filterGenericStatusActionsForOrder(
@@ -93,7 +92,7 @@ export function OrderStatusActions({
         return;
       }
 
-      router.refresh();
+      requestAdminOrdersRefresh("status-updated");
     });
   }
 

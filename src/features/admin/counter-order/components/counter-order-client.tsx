@@ -20,6 +20,7 @@ import type {
 } from "@/features/admin/counter-order/counter-order.types";
 import { useDialogFocusTrap } from "@/features/admin/counter-order/use-dialog-focus-trap";
 import { formatMoney } from "@/features/menu/format-money";
+import { requestAdminOrdersRefresh } from "@/features/admin/orders/live-refresh/admin-orders-refresh";
 import { createCounterOrderAction } from "@/features/orders/actions/create-counter-order-action";
 
 type CounterOrderClientProps = {
@@ -174,6 +175,7 @@ export function CounterOrderClient({
         }
 
         // Stay on /admin/balcao — confirmation in place, draft ready for next.
+        requestAdminOrdersRefresh("counter-order-created");
         resetDraftForNextOrder();
         setSuccess({
           orderId: result.orderId,

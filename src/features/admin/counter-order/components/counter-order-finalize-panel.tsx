@@ -1,8 +1,8 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { ReceiveAndFinalizeDialog } from "@/features/admin/counter-order/components/receive-and-finalize-dialog";
+import { requestAdminOrdersRefresh } from "@/features/admin/orders/live-refresh/admin-orders-refresh";
 import { formatMoney } from "@/features/menu/format-money";
 
 type CounterOrderFinalizePanelProps = {
@@ -14,7 +14,6 @@ export function CounterOrderFinalizePanel({
   orderId,
   totalCents,
 }: CounterOrderFinalizePanelProps) {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [finalizedLocally, setFinalizedLocally] = useState(false);
@@ -66,7 +65,7 @@ export function CounterOrderFinalizePanel({
             setOpen(false);
             setFinalizedLocally(true);
             setSuccessMessage("Recebimento confirmado. Pedido concluído.");
-            router.refresh();
+            requestAdminOrdersRefresh("status-updated");
           }}
         />
       ) : null}
