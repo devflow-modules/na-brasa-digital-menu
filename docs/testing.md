@@ -26,6 +26,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/counter-order-flow.spec.ts` | Comanda COUNTER: criar (fica no Balcão) → READY → receber/finalizar; duas comandas consecutivas; KITCHEN, tenant, bypass, duplicidade, DIRECT |
 | `tests/e2e/mobile-counter-order.spec.ts` | Balcão + pós-criação in-place + recebimento em viewport mobile (Pixel 5) |
 | `tests/e2e/admin-new-order-notifications.spec.ts` | Notificações admin: login lifecycle, bootstrap, DIRECT, som, Dispensar aviso, COUNTER, tenant, badge → fila `/admin` |
+| `tests/e2e/admin-orders-live-refresh.spec.ts` | Fila admin live refresh: novo DIRECT na lista sem reload; status no detalhe; COUNTER → Pedidos |
 | `tests/e2e/mobile-admin-new-order-notifications.spec.ts` | Banner/badge navegável/Dispensar aviso no viewport Pixel 5 |
 | `tests/e2e/admin-chrome-by-role.spec.ts` | Chrome por papel: links filtrados, active state, login sem chrome, KITCHEN só Pedidos |
 | `tests/e2e/mobile-admin-chrome.spec.ts` | Chrome admin utilizável no Pixel 5 |

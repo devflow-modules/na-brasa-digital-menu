@@ -29,6 +29,12 @@ import {
   writeNewOrderSoundPreference,
 } from "@/features/admin/orders/new-order-notifications/new-order-sound-preference";
 import { NewOrderSoundToggle } from "@/features/admin/orders/new-order-notifications/new-order-sound-toggle";
+import {
+  requestAdminOrdersRefresh,
+  resolveQueueRefreshAfterVisibilityPoll,
+  resolveRefreshReasonAfterPoll,
+  shouldRequestRefreshOnTabVisible,
+} from "@/features/admin/orders/live-refresh/admin-orders-refresh";
 
 type AdminNewOrderNotificationsProviderProps = {
   children: ReactNode;
@@ -55,6 +61,8 @@ export function AdminNewOrderNotificationsProvider({
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inFlightRef = useRef(false);
   const sessionIdRef = useRef(0);
+  /** After tab becomes visible, emit at most one queue refresh via the next poll. */
+  const visibilityResumePendingRef = useRef(false);
 
   useEffect(() => {
     stateRef.current = state;
@@ -78,6 +86,7 @@ export function AdminNewOrderNotificationsProvider({
     if (onLoginRoute) {
       sessionIdRef.current += 1;
       inFlightRef.current = false;
+      visibilityResumePendingRef.current = false;
       clearTimer();
       const idle = createInitialNotificationState();
       stateRef.current = idle;
@@ -88,6 +97,7 @@ export function AdminNewOrderNotificationsProvider({
 
     const sessionId = ++sessionIdRef.current;
     inFlightRef.current = false;
+    visibilityResumePendingRef.current = false;
     setSoundEnabled(readNewOrderSoundPreference() === "on");
 
     const isCurrentSession = () => sessionIdRef.current === sessionId;
@@ -125,7 +135,13 @@ export function AdminNewOrderNotificationsProvider({
           if (result.code === "UNAUTHORIZED" || result.code === "FORBIDDEN") {
             setSessionActive(false);
           }
+          // Still refresh the queue once after visibility if the poll failed.
+          if (visibilityResumePendingRef.current) {
+            visibilityResumePendingRef.current = false;
+            requestAdminOrdersRefresh("tab-visible");
+          }
         } else {
+          const previousPendingCount = stateRef.current.pendingCount;
           next = applyPollSuccess(stateRef.current, {
             mode: result.mode,
             cursor: result.cursor,
@@ -134,6 +150,20 @@ export function AdminNewOrderNotificationsProvider({
             hasMore: result.hasMore,
           });
           setSessionActive(true);
+
+          const pollReason = resolveRefreshReasonAfterPoll({
+            mode: result.mode,
+            newOrderCount: result.orders.length,
+            pendingCountChanged: result.pendingCount !== previousPendingCount,
+          });
+          const resolved = resolveQueueRefreshAfterVisibilityPoll({
+            pollReason,
+            visibilityResumePending: visibilityResumePendingRef.current,
+          });
+          visibilityResumePendingRef.current = resolved.visibilityResumePending;
+          if (resolved.reason != null) {
+            requestAdminOrdersRefresh(resolved.reason);
+          }
         }
 
         stateRef.current = next;
@@ -182,6 +212,10 @@ export function AdminNewOrderNotificationsProvider({
         const next = applyPollFailure(stateRef.current, "UNEXPECTED_ERROR");
         stateRef.current = next;
         setState(next);
+        if (visibilityResumePendingRef.current) {
+          visibilityResumePendingRef.current = false;
+          requestAdminOrdersRefresh("tab-visible");
+        }
         if (
           !next.stopPolling &&
           !(typeof document !== "undefined" && document.hidden)
@@ -214,8 +248,23 @@ export function AdminNewOrderNotificationsProvider({
       const resumed = markVisibilityResumed(stateRef.current);
       stateRef.current = resumed;
       setState(resumed);
+
+      // Do not emit tab-visible here — wait for the resumed poll so a delta
+      // (new-order / pendingCount) and visibility share a single refresh.
+      const wantsVisibilityRefresh = shouldRequestRefreshOnTabVisible({
+        becomingVisible: true,
+        // Only after a successful bootstrap/session — never on login/idle.
+        sessionActive: resumed.status === "active",
+        onLoginRoute: false,
+      });
+
       if (!resumed.stopPolling) {
+        if (wantsVisibilityRefresh) {
+          visibilityResumePendingRef.current = true;
+        }
         void runPoll();
+      } else if (wantsVisibilityRefresh) {
+        requestAdminOrdersRefresh("tab-visible");
       }
     };
 

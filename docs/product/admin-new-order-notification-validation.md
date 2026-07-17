@@ -6,6 +6,12 @@ Admin notification UI complete
 Login lifecycle fix complete
 Manual smoke passed
 E2E validation complete
+Admin order queue live refresh complete
+Existing notification polling reused
+No duplicate queue polling introduced
+Visibility refresh implemented
+Status and COUNTER updates coordinated
+WebSocket not implemented
 Product hypothesis pending real validation
 ```
 
@@ -19,6 +25,8 @@ admin autenticado com painel aberto
 → bootstrap sem replay histórico
 → novo DIRECT da mesma Store
 → banner in-app + badge PENDING + som opcional
+→ sinal de refresh da fila (debounce 250ms) → router.refresh()
+→ operador vê o pedido na lista sem F5
 → operador abre o detalhe ou dispensa
 ```
 
@@ -97,12 +105,43 @@ Em `production` o atributo não é renderizado — E2E **não** altera produçã
 - É um link para a fila canônica `/admin`.
 - `Dispensar aviso` no banner não altera o badge.
 - Mudança de status (ex.: CONFIRMED) reduz no próximo poll.
-- Sem refresh automático da lista; sem filtro por origem/status.
+- Fila live refresh: ver secção abaixo; sem filtro por origem/status nesta etapa.
+
+## Fila — live refresh
+
+Fonte única: `requestAdminOrdersRefresh(reason)` → bus **local por aba** (sem BroadcastChannel) → `AdminOrdersRefreshCoordinator` (debounce **250ms**, coalesce, trailing em janela in-flight modelada de **300ms**) → política por pathname → `router.refresh()`.
+
+| Motivo | Quando |
+| --- | --- |
+| `new-order` | Poll delta com pedidos DIRECT novos |
+| `status-updated` | `pendingCount` mudou no poll sem novos DIRECT; sucesso de status/finalize |
+| `tab-visible` | Após retomar aba: emitido pelo **próximo poll** só se o poll não trouxe outro motivo (evita refresh duplicado com o polling retomado) |
+| `counter-order-created` | Sucesso ao criar comanda no Balcão |
+
+Rotas que executam `router.refresh()`:
+
+| Path | Motivos |
+| --- | --- |
+| `/admin` (exato) | todos |
+| `/admin/pedidos/*` | `status-updated`, `tab-visible` |
+| `/admin/balcao`, cardápio, config, login, `/master` | nenhum |
+
+Regras:
+
+- sem segundo polling da fila; sem WebSocket/SSE; sem sync entre abas;
+- política reavaliada no **flush** do debounce (navegação `/admin` → Balcão no meio do timer não refresca o Balcão);
+- banner continua só para DIRECT novo; COUNTER não gera banner;
+- Client state do provider (banner/badge/som) preserva-se no refresh RSC;
+- indicador “Atualizando pedidos…” = **sinal de atualização solicitado**, não confirmação de RSC concluído (`router.refresh()` não expõe Promise);
+- falha de rede no refresh não apaga a lista atual; próximo poll/visibility tenta de novo;
+- ao criar COUNTER em `/admin/balcao`, o sinal é emitido (inofensivo) mas a política **não** refresca essa rota; `revalidatePath("/admin")` garante fila fresca ao navegar para Pedidos.
+
+E2E: `tests/e2e/admin-orders-live-refresh.spec.ts`. Unit: `admin-orders-refresh.test.ts`.
 
 ## Mobile
 
 Cobertura enxuta no projeto `mobile-chrome` (Pixel 5): login, banner, chrome, link e dismiss.
-Sem duplicar tenant/dedupe/COUNTER.
+Sem duplicar tenant/dedupe/COUNTER. Live refresh da fila coberto no desktop; mobile reutiliza o mesmo coordenador no layout autenticado.
 
 ## Tenant isolation
 
@@ -116,14 +155,15 @@ Cleanup remove **somente** Store ids rastreados pela suíte (`cleanupTrackedNoti
 Comportamento hidden/visible coberto por:
 
 - testes unitários do controller;
+- gate `shouldRequestRefreshOnTabVisible` + scheduler (unit);
 - smoke manual A–G (cenário F).
 
 Não há E2E Playwright de visibility nesta PR (sem hacks CDP / `document.hidden` sintético), para evitar flakiness.
 
 ## Limitações conhecidas
 
-- Lista Server Component do dashboard não atualiza a cada poll (só banner/badge/som).
-- Múltiplas abas podem alertar o mesmo pedido.
+- Refresh da fila é coordenado (não a cada tick de poll idle).
+- Múltiplas abas podem alertar o mesmo pedido; o bus de refresh é por aba (sem BroadcastChannel).
 - Sem Web Push / SSE / WebSocket / Service Worker.
 - Sem histórico persistente de notificações.
 - Browser precisa estar aberto.
