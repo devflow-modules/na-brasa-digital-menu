@@ -184,21 +184,17 @@ test.describe("admin role permissions", () => {
     expect(await getOrderStatus(confirmed.id)).toBe("READY");
   });
 
-  test("MASTER transitional /admin sees confirm and cancel on PENDING", async ({
+  test("MASTER cannot open tenant order detail without Store context", async ({
     page,
   }) => {
     const order = await createE2ePickupOrder({
-      customerName: uniqueCustomerName("Role Master"),
+      customerName: uniqueCustomerName("Role Master Deny"),
       status: "PENDING",
     });
 
     await loginAdmin(page);
     await page.goto(`/admin/pedidos/${order.id}`);
-
-    await expect(page.getByTestId("order-status-action-CONFIRMED")).toBeVisible();
-    await expect(page.getByTestId("order-status-action-CANCELLED")).toBeVisible();
-    await expect(page.getByTestId("order-status-role-note")).toContainText(
-      "Master",
-    );
+    await expect(page).toHaveURL(/\/master\/?$/);
+    await expect(page.getByTestId("admin-order-detail")).toHaveCount(0);
   });
 });

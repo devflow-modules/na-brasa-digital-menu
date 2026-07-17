@@ -18,19 +18,16 @@ export type AdminStoreContext = {
   storeSlug: string;
   storeName: string;
   role: UserRole;
-  isMaster: boolean;
 };
-
-function getDefaultStoreSlug(): string {
-  return process.env.NEXT_PUBLIC_STORE_SLUG?.trim() || "na-brasa";
-}
 
 /**
  * Soft resolve for Server Actions that must not redirect (e.g. polling).
  * Returns null when session is missing, role is unsupported, or Store cannot
  * be resolved — never redirects or calls notFound().
- * Store id is never taken from querystring/body.
- * Cached per request so authenticated layout + page share one resolve.
+ *
+ * MASTER never receives an implicit pilot Store. Store id is never taken from
+ * querystring/body. Cached per request so authenticated layout + page share
+ * one resolve.
  */
 export const getAdminStoreContextOrNull = cache(
   async (): Promise<AdminStoreContext | null> => {
@@ -40,25 +37,10 @@ export const getAdminStoreContextOrNull = cache(
       return null;
     }
 
+    // MASTER has no implicit tenant context until an explicit Store selection
+    // flow exists. Soft callers (polling) treat this as unauthorized context.
     if (session.role === "MASTER") {
-      const slug = getDefaultStoreSlug();
-      const store = await prisma.store.findUnique({
-        where: { slug },
-        select: { id: true, slug: true, name: true },
-      });
-
-      if (!store) {
-        return null;
-      }
-
-      return {
-        session,
-        storeId: store.id,
-        storeSlug: store.slug,
-        storeName: store.name,
-        role: session.role,
-        isMaster: true,
-      };
+      return null;
     }
 
     if (STORE_ROLES.has(session.role)) {
@@ -81,7 +63,6 @@ export const getAdminStoreContextOrNull = cache(
         storeSlug: store.slug,
         storeName: store.name,
         role: session.role,
-        isMaster: false,
       };
     }
 
@@ -91,20 +72,25 @@ export const getAdminStoreContextOrNull = cache(
 
 /**
  * Resolves the effective Store for /admin after authentication.
- * - MASTER: transitional access to Store from NEXT_PUBLIC_STORE_SLUG
- * - Store roles: must have session.storeId
+ * - Store roles: must have a valid session.storeId
+ * - MASTER without explicit Store selection: redirect to /master
  * Store id is never taken from querystring/body.
  */
 export async function requireAdminStoreContext(): Promise<AdminStoreContext> {
   const context = await getAdminStoreContextOrNull();
 
-  if (!context) {
-    const session = await getAdminSession();
-    if (!session) {
-      redirect("/admin/login");
-    }
-    notFound();
+  if (context) {
+    return context;
   }
 
-  return context;
+  const session = await getAdminSession();
+  if (!session) {
+    redirect("/admin/login");
+  }
+
+  if (session.role === "MASTER") {
+    redirect("/master");
+  }
+
+  notFound();
 }

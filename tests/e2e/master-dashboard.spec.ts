@@ -21,16 +21,20 @@ test.describe("master dashboard", () => {
 
   test("MASTER can open /master and see na-brasa store", async ({ page }) => {
     await loginAdmin(page);
-    await page.goto("/master");
 
     await expect(page).toHaveURL(/\/master\/?$/);
     await expect(page.getByTestId("master-dashboard")).toBeVisible();
     await expect(page.getByTestId("master-summary-cards")).toBeVisible();
+    await expect(page.getByTestId("master-landing-note")).toBeVisible();
+    await expect(page.getByTestId("master-link-admin-transitional")).toHaveCount(
+      0,
+    );
 
     const storeSlug = getStoreSlug();
     await expect(page.getByTestId(`master-store-${storeSlug}`)).toBeVisible();
     await expect(page.getByText(storeSlug, { exact: false }).first()).toBeVisible();
   });
+
 
   test("non-MASTER cannot access /master", async ({ page }) => {
     const storeUser = await ensureE2eStoreUser();
@@ -44,7 +48,6 @@ test.describe("master dashboard", () => {
 
   test("logout from /master returns to login", async ({ page }) => {
     await loginAdmin(page);
-    await page.goto("/master");
     await expect(page.getByTestId("master-dashboard")).toBeVisible();
 
     await logoutAdmin(page);

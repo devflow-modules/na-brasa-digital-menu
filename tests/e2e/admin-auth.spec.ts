@@ -68,7 +68,8 @@ test.describe("admin auth", () => {
     const ensured = await ensureE2eAdminUser(credentials);
 
     await loginAdmin(page);
-    await expect(page).toHaveURL(/\/admin\/?$/);
+    await expect(page).toHaveURL(/\/master\/?$/);
+    await expect(page.getByTestId("master-dashboard")).toBeVisible();
     await expect(page.getByTestId("admin-logout-button")).toBeVisible();
 
     const session = await readAdminSessionFromBrowser(page);
@@ -81,13 +82,16 @@ test.describe("admin auth", () => {
 
   test("logs in and logs out", async ({ page }) => {
     await loginAdmin(page);
-    await expect(page).toHaveURL(/\/admin\/?$/);
+    await expect(page).toHaveURL(/\/master\/?$/);
     await expect(page.getByTestId("admin-logout-button")).toBeVisible();
 
     await logoutAdmin(page);
     await expect(page).toHaveURL(/\/admin\/login/);
 
     await page.goto("/admin");
+    await expect(page).toHaveURL(/\/admin\/login/);
+
+    await page.goto("/master");
     await expect(page).toHaveURL(/\/admin\/login/);
   });
 });

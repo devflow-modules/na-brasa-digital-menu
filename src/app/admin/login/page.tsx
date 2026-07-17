@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { getAdminPostLoginPath } from "@/features/admin/auth/admin-post-login";
 import { AdminLoginForm } from "@/features/admin/auth/components/admin-login-form";
 import { getAdminSession } from "@/features/admin/auth/admin-session";
 
@@ -14,7 +15,7 @@ export default async function AdminLoginPage() {
   const session = await getAdminSession();
 
   if (session) {
-    redirect("/admin");
+    redirect(getAdminPostLoginPath(session.role));
   }
 
   return (

@@ -62,7 +62,6 @@ test.describe("master store users", () => {
     const password = "StoreUserPass12";
 
     await loginAdmin(page);
-    await page.goto("/master");
     await page.getByTestId(`master-store-users-link-${storeSlug}`).click();
     await expect(page.getByTestId("master-store-users-page")).toBeVisible();
 

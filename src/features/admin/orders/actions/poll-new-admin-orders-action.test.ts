@@ -19,7 +19,6 @@ function context(role: AdminStoreContext["role"]): AdminStoreContext {
     storeSlug: "na-brasa",
     storeName: "Na Braza",
     role,
-    isMaster: role === "MASTER",
   };
 }
 

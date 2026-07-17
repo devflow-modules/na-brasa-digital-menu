@@ -6,12 +6,13 @@ import {
   INVALID_CREDENTIALS_MESSAGE,
   authenticateAdminUser,
 } from "@/features/admin/auth/authenticate-admin-user";
+import { getAdminPostLoginPath } from "@/features/admin/auth/admin-post-login";
 import { createAdminSession } from "@/features/admin/auth/admin-session";
 import type { AdminLoginResult } from "@/features/admin/auth/types";
 
 /**
  * Database-backed admin login.
- * MASTER may use /admin temporarily until /master exists (ADR 0002).
+ * MASTER lands on /master; Store roles land on /admin.
  */
 export async function loginAdminAction(
   input: unknown,
@@ -39,5 +40,5 @@ export async function loginAdminAction(
     };
   }
 
-  redirect("/admin");
+  redirect(getAdminPostLoginPath(user.role));
 }

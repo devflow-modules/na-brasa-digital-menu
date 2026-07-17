@@ -30,8 +30,8 @@ export type AdminNavigationItem = {
 
 /**
  * Single source of truth for desktop and mobile admin navigation.
- * MASTER on /admin is transitional tenant chrome (same items as owners).
- * Platform /master stays outside this config.
+ * Platform /master stays outside this config. MASTER does not receive
+ * implicit tenant chrome until an explicit Store selection exists.
  */
 export const ADMIN_NAVIGATION_ITEMS: readonly AdminNavigationItem[] = [
   {

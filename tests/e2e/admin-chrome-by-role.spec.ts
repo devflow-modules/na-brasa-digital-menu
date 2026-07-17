@@ -77,28 +77,27 @@ test.describe("role-aware admin chrome", () => {
     await expect(page.getByTestId("admin-logout-button")).toBeVisible();
   });
 
-  test("MASTER transitional /admin shows pilot store chrome; /master stays separate", async ({
+  test("MASTER lands on /master; direct /admin redirects without tenant chrome", async ({
     page,
   }) => {
     await ensureE2eAdminUser();
     await loginAdmin(page);
 
-    await expect(page).toHaveURL(/\/admin\/?$/);
-    await expect(page.getByTestId("admin-chrome")).toBeVisible();
-    await expect(page.getByTestId("admin-chrome-store-name")).not.toHaveText("");
-    await expect(page.getByTestId("admin-master-transitional-note")).toBeVisible();
-    await expect(page.getByTestId("admin-orders-nav-link")).toBeVisible();
-    await expect(page.getByTestId("admin-counter-nav-link")).toBeVisible();
-    await expect(page.getByTestId("admin-menu-nav-link")).toBeVisible();
-    await expect(page.getByTestId("admin-settings-nav-link")).toBeVisible();
-    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
-    await expectNavActive(page, "admin-orders-nav-link");
-
-    await page.goto("/master");
+    await expect(page).toHaveURL(/\/master\/?$/);
     await expect(page.getByTestId("master-dashboard")).toBeVisible();
     await expect(page.getByTestId("admin-chrome")).toHaveCount(0);
     await expect(page.getByTestId("admin-primary-nav")).toHaveCount(0);
+    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
+
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/master\/?$/);
+    await expect(page.getByTestId("master-dashboard")).toBeVisible();
+    await expect(page.getByTestId("admin-chrome")).toHaveCount(0);
+    await expect(page.getByTestId("admin-master-transitional-note")).toHaveCount(
+      0,
+    );
   });
+
 
   test("KITCHEN chrome shows only Pedidos; URL guards unchanged", async ({
     page,

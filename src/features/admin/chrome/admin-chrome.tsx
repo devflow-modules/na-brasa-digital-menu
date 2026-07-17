@@ -8,7 +8,6 @@ type AdminChromeProps = {
   userName: string;
   userEmail: string;
   roleLabel: string;
-  isMasterTransitional: boolean;
   items: AdminNavigationItem[];
   children: ReactNode;
 };
@@ -23,7 +22,6 @@ export function AdminChrome({
   userName,
   userEmail,
   roleLabel,
-  isMasterTransitional,
   items,
   children,
 }: AdminChromeProps) {
@@ -56,15 +54,6 @@ export function AdminChrome({
               >
                 {roleLabel} · {identitySecondary}
               </p>
-              {isMasterTransitional ? (
-                <p
-                  data-testid="admin-master-transitional-note"
-                  className="mt-2 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-100/90"
-                >
-                  Acesso MASTER ao /admin é transicional — use /master para
-                  operação da plataforma.
-                </p>
-              ) : null}
             </div>
             <LogoutButton className="border-stone-700 bg-stone-900 text-stone-100 hover:bg-stone-800" />
           </div>

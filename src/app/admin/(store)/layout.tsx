@@ -24,7 +24,6 @@ export default async function AdminStoreLayout({
       userName={context.session.name}
       userEmail={context.session.email}
       roleLabel={formatAdminRoleLabel(context.role)}
-      isMasterTransitional={context.isMaster}
       items={items}
     >
       {children}
