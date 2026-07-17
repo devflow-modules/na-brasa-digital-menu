@@ -1,6 +1,7 @@
 # Workflow — Production check
 
-Verificação pré-produção do Na Brasa.
+Verificação de deploy/smoke do Na Braza (produção já ativa; usar antes de
+promover mudanças relevantes ou após deploy).
 
 ## Variáveis
 

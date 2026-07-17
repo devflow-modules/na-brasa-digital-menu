@@ -11,9 +11,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 - Admin order queue live refresh: coordinated `router.refresh()` from existing notification polling (new DIRECT), tab visibility, successful status updates, and COUNTER create — without a second list poll, WebSocket, or SSE
 - Admin order queue filters: status, source, and code/customer-name search via URL `searchParams` and server-side Prisma `where` (before `take: 50`); live refresh reused; no phone search or pagination
 
+### Changed
+
+- Documentation aligned with the client-validated, production-active pilot stage.
+
 ### Status
 
 ```text
+Pilot accepted by the client
+Production operation active
+Online and Counter order flows operational
+Admin notifications and coordinated live refresh complete
+Order queue filters and search complete
+Post-validation operational backlog in progress
+Continuous feature validation remains required
 Admin order queue live refresh complete
 Existing notification polling reused
 No duplicate queue polling introduced

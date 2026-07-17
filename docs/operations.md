@@ -189,7 +189,9 @@ Se um perfil autenticado abrir por URL uma área operacional bloqueada (exemplo:
 
 ## Pilot operation
 
-Rotina recomendada para o Na Braza no piloto (sem feature nova — uso do que já existe).
+Rotina recomendada para o Na Braza em **produção ativa**. Novas evoluções seguem
+backlog pós-validação + `product-grill`; esta seção descreve o uso operacional
+do que já está entregue.
 
 ### Abertura e fechamento
 

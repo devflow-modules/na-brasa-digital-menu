@@ -2,10 +2,23 @@
 
 ```text
 technical delivery complete
-product hypothesis pending validation
+client-validated production operation active
+Online and Counter order flows operational
+continuous observation recommended
+product hypothesis for PDV-like expansion not validated
 ```
 
-This document guides the first real-store validation with the owner/operator. Automated E2E coverage does **not** replace live observation.
+## Status
+
+| Item | Classificação |
+| --- | --- |
+| Entrega técnica + E2E | **Concluído** |
+| Uso Online/Balcão em produção (aceite do cliente) | **Validado** |
+| Checklist abaixo (fricções, tempos, retorno ao papel) | **Convertido** para observação contínua |
+| PDV / caixa / fiscal / impressão | **Ainda pendente** e fora do escopo |
+
+This document remains useful for continuous observation with the owner/operator.
+Automated E2E coverage does **not** replace live observation of friction.
 
 ## Fluxo entregue
 
@@ -41,20 +54,22 @@ Post-create continuity: the operator can register two consecutive counter orders
 - Mobile (Pixel 5): `tests/e2e/mobile-counter-order.spec.ts`
 - Unit/integration coverage for schema, finalization service, generic-status bypass and change helpers
 
-## Checklist de validação real
+## Checklist de observação contínua
 
-- [ ] dono/operador consegue abrir a comanda em `/admin/balcao`
+Use após deploys ou quando houver fricção relatada (não é gate de aceite geral):
+
+- [ ] dono/operador abre a comanda em `/admin/balcao` sem bloqueio
 - [ ] encontra produtos rapidamente
 - [ ] adicionais corretos
 - [ ] total de apresentação correto
 - [ ] após registrar, permanece no Balcão com código e ações claras
 - [ ] consegue registrar duas comandas seguidas sem sair da tela
-- [ ] pedido aparece na fila de pedidos
+- [ ] pedido aparece na fila de pedidos (e nos filtros, se aplicável)
 - [ ] status acompanha o preparo até READY
 - [ ] pagamento é registrado em Receber e finalizar
 - [ ] troco correto para dinheiro
 - [ ] comanda concluída como COMPLETED
-- [ ] papel não foi necessário
+- [ ] papel não foi necessário no turno observado
 - [ ] tempo aceitável sob atendimento real
 - [ ] erro/retrabalho registrado (se ocorrer)
 
@@ -88,17 +103,18 @@ Registrar cada incidente durante a janela:
 
 ## Janela de observação
 
-- primeiros dias de operação real com atendimento ao vivo
-- não declarar sucesso operacional apenas porque CI passou
+- operação em produção já ativa; observar fricções em turnos reais
+- não declarar hipótese pontual “resolvida” apenas porque CI passou
+- novas evoluções do Balcão exigem evidência + `product-grill`
 
-## Resultado
+## Resultado (por ciclo de observação)
 
-Após a janela de observação, classificar:
+Após cada janela relevante, classificar a hipótese observada:
 
-- **PROSSEGUIR** — fluxo sustenta operação sem papel
+- **PROSSEGUIR** — evidência autoriza próximo incremento alinhado
 - **AJUSTAR** — útil, mas precisa correção pontual de UX/regra
 - **REPOSICIONAR** — hipótese parcialmente válida; muda o formato
-- **INTERROMPER** — não reduz esforço operacional
+- **INTERROMPER** — não reduz esforço operacional / sem valor observado
 
 ## Fora do PDV
 

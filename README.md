@@ -19,13 +19,15 @@ Muitos negócios de alimentação ainda recebem pedidos por WhatsApp de forma ma
 | | |
 | --- | --- |
 | **Versão** | v0.1.0-pilot |
-| **Status** | Pronto para validação controlada com o dono |
+| **Status** | Cliente validou; produção ativa (Online + Balcão) |
 | **Produção** | https://na-brasa-cardapio.vercel.app/na-brasa |
-| **Gate** | Smoke autenticado de Store Settings: **GO** (jul/2026) |
+| **Gate técnico histórico** | Smoke autenticado de Store Settings: **GO** (jul/2026) |
 
-Escopo validado, limitações e aceite: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).
+Estágio atual e próximos passos: [docs/product.md](docs/product.md).
 
-Plano de validação do piloto (hipóteses, funil, sucesso/ajuste/interrupção): [docs/product/pilot-validation-plan.md](docs/product/pilot-validation-plan.md).
+Escopo do release piloto e limitações históricas: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).
+
+Observação contínua / funil / feedback (não é gate pré-produção): [docs/product/pilot-validation-plan.md](docs/product/pilot-validation-plan.md).
 
 ## Capacidades atuais
 
@@ -37,11 +39,11 @@ Plano de validação do piloto (hipóteses, funil, sucesso/ajuste/interrupção)
 - Painel `/master` para operação de plataforma (`MASTER`)
 - Gestão de usuários por loja em `/master/stores/[storeId]/users`
 
-**Piloto Na Braza (tenant `na-brasa`):**
+**Piloto Na Braza (tenant `na-brasa`, em produção):**
 
 - Storefront público em `/na-brasa` (cardápio, carrinho local, checkout)
 - Pedido persistido no PostgreSQL antes do WhatsApp
-- Admin: pedidos, status, cardápio, adicionais, configurações da loja
+- Admin: pedidos (filtros/busca + live refresh), notificações in-app, Balcão, status, cardápio, adicionais, configurações
 - CI (quality + E2E) e deploy documentado (Vercel + PostgreSQL)
 
 ## Estado atual e limitações
@@ -166,8 +168,8 @@ Ver `.env.example`. Principais: `DATABASE_URL`, `ADMIN_JWT_SECRET`, `ADMIN_SESSI
 | --- | --- |
 | [docs/product.md](docs/product.md) | Produto da plataforma e piloto |
 | [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) | Escopo e smoke do piloto Na Braza |
-| [docs/production-checklist.md](docs/production-checklist.md) | GO/NO-GO e aceite do cliente |
-| [docs/operations.md](docs/operations.md) | Operação diária (piloto Na Braza) |
+| [docs/production-checklist.md](docs/production-checklist.md) | GO/NO-GO de deploy/smoke e checklist operacional |
+| [docs/operations.md](docs/operations.md) | Operação diária em produção (piloto Na Braza) |
 | [docs/database.md](docs/database.md) | Schema, seed, multi-tenant |
 | [docs/deployment.md](docs/deployment.md) | Vercel, envs, auth |
 | [docs/testing.md](docs/testing.md) | E2E e CI |

@@ -4,7 +4,7 @@
 
 Plataforma **white-label multi-tenant** para pequenos negócios de alimentação: cardápio mobile-first, pedido salvo no banco, encaminhamento ao WhatsApp por link (`wa.me`) e operação em painéis web. **Nome comercial:** indefinido. **Nome interno provisório:** Digital Menu Platform.
 
-Não confundir a plataforma com o **cliente 1**: **Na Braza** (slug `na-brasa`), primeira implantação real em produção controlada.
+Não confundir a plataforma com o **cliente 1**: **Na Braza** (slug `na-brasa`), primeira implantação real em **produção ativa**, com aceite do cliente.
 
 ## Problema
 
@@ -43,15 +43,34 @@ Use esta classificação ao priorizar escopo e impacto em isolamento entre lojas
 | --- | --- |
 | **Versão** | v0.1.0-pilot |
 | **Produção** | https://na-brasa-cardapio.vercel.app/na-brasa |
-| **Gate** | Smoke Store Settings: **GO** (jul/2026) |
+| **Gate técnico histórico** | Smoke Store Settings: **GO** (jul/2026) |
+| **Estágio atual** | Cliente validou; operação em produção ativa |
 
-**Pronto no piloto:** fluxo público completo; admin (pedidos, cardápio, adicionais, configurações); `/master` (métricas e usuários por loja); CI/E2E.
+```text
+Pilot accepted by the client
+Production operation active
+Online and Counter order flows operational
+Admin notifications and coordinated live refresh complete
+Order queue filters and search complete
+Post-validation operational backlog in progress
+Continuous feature validation remains required
+```
 
-**Próximos passos:** aceite do dono → dados reais finais → divulgação do link → backlog com o Na Braza (sem feature nova até aceite).
+**Em produção no piloto:** fluxo público Online; Balcão; admin (pedidos com filtros/busca e live refresh, cardápio, adicionais, configurações); notificações in-app; `/master` (métricas e usuários por loja); CI/E2E.
 
-**Validação do piloto:** plano formal em [product/pilot-validation-plan.md](product/pilot-validation-plan.md). Gates de decisão no Cursor: `.cursor/skills/product-grill` e `.cursor/skills/revenue-centric-design`.
+**Próximo estágio:**
 
-Detalhes: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dados operacionais: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).
+```text
+produção ativa
+→ observação operacional
+→ backlog priorizado por evidência
+→ product-grill por feature
+→ implementação controlada
+```
+
+**Validação contínua:** o plano em [product/pilot-validation-plan.md](product/pilot-validation-plan.md) permanece como observação pós-deploy, coleta de feedback e critérios para novas evoluções — **não** é mais gate pré-produção. Toda feature relevante continua obrigada a passar por **product-grill** (`.cursor/skills/product-grill`) e, quando couber, **revenue-centric-design**.
+
+Detalhes do release: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dados operacionais: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).
 
 ## Superfícies atuais
 
@@ -128,11 +147,11 @@ Schema e seed: [database.md](database.md). Decisão: [adr/0002-database-backed-m
 
 Resumo do schema: [database.md](database.md). Centavos no server; não confiar em preços do client.
 
-**Comanda digital de balcão:** fluxo técnico completo — criação autenticada (`/admin/balcao`), preparo na fila existente, recebimento e finalização atômica em READY (`paymentMethod` + `paidAt` + `COMPLETED`). Permissões: `orders.create` / `orders.status.complete` para `MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado. Bypass genérico para COUNTER unpaid está fechado. E2E Playwright cobre o fluxo ponta a ponta (desktop + mobile) e isolamento/tenant/duplicidade; validação operacional em loja ainda pendente — ver [counter-order-operational-validation.md](product/counter-order-operational-validation.md). Sem caixa, conciliação, fiscal, estoque, impressão ou gateway. Não é PDV completo.
+**Comanda digital de balcão:** fluxo técnico completo — criação autenticada (`/admin/balcao`), preparo na fila existente, recebimento e finalização atômica em READY (`paymentMethod` + `paidAt` + `COMPLETED`). Permissões: `orders.create` / `orders.status.complete` para `MASTER`, `STORE_OWNER`, `MANAGER`, `OPERATOR`; `KITCHEN` bloqueado. Bypass genérico para COUNTER unpaid está fechado. E2E Playwright cobre o fluxo ponta a ponta (desktop + mobile) e isolamento/tenant/duplicidade. **Operação Online e Balcão validadas pelo cliente em produção**; fricções pontuais e métricas de uso seguem em [counter-order-operational-validation.md](product/counter-order-operational-validation.md) como observação contínua. Sem caixa, conciliação, fiscal, estoque, impressão ou gateway. Não é PDV completo.
 
 **Pós-criação no Balcão:** após registrar, a confirmação permanece em `/admin/balcao` (sem redirect automático). Draft limpo somente após sucesso; código da comanda visível e ações `Nova comanda` · `Ver pedido` · `Ir para pedidos`. `Ver pedido` permanece até Nova comanda ou o próximo registro. Objetivo: duas comandas consecutivas sem sair da tela. **Counter post-create flow complete · Operator can create consecutive counter orders · Navigation audit backlog in progress.**
 
-**Origem do pedido na fila:** lista e detalhe mostram badge de origem com labels oficiais `DIRECT`→Online, `COUNTER`→Balcão, `IFOOD`→iFood, `OTHER`→Outro (fonte única `formatOrderSource`). Objetivo: o operador distinguir online vs balcão sem abrir o detalhe. **Order source visibility complete · Filtering by source not implemented · Navigation audit backlog in progress.**
+**Origem do pedido na fila:** lista e detalhe mostram badge de origem com labels oficiais `DIRECT`→Online, `COUNTER`→Balcão, `IFOOD`→iFood, `OTHER`→Outro (fonte única `formatOrderSource`). Filtros da fila: status, origem e busca por código/nome (`q`) via URL e Prisma server-side (antes de `take: 50`); live refresh preserva a query. **Order source visibility complete · Admin order queue filters complete · Status and source filtering implemented · Code and customer-name search implemented · Phone search not implemented · Pagination not implemented · Navigation audit backlog in progress.**
 
 **Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações no chrome; acesso direto read-only continua permitido e mutações seguem bloqueadas no server. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
 
@@ -181,28 +200,29 @@ Validação no server: adicional ativo e vinculado ao produto; preço do banco.
 | `OPERATOR` | sim | sim | sim | sim | não |
 | `KITCHEN` | sim | não | sim | não | não |
 
-## Fora do piloto
+## Fora do piloto (ainda não prometido)
 
-Não prometer ao cliente Na Braza sem decisão de produto:
+Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 
 - Pagamento online, WhatsApp Business API
-- Reset de senha, upload de imagens, relatórios, tempo real
+- Reset de senha, upload de imagens, relatórios, Web Push / tempo real push
 - Zonas de entrega, horário por dia da semana estruturado
 - CRUD de lojas no `/master`
 - Storefront dinâmico por slug para novos tenants
-- PDV completo, caixa, fiscal, impressão; validação operacional do balcão em loja real ainda pendente
+- PDV completo, caixa, fiscal, impressão, conciliação
 
-## Roadmap
+## Roadmap (pós-validação)
 
-- Validação operacional da comanda de balcão ([product/counter-order-operational-validation.md](product/counter-order-operational-validation.md))
-- Validação controlada do piloto ([product/pilot-validation-plan.md](product/pilot-validation-plan.md))
-- Aceite e dados reais do piloto Na Braza
-- Storefront por slug e onboarding de tenants
-- CRUD de `Store` no master, billing, polish de marca white-label
+- Observação operacional contínua e backlog priorizado por evidência (fricções reais da loja)
+- Observação de 7–14 dias dos filtros da fila (uso efetivo, legenda “Na lista”, limites do `take: 50`)
+- Hipóteses pontuais de UX/notificações/Balcão sob observação — ver planos em `docs/product/`
+- Storefront por slug e onboarding de tenants (quando evidência e grill autorizarem)
+- CRUD de `Store` no master, billing, polish de marca white-label (fora do ciclo imediato do piloto)
 - Itens em [README.md](../README.md) e ADRs
 
-Toda feature relevante após o aceite deve passar por **product-grill** antes do
-planejamento técnico. Somente **BUILD** autoriza arquitetura.
+Toda feature relevante continua obrigada a passar por **product-grill** antes do
+planejamento técnico — o aceite geral do piloto **não** dispensa o grill.
+Somente **BUILD** autoriza arquitetura.
 `REDUCE SCOPE` exige reformular e executar o grill novamente.
 Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 

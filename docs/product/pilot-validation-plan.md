@@ -1,12 +1,31 @@
 # Plano de validação do piloto — Na Braza
 
-Documento **operacional** para validar se o piloto Na Braza (`na-brasa`) consegue
-receber e operar pedidos reais com menos atrito usando o sistema atual.
+Documento **operacional** originalmente usado para o ciclo de aceite do piloto
+Na Braza (`na-brasa`). O aceite geral do cliente e a operação em produção
+estão **concluídos** — ver estágio atual em [../product.md](../product.md).
 
-Não define novas features. Não autoriza analytics complexo, PostHog, billing
-nem tracking instrumentado nesta fase.
+Este plano **não** é mais gate pré-produção. Reutilize-o como:
+
+* observação pós-deploy;
+* validação contínua de hipóteses específicas;
+* coleta de feedback e fricções;
+* critérios de evidência para novas evoluções (sempre com `product-grill`).
+
+Não define novas features por si só. Não autoriza analytics complexo, PostHog,
+billing nem tracking instrumentado sem decisão de produto.
 
 Relacionado: [../product.md](../product.md) · [../releases/v0.1.0-pilot.md](../releases/v0.1.0-pilot.md) · [../client/na-braza-pilot-data.md](../client/na-braza-pilot-data.md) · skills `.cursor/skills/product-grill` e `.cursor/skills/revenue-centric-design`.
+
+## Status do ciclo (reclassificação)
+
+| Item | Classificação |
+| --- | --- |
+| Aceite geral do produto pelo cliente | **Concluído** |
+| Operação Online e Balcão em produção | **Validada** |
+| Fases A–E como gate de entrada em produção | **Convertidas** para observação / feedback contínuo |
+| Hipóteses comerciais finas (ex.: disposição a pagar) | **Ainda pendentes** de evidência específica — não inventar métricas |
+| Funil / formulários / entrevista | **Preservados** como ferramentas de coleta contínua |
+| Toda feature nova | **product-grill obrigatório** (não dispensado pelo aceite) |
 
 Papéis usados neste plano (não inventar nomes pessoais):
 
@@ -22,8 +41,11 @@ Papéis usados neste plano (não inventar nomes pessoais):
 
 ## 1. Objetivo
 
-Validar se o Na Braza consegue receber e operar pedidos reais com menos atrito
-usando o sistema (storefront → pedido persistido → WhatsApp → painel).
+**Histórico (ciclo de aceite):** validar se o Na Braza consegue receber e operar
+pedidos reais com menos atrito (storefront → pedido persistido → WhatsApp → painel).
+
+**Atual:** manter o mesmo funil e checklists para observação contínua e para
+avaliar hipóteses novas — sem tratar a existência do piloto em produção como pendente.
 
 ## 2. Hipóteses
 
@@ -335,10 +357,11 @@ Sessão de entrevista + consolidação no mesmo dia ou no dia seguinte
 
 ## 6. Janela de decisão pós-piloto
 
-A decisão deve ser registrada em **até 2 dias úteis** após o fim da última
-janela real do piloto (Phase D).
+O ciclo de aceite geral do piloto já resultou em **continuidade em produção**.
+Para hipóteses ou janelas futuras, registre decisão em **até 2 dias úteis** após
+o fim da observação relevante.
 
-Decisão obrigatória: **PROSSEGUIR** | **AJUSTAR** | **REPOSICIONAR** | **INTERROMPER**.
+Decisão por ciclo: **PROSSEGUIR** | **AJUSTAR** | **REPOSICIONAR** | **INTERROMPER**.
 
 Registrar:
 
@@ -511,5 +534,5 @@ Isso permite mudar posicionamento **sem** tratar como falha técnica.
 - feature autorizada / adiada / rejeitada
 - prazo da próxima revisão
 
-Toda feature relevante após este plano deve passar por `product-grill` antes
-de planejamento técnico.
+Toda feature relevante continua obrigada a passar por `product-grill` antes
+de planejamento técnico — inclusive no estágio pós-validação.

@@ -109,22 +109,24 @@ Detalhes: [deployment.md](deployment.md#rollback-manual-básico).
 
 ## Client acceptance checklist
 
-Checklist para o **dono do Na Braza** após o piloto técnico (dados reais, não fictícios de E2E):
+**Aceite geral do cliente:** concluído — o piloto está em produção ativa com
+uso real (Online + Balcão). Este checklist deixa de ser gate de entrada e
+passa a servir para **revalidação** após mudanças grandes de dados ou campanha.
 
-- [ ] Dados da loja conferidos em `/admin/configuracoes`
-- [ ] WhatsApp oficial conferido (mensagem de teste chega no número certo)
-- [ ] Endereço conferido no público
-- [ ] Horário / texto de funcionamento conferido
-- [ ] Taxa de entrega conferida
-- [ ] Entrega e retirada habilitadas conforme operação
-- [ ] Cardápio e categorias conferidos
-- [ ] Preços conferidos
-- [ ] Adicionais conferidos (vínculos e preços)
-- [ ] Pedido teste enviado para o WhatsApp oficial
-- [ ] Pedido aparece no `/admin`
-- [ ] Status do pedido atualizado no fluxo real
-- [ ] Link público aprovado (`/na-brasa`)
-- [ ] QR Code ou link pronto para divulgação (Instagram, balcão, etc.)
+- [x] Dados da loja conferidos em `/admin/configuracoes` — aceite geral
+- [x] WhatsApp oficial conferido (mensagem de teste chega no número certo) — aceite geral
+- [x] Endereço conferido no público — aceite geral
+- [x] Horário / texto de funcionamento conferido — aceite geral
+- [x] Taxa de entrega conferida — aceite geral
+- [x] Entrega e retirada habilitadas conforme operação — aceite geral
+- [x] Cardápio e categorias conferidos — aceite geral
+- [x] Preços conferidos — aceite geral
+- [x] Adicionais conferidos (vínculos e preços) — aceite geral
+- [x] Pedido teste enviado para o WhatsApp oficial — aceite geral
+- [x] Pedido aparece no `/admin` — aceite geral
+- [x] Status do pedido atualizado no fluxo real — aceite geral
+- [ ] Link público aprovado (`/na-brasa`) — reconfirmar se houver restrição de divulgação
+- [ ] QR Code ou link pronto para divulgação (Instagram, balcão, etc.) — observação / campanha
 
 ## Pilot smoke checklist
 

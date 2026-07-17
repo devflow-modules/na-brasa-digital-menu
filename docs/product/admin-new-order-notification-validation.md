@@ -11,11 +11,22 @@ Existing notification polling reused
 No duplicate queue polling introduced
 Visibility, status and COUNTER refresh coordinated
 No WebSocket or SSE
-Product hypothesis pending real validation
+Delivered in production
+Continuous observation recommended
 ```
 
-This document records technical delivery and how to validate the feature.
-Automated E2E does **not** prove the product hypothesis with a real store owner.
+## Status
+
+| Item | Classificação |
+| --- | --- |
+| Entrega técnica, smoke e E2E | **Concluído** |
+| Live refresh coordenado (#67) | **Concluído** |
+| Uso em produção com painel aberto | **Parcialmente concluído** — feature entregue; fricções de UX sob observação |
+| Hipóteses pontuais (som, banner, multi-aba, push com app fechado) | **Observação contínua** / fora de escopo se exigir Web Push |
+| Web Push / SSE / segundo poll | **Não implementado** |
+
+This document records technical delivery and how to keep validating the feature
+in production. Automated E2E does **not** prove every UX hypothesis.
 
 ## Fluxo entregue
 
@@ -190,5 +201,6 @@ Registrar durante validação real:
 | **REPOSICIONAR** | hipótese muda (ex.: push com app fechado) |
 | **INTERROMPER** | sem valor operacional observado |
 
-Estado técnico atual: pronto para **PROSSEGUIR** para validação real.
-Hipótese de produto: **ainda pendente** de observação com o dono/operador.
+Estado técnico atual: entregue em produção; decisão geral de continuidade do
+piloto já tomada. Hipóteses pontuais de UX/operação do alerta permanecem em
+**observação contínua** com dono/operador (não confundir com aceite geral pendente).
