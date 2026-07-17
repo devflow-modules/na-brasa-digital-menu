@@ -84,6 +84,7 @@ Arquivos relevantes:
 
 - `src/features/admin/auth/admin-permissions.test.ts` (role × transição)
 - `src/features/admin/chrome/admin-navigation.test.ts` (matriz de links + active route + destino seguro)
+- `src/features/admin/orders/admin-orders-formatters.test.ts` (labels de domínio + `formatOrderElapsedTime` com `now` fixo)
 - `src/features/admin/orders/new-order-cursor.test.ts` (cursor / empate / avanço)
 - `src/features/admin/orders/poll-new-admin-orders.service.test.ts` (bootstrap/delta/hasMore/tenant)
 - `src/features/admin/orders/actions/poll-new-admin-orders-action.test.ts` (soft-auth / codes)

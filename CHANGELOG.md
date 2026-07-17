@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 
 - Admin order queue live refresh: coordinated `router.refresh()` from existing notification polling (new DIRECT), tab visibility, successful status updates, and COUNTER create — without a second list poll, WebSocket, or SSE
 - Admin order queue filters: status, source, and code/customer-name search via URL `searchParams` and server-side Prisma `where` (before `take: 50`); live refresh reused; no phone search or pagination
+- Admin order queue elapsed time since creation (`formatOrderElapsedTime`) next to the absolute timestamp; server-rendered; updates via existing live refresh; no urgency threshold, SLA, or client timer
 
 ### Changed
 
@@ -23,6 +24,12 @@ Production operation active
 Online and Counter order flows operational
 Admin notifications and coordinated live refresh complete
 Order queue filters and search complete
+Order elapsed time visible in the admin queue
+Absolute order timestamp preserved
+Server-rendered elapsed labels
+Existing live refresh reused
+No urgency threshold or SLA introduced
+No client timer or additional polling
 Post-validation operational backlog in progress
 Continuous feature validation remains required
 Admin order queue live refresh complete

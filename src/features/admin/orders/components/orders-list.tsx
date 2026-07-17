@@ -3,6 +3,7 @@ import {
   formatDateTime,
   formatDeliveryType,
   formatMoney,
+  formatOrderElapsedTime,
   formatPaymentMethod,
   formatPhone,
 } from "@/features/admin/orders/admin-orders-formatters";
@@ -15,10 +16,38 @@ type OrdersListProps = {
   filtersActive?: boolean;
 };
 
+function OrderCreatedAtDisplay({
+  createdAt,
+  now,
+}: {
+  createdAt: Date;
+  now: Date;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span
+        data-testid="admin-order-elapsed"
+        className="font-medium text-stone-200"
+      >
+        {formatOrderElapsedTime(createdAt, now)}
+      </span>
+      <time
+        dateTime={createdAt.toISOString()}
+        data-testid="admin-order-created-at"
+        className="text-xs text-stone-500"
+      >
+        {formatDateTime(createdAt)}
+      </time>
+    </div>
+  );
+}
+
 export function OrdersList({
   orders,
   filtersActive = false,
 }: OrdersListProps) {
+  const now = new Date();
+
   if (orders.length === 0) {
     return (
       <div
@@ -107,8 +136,8 @@ export function OrdersList({
                   {formatPaymentMethod(order.paymentMethod)}
                 </td>
                 <td className="px-4 py-3">{formatMoney(order.totalCents)}</td>
-                <td className="px-4 py-3 text-stone-400">
-                  {formatDateTime(order.createdAt)}
+                <td className="px-4 py-3">
+                  <OrderCreatedAtDisplay createdAt={order.createdAt} now={now} />
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
@@ -171,8 +200,8 @@ export function OrdersList({
               </div>
               <div>
                 <dt className="text-stone-500">Quando</dt>
-                <dd className="text-stone-200">
-                  {formatDateTime(order.createdAt)}
+                <dd>
+                  <OrderCreatedAtDisplay createdAt={order.createdAt} now={now} />
                 </dd>
               </div>
             </dl>

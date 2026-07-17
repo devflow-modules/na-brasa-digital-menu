@@ -238,6 +238,7 @@ do que já está entregue.
 9. Ativar o som toca uma prévia curta; pedidos antigos do bootstrap **não** soam.
 10. A fila `/admin` atualiza sozinha quando o polling detecta pedido novo (ou mudança de pendentes), ao voltar para a aba (um refresh após o poll retomado), após mudar status com sucesso, ou ao abrir Pedidos depois de criar comanda — sem F5 e sem segundo polling. O aviso “Atualizando pedidos…” indica que a atualização foi pedida, não que já terminou. Se a lista falhar em sincronizar, o banner continua permitindo abrir o pedido; o próximo poll/visibility tenta de novo.
 11. Na fila, use **Status**, **Origem** e **Buscar por código ou cliente** (Aplicar) para restringir a lista; a URL guarda os filtros. **Limpar filtros** volta à fila completa. Os cards de resumo no topo são da operação da loja (não dos filtros). Busca por telefone e paginação não estão disponíveis.
+12. Em cada pedido, **Há …** é o tempo desde a **criação** do pedido (não desde o status atual). O horário absoluto continua abaixo. Isso não é SLA nem “atrasado”; a label atualiza quando a fila refresca sozinha (live refresh), sem cronômetro na tela.
 
 ### Se algo sair errado nas configurações
 
