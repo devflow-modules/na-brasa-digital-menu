@@ -1,5 +1,7 @@
 import type { PaymentMethod } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import type { AdminOrderQueueFilters } from "@/features/admin/orders/admin-order-queue-filters";
+import { buildAdminOrderQueueWhere } from "@/features/admin/orders/admin-order-queue-filters";
 import type {
   AdminOrderDetail,
   AdminOrderListItem,
@@ -11,7 +13,7 @@ import {
   type AdminNewOrderCursorPoint,
 } from "@/features/admin/orders/new-order-cursor";
 
-const RECENT_ORDERS_LIMIT = 50;
+export const RECENT_ORDERS_LIMIT = 50;
 
 /** Fixed page size for new-order delta polls (not client-configurable). */
 export const ADMIN_NEW_ORDERS_TAKE = 20;
@@ -36,12 +38,24 @@ export function getStartOfLocalDay(now = new Date()): Date {
   return start;
 }
 
+export type ListRecentAdminOrdersOptions = {
+  limit?: number;
+  filters?: AdminOrderQueueFilters;
+};
+
+/**
+ * Recent orders for the store queue. Filters are applied in the DB before take
+ * (not in-memory on an unfiltered page).
+ */
 export async function listRecentAdminOrders(
   storeId: string,
-  limit = RECENT_ORDERS_LIMIT,
+  options: ListRecentAdminOrdersOptions = {},
 ): Promise<AdminOrderListItem[]> {
+  const limit = options.limit ?? RECENT_ORDERS_LIMIT;
+  const filters = options.filters ?? {};
+
   const orders = await prisma.order.findMany({
-    where: { storeId },
+    where: buildAdminOrderQueueWhere(storeId, filters),
     take: limit,
     orderBy: { createdAt: "desc" },
     select: {
