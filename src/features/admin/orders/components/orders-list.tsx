@@ -12,22 +12,48 @@ import { OrderStatusBadge } from "@/features/admin/orders/components/order-statu
 
 type OrdersListProps = {
   orders: AdminOrderListItem[];
+  filtersActive?: boolean;
 };
 
-export function OrdersList({ orders }: OrdersListProps) {
+export function OrdersList({
+  orders,
+  filtersActive = false,
+}: OrdersListProps) {
   if (orders.length === 0) {
     return (
       <div
         data-testid="admin-orders-empty"
+        data-filters-active={filtersActive ? "true" : "false"}
         className="rounded-2xl border border-dashed border-stone-700 bg-stone-900/40 px-5 py-10 text-center"
       >
-        <p className="text-base font-medium text-stone-100">
-          Nenhum pedido na fila.
-        </p>
-        <p className="mt-2 text-sm text-stone-400">
-          Quando chegar um pedido online ou uma comanda de balcão, ele aparecerá
-          aqui.
-        </p>
+        {filtersActive ? (
+          <>
+            <p className="text-base font-medium text-stone-100">
+              Nenhum pedido corresponde aos filtros aplicados.
+            </p>
+            <p className="mt-2 text-sm text-stone-400">
+              A loja pode ter pedidos fora destes filtros. Ajuste a busca ou
+              limpe para ver a fila completa.
+            </p>
+            <Link
+              href="/admin"
+              data-testid="admin-orders-empty-clear"
+              className="mt-4 inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 bg-stone-950 px-4 text-sm font-semibold text-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300"
+            >
+              Limpar filtros
+            </Link>
+          </>
+        ) : (
+          <>
+            <p className="text-base font-medium text-stone-100">
+              Nenhum pedido encontrado.
+            </p>
+            <p className="mt-2 text-sm text-stone-400">
+              Quando chegar um pedido online ou uma comanda de balcão, ele
+              aparecerá aqui.
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -80,16 +106,14 @@ export function OrdersList({ orders }: OrdersListProps) {
                 <td className="px-4 py-3">
                   {formatPaymentMethod(order.paymentMethod)}
                 </td>
-                <td className="px-4 py-3 font-semibold text-orange-200">
-                  {formatMoney(order.totalCents)}
-                </td>
-                <td className="px-4 py-3 text-stone-300">
+                <td className="px-4 py-3">{formatMoney(order.totalCents)}</td>
+                <td className="px-4 py-3 text-stone-400">
                   {formatDateTime(order.createdAt)}
                 </td>
                 <td className="px-4 py-3 text-right">
                   <Link
                     href={`/admin/pedidos/${order.id}`}
-                    className="text-sm font-medium text-orange-300 underline-offset-2 hover:underline"
+                    className="font-medium text-orange-300 underline-offset-2 hover:underline"
                   >
                     Ver detalhes
                   </Link>
@@ -100,62 +124,68 @@ export function OrdersList({ orders }: OrdersListProps) {
         </table>
       </div>
 
-      <ul className="flex flex-col gap-3 md:hidden">
+      <div className="flex flex-col gap-3 md:hidden">
         {orders.map((order) => (
-          <li
+          <article
             key={order.id}
             data-testid="admin-order-card"
             data-order-id={order.id}
             className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-orange-100">
+              <div>
+                <p className="text-lg font-semibold text-orange-100">
                   #{order.code}
                 </p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <OrderSourceBadge source={order.source} />
-                  <OrderStatusBadge status={order.status} />
-                </div>
-                <p className="mt-2 text-sm text-stone-200">
+                <p className="mt-1 text-sm text-stone-300">
                   {order.customerName}
                 </p>
                 <p className="text-xs text-stone-400">
                   {formatPhone(order.customerPhone)}
                 </p>
               </div>
+              <div className="flex flex-col items-end gap-2">
+                <OrderSourceBadge source={order.source} />
+                <OrderStatusBadge status={order.status} />
+              </div>
             </div>
 
-            <dl className="mt-4 grid grid-cols-2 gap-2 text-xs text-stone-300">
+            <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
               <div>
                 <dt className="text-stone-500">Tipo</dt>
-                <dd>{formatDeliveryType(order.deliveryType)}</dd>
+                <dd className="text-stone-200">
+                  {formatDeliveryType(order.deliveryType)}
+                </dd>
               </div>
               <div>
                 <dt className="text-stone-500">Pagamento</dt>
-                <dd>{formatPaymentMethod(order.paymentMethod)}</dd>
+                <dd className="text-stone-200">
+                  {formatPaymentMethod(order.paymentMethod)}
+                </dd>
               </div>
               <div>
                 <dt className="text-stone-500">Total</dt>
-                <dd className="font-semibold text-orange-200">
+                <dd className="text-stone-200">
                   {formatMoney(order.totalCents)}
                 </dd>
               </div>
               <div>
                 <dt className="text-stone-500">Quando</dt>
-                <dd>{formatDateTime(order.createdAt)}</dd>
+                <dd className="text-stone-200">
+                  {formatDateTime(order.createdAt)}
+                </dd>
               </div>
             </dl>
 
             <Link
               href={`/admin/pedidos/${order.id}`}
-              className="mt-4 inline-flex text-sm font-medium text-orange-300 underline-offset-2 hover:underline"
+              className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-xl bg-orange-500 px-4 text-sm font-semibold text-stone-950"
             >
               Ver detalhes
             </Link>
-          </li>
+          </article>
         ))}
-      </ul>
+      </div>
     </section>
   );
 }

@@ -22,7 +22,7 @@ export function OrdersSummaryCards({ summary }: OrdersSummaryCardsProps) {
       value: formatMoney(summary.revenueTodayCents),
     },
     {
-      label: "Total exibido",
+      label: "Na lista",
       value: String(summary.displayedCount),
     },
   ];

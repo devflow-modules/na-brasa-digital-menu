@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
+import { parseAdminOrderQueueSearchParams } from "@/features/admin/orders/admin-order-queue-filters";
 import {
   getAdminOrdersSummary,
   listRecentAdminOrders,
@@ -13,10 +14,16 @@ export const metadata: Metadata = {
   description: "Dashboard de pedidos do painel da loja.",
 };
 
-export default async function AdminPage() {
-  const context = await requireAdminStoreContext();
+type AdminPageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-  const orders = await listRecentAdminOrders(context.storeId);
+export default async function AdminPage({ searchParams }: AdminPageProps) {
+  const context = await requireAdminStoreContext();
+  const params = await searchParams;
+  const filters = parseAdminOrderQueueSearchParams(params);
+
+  const orders = await listRecentAdminOrders(context.storeId, { filters });
   const summary = await getAdminOrdersSummary(context.storeId, orders.length);
 
   return (
@@ -25,6 +32,7 @@ export default async function AdminPage() {
         storeName={context.storeName}
         orders={orders}
         summary={summary}
+        filters={filters}
       />
     </main>
   );
