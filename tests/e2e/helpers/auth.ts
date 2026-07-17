@@ -15,6 +15,9 @@ export type DecodedAdminSession = {
   storeId: string | null;
 };
 
+/**
+ * Logs in as the E2E MASTER user. Lands on /master (no implicit Store context).
+ */
 export async function loginAdmin(page: Page): Promise<void> {
   await ensureE2eAdminUser();
   const { email, password } = getE2eAdminCredentials();
@@ -23,9 +26,12 @@ export async function loginAdmin(page: Page): Promise<void> {
   await page.getByTestId("admin-login-email").fill(email);
   await page.getByTestId("admin-login-password").fill(password);
   await page.getByTestId("admin-login-submit").click();
-  await page.waitForURL(/\/admin\/?$/);
+  await page.waitForURL(/\/master\/?$/);
 }
 
+/**
+ * Logs in as a Store-scoped user. Lands on /admin.
+ */
 export async function loginAsUser(
   page: Page,
   credentials: { email: string; password: string },

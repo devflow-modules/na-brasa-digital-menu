@@ -120,19 +120,17 @@ test.describe("admin store-scoped access", () => {
     await expect(page.getByTestId("admin-orders-dashboard")).toHaveCount(0);
   });
 
-  test("MASTER still accesses /admin for default store slug", async ({
+  test("MASTER direct /admin redirects to /master without pilot Store", async ({
     page,
   }) => {
     await ensureE2eAdminUser();
-    const orderName = uniqueCustomerName("Master Default Store");
-    await createE2ePickupOrder({
-      customerName: orderName,
-      storeSlug: getStoreSlug(),
-    });
-
     await loginAdmin(page);
-    await expect(page.getByTestId("admin-orders-dashboard")).toBeVisible();
-    await expect(page.getByTestId("admin-master-transitional-note")).toBeVisible();
-    await expect(page.getByText(orderName).first()).toBeVisible();
+    await expect(page).toHaveURL(/\/master\/?$/);
+
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/master\/?$/);
+    await expect(page.getByTestId("master-dashboard")).toBeVisible();
+    await expect(page.getByTestId("admin-orders-dashboard")).toHaveCount(0);
+    await expect(page.getByTestId("admin-chrome")).toHaveCount(0);
   });
 });

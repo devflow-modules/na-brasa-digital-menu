@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { LogoutButton } from "@/features/admin/auth/components/logout-button";
 import { MasterStoresList } from "@/features/master/components/master-stores-list";
 import { MasterSummaryCards } from "@/features/master/components/master-summary-cards";
@@ -28,14 +27,14 @@ export function MasterDashboard({
       <header className="flex flex-col gap-4 border-b border-stone-800 pb-6 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-wide text-orange-300/80">
-            DevFlow Menu — Operação Master
+            Área Master
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight text-orange-50">
             Painel Master
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-stone-400">
-            Operação geral da plataforma. Na Braza é o primeiro cliente/tenant
-            real.
+            Selecione uma operação disponível. O acesso ao painel de uma loja
+            exige um fluxo explícito de seleção (ainda não implementado).
           </p>
           <p className="mt-2 text-sm text-stone-500">
             Sessão: {sessionName} ({sessionEmail})
@@ -43,27 +42,16 @@ export function MasterDashboard({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/admin"
-            data-testid="master-link-admin-transitional"
-            className="inline-flex h-10 items-center justify-center rounded-xl border border-stone-700 bg-stone-900 px-4 text-sm font-medium text-stone-200 hover:bg-stone-800"
-          >
-            Abrir /admin (temporário)
-          </Link>
           <LogoutButton className="border-stone-700 bg-stone-900 text-stone-100 hover:bg-stone-800" />
         </div>
       </header>
 
       <p
-        data-testid="master-transitional-note"
-        className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/90"
+        data-testid="master-landing-note"
+        className="rounded-xl border border-stone-700 bg-stone-900/60 px-4 py-3 text-sm text-stone-300"
       >
-        Acesso de MASTER ao{" "}
-        <Link href="/admin" className="underline underline-offset-2">
-          /admin
-        </Link>{" "}
-        ainda é transicional. Gerencie usuários de loja em &quot;Gerenciar
-        usuários&quot;. CRUD completo de lojas virá em PRs futuras.
+        Gerencie usuários de loja em &quot;Gerenciar usuários&quot;. Não há
+        entrada automática no /admin de uma Store.
       </p>
 
       <MasterSummaryCards summary={summary} />

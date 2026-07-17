@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { loginAdmin } from "./helpers/auth";
+import { loginAsUser } from "./helpers/auth";
 import {
   cleanupE2eOrders,
   createE2eCounterOrder,
   createE2ePickupOrder,
   disconnectE2ePrisma,
 } from "./helpers/db";
+import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 import { uniqueCustomerName } from "./helpers/test-data";
 
 test.describe("admin orders", () => {
@@ -19,10 +20,14 @@ test.describe("admin orders", () => {
   });
 
   test("lists E2E order and shows detail fields", async ({ page }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-orders-manager@example.com",
+    });
     const customerName = uniqueCustomerName("Admin Orders Customer");
     const order = await createE2ePickupOrder({ customerName });
 
-    await loginAdmin(page);
+    await loginAsUser(page, manager);
     await expect(page.getByTestId("admin-orders-list")).toBeVisible();
     await expect(page.getByText(customerName).first()).toBeVisible();
 
@@ -62,10 +67,14 @@ test.describe("admin orders", () => {
   test("shows Balcão origin for COUNTER orders in list and detail", async ({
     page,
   }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-orders-counter-manager@example.com",
+    });
     const customerName = uniqueCustomerName("Admin Counter Source");
     const order = await createE2eCounterOrder({ customerName });
 
-    await loginAdmin(page);
+    await loginAsUser(page, manager);
     await expect(page.getByTestId("admin-orders-list")).toBeVisible();
 
     const counterRow = page.locator(

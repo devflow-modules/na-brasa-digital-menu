@@ -70,7 +70,8 @@ Detalhes: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dados operacio
 - Pedidos, cardápio, adicionais, configurações — permissões por role no server.
 - **Chrome compartilhado** nas rotas autenticadas (`app/admin/(store)`): navegação única filtrada por papel/permissão operacional, logout consistente, identidade da loja; login fora do chrome. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md).
 - Usuários de loja: contexto de `session.storeId`.
-- `MASTER` em `/admin`: contexto **transitório** da loja definida por `NEXT_PUBLIC_STORE_SLUG` (piloto: `na-brasa`) — não é seleção livre de tenant; `/master` permanece fora do chrome de tenant.
+- `MASTER` **não** recebe Store piloto implícita em `/admin`; login e acesso direto a `/admin` vão para `/master` até existir seleção explícita de Store.
+
 
 ### Painel master
 
@@ -98,7 +99,9 @@ O payload inclui `storeSlug`; o server resolve a `Store` e valida que produtos/a
 ```text
 Equipe: /admin/login → /admin → /admin/pedidos/[id] → atualiza status (server)
 Plataforma: /admin/login → /master → gestão de usuários da loja (quando aplicável)
+MASTER em /admin sem Store explícita → redirect /master
 ```
+
 
 Transições de status e permissões: validadas no server (matrizes abaixo).
 
@@ -108,7 +111,8 @@ Transições de status e permissões: validadas no server (matrizes abaixo).
 - Sessão: JWT (`jose`), cookie `ADMIN_SESSION_COOKIE`, claims `userId`, `role`, `storeId`, etc.
 - Bootstrap: `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL`, `MASTER_ADMIN_PASSWORD` no **seed** (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
 - **`/master`:** só `MASTER`; demais roles → `notFound()`.
-- **`/admin`:** roles de loja + acesso transicional do `MASTER` à Store de `NEXT_PUBLIC_STORE_SLUG`.
+- **`/admin`:** roles de loja com `session.storeId` válido; `MASTER` sem contexto explícito → redirect `/master`.
+
 
 ## Modelo multi-tenant
 
@@ -130,9 +134,12 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 **Origem do pedido na fila:** lista e detalhe mostram badge de origem com labels oficiais `DIRECT`→Online, `COUNTER`→Balcão, `IFOOD`→iFood, `OTHER`→Outro (fonte única `formatOrderSource`). Objetivo: o operador distinguir online vs balcão sem abrir o detalhe. **Order source visibility complete · Filtering by source not implemented · Navigation audit backlog in progress.**
 
-**Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações no chrome; acesso direto read-only continua permitido e mutações seguem bloqueadas no server. `MASTER` em `/admin` usa Store piloto por slug configurado (transicional; sem picker). Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
+**Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações no chrome; acesso direto read-only continua permitido e mutações seguem bloqueadas no server. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
 
 **Acesso negado explícito (admin):** rotas operacionais com Store context válido e permissão de página negada (ex.: KITCHEN em `/admin/balcao`) renderizam `Acesso não permitido` dentro do chrome, com destino seguro derivado da navegação. `notFound()` permanece para recurso inexistente, pedido de outro tenant, Store context inválido e `/master` sem MASTER. Sessão ausente continua indo para login. **Explicit admin access-denied UX complete · Tenant resource concealment preserved · Session redirect behavior unchanged · Backend authorization unchanged · Navigation audit backlog in progress.**
+
+**Landing MASTER:** login e acesso direto a `/admin` levam a `/master`. Usuários de Store continuam em `/admin` via `session.storeId`. Sem Store picker/switcher e sem fallback piloto implícito. Acesso tenant por MASTER fica para PR futura explícita. **MASTER login landing → /master · Store-user login landing → /admin · MASTER no longer receives implicit pilot Store context · Direct MASTER access to /admin redirects to /master · Tenant Store selection not implemented · Backend authorization unchanged · Navigation audit backlog in progress.**
+
 
 ### Configurações da loja (`/admin/configuracoes`)
 

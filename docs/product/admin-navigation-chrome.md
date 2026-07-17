@@ -10,10 +10,15 @@ Shared admin navigation complete
 Local navigation duplication reduced
 Explicit admin access-denied UX complete
 Tenant resource concealment preserved
-Session redirect behavior unchanged
+MASTER login landing → /master
+Store-user login landing → /admin
+MASTER no longer receives implicit pilot Store context
+Direct MASTER access to /admin redirects to /master
+Tenant Store selection not implemented
 Backend authorization unchanged
 Navigation audit backlog in progress
 ```
+
 
 ## Architecture
 
@@ -36,7 +41,7 @@ AdminChrome
 
 | Role | Pedidos | Balcão | Cardápio | Configurações |
 | --- | --- | --- | --- | --- |
-| `STORE_OWNER` / `MANAGER` / `MASTER` (transitional `/admin`) | sim | sim | sim | sim |
+| `STORE_OWNER` / `MANAGER` | sim | sim | sim | sim |
 | `OPERATOR` | sim | sim | sim (`Ver cardápio`) | sim |
 | `KITCHEN` | sim | não | não | não |
 
@@ -49,15 +54,16 @@ Derived from operational permissions (`orders.read`, `orders.create`, manage/tog
 - Mutações permanecem bloqueadas por autorização real no server (não apenas por UI).
 - Não afirmar que KITCHEN “não pode acessar” essas URLs.
 
-### MASTER (transicional em `/admin`)
+### MASTER landing
 
-- Em `/admin`, MASTER usa a **Store piloto** resolvida por `NEXT_PUBLIC_STORE_SLUG` (fallback piloto `na-brasa`).
-- A Store é **validada no banco**; sem Store válida não há chrome tenant.
-- **Não existe seleção interativa de Store** nesta entrega.
-- O fluxo é **transicional** e permanece no backlog — não é multi-tenant completo.
+- Login `MASTER` → **`/master`** (nunca entra automaticamente em uma Store).
+- Acesso direto a `/admin` (e rotas tenant) **redireciona para `/master`**.
+- Sem Store picker, Store switcher ou contexto tenant implícito (`NEXT_PUBLIC_STORE_SLUG` / `"na-brasa"` não resolvem mais o admin do MASTER).
+- Acesso tenant por MASTER exige fluxo futuro explícito de seleção.
 - `/master` permanece painel de plataforma separado, fora do chrome de tenant.
 
 There is no `ATTENDANT` / `ADMIN` role in the schema.
+
 
 ## Active route
 
@@ -78,8 +84,10 @@ When an authenticated Store user with **valid Store context** opens an operation
 
 - missing resources (order id, settings row);
 - cross-tenant concealment (order of another Store);
-- invalid Store context after session exists;
+- invalid Store context after session exists (Store roles);
 - non-MASTER hitting `/master`.
+
+MASTER without Store context redirects to `/master` (not `notFound()`, not access-denied).
 
 Session missing still redirects to `/admin/login` (not the access-denied page).
 
@@ -87,4 +95,4 @@ Next.js `forbidden()` / `forbidden.tsx` exist in 15.5.x but require `experimenta
 
 ## Out of scope
 
-Backend auth changes, new roles/permissions, polling/notification changes, MASTER landing/store picker, full page redesign, enabling experimental auth interrupts.
+Backend auth changes, new roles/permissions, polling/notification changes, Store picker/switcher, full page redesign, enabling experimental auth interrupts.

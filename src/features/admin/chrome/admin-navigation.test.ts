@@ -89,9 +89,10 @@ describe("admin navigation visibility matrix", () => {
     }
   });
 
-  it("MASTER transitional /admin sees full tenant chrome items", () => {
+  it("MASTER permission set would show full chrome items if Store context existed", () => {
     assert.deepEqual(visibleIds("MASTER"), ALL_IDS);
   });
+
 
   it("OPERATOR sees Pedidos, Balcão, Cardápio and Configurações", () => {
     assert.deepEqual(visibleIds("OPERATOR"), ALL_IDS);

@@ -2,7 +2,7 @@ import type { UserRole } from "@prisma/client";
 
 /**
  * Session payload after database-backed admin login.
- * MASTER may access /admin temporarily until /master exists (ADR 0002).
+ * MASTER has no implicit tenant Store context; /admin redirects to /master.
  */
 export type AdminSessionPayload = {
   userId: string;

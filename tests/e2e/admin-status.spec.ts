@@ -1,11 +1,12 @@
 import { expect, test } from "@playwright/test";
-import { loginAdmin } from "./helpers/auth";
+import { loginAsUser } from "./helpers/auth";
 import {
   cleanupE2eOrders,
   createE2ePickupOrder,
   disconnectE2ePrisma,
   getOrderStatus,
 } from "./helpers/db";
+import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 import { uniqueCustomerName } from "./helpers/test-data";
 
 test.describe("admin order status", () => {
@@ -21,13 +22,17 @@ test.describe("admin order status", () => {
   test("PICKUP flow PENDING → COMPLETED and hides actions when done", async ({
     page,
   }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-status-manager@example.com",
+    });
     const customerName = uniqueCustomerName("Admin Status Customer");
     const order = await createE2ePickupOrder({
       customerName,
       status: "PENDING",
     });
 
-    await loginAdmin(page);
+    await loginAsUser(page, manager);
     await page.goto(`/admin/pedidos/${order.id}`);
 
     await expect(page.getByTestId("order-status-badge")).toHaveAttribute(
