@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { OrderSource } from "@prisma/client";
 import {
+  formatOrderElapsedTime,
   formatOrderSource,
   formatPaymentMethod,
   formatPhone,
@@ -33,5 +34,68 @@ describe("admin-orders-formatters domain compatibility", () => {
     assert.equal(formatPaymentMethod("PIX"), "Pix");
     assert.equal(formatPaymentMethod("CASH"), "Dinheiro");
     assert.equal(formatPaymentMethod("CARD"), "Cartão");
+  });
+});
+
+describe("formatOrderElapsedTime", () => {
+  const now = new Date("2026-07-17T20:00:00.000Z");
+
+  function createdAtOffset(ms: number): Date {
+    return new Date(now.getTime() - ms);
+  }
+
+  it("uses the injected now and clamps future dates", () => {
+    const future = new Date(now.getTime() + 60_000);
+    assert.equal(formatOrderElapsedTime(future, now), "Há pouco");
+  });
+
+  it("treats zero and sub-minute elapsed as Há pouco", () => {
+    assert.equal(formatOrderElapsedTime(now, now), "Há pouco");
+    assert.equal(formatOrderElapsedTime(createdAtOffset(30_000), now), "Há pouco");
+    assert.equal(formatOrderElapsedTime(createdAtOffset(59_000), now), "Há pouco");
+  });
+
+  it("formats minute buckets with Math.floor boundaries", () => {
+    assert.equal(formatOrderElapsedTime(createdAtOffset(60_000), now), "Há 1 min");
+    assert.equal(formatOrderElapsedTime(createdAtOffset(120_000), now), "Há 2 min");
+    assert.equal(
+      formatOrderElapsedTime(createdAtOffset(59 * 60_000 + 59_000), now),
+      "Há 59 min",
+    );
+    assert.equal(
+      formatOrderElapsedTime(createdAtOffset(60 * 60_000), now),
+      "Há 1 h",
+    );
+  });
+
+  it("formats hour buckets with Math.floor boundaries", () => {
+    assert.equal(
+      formatOrderElapsedTime(createdAtOffset(2 * 60 * 60_000), now),
+      "Há 2 h",
+    );
+    assert.equal(
+      formatOrderElapsedTime(createdAtOffset(23 * 60 * 60_000 + 59 * 60_000), now),
+      "Há 23 h",
+    );
+    assert.equal(
+      formatOrderElapsedTime(createdAtOffset(24 * 60 * 60_000), now),
+      "Há 1 dia",
+    );
+  });
+
+  it("formats multi-day buckets", () => {
+    assert.equal(
+      formatOrderElapsedTime(createdAtOffset(2 * 24 * 60 * 60_000), now),
+      "Há 2 dias",
+    );
+  });
+
+  it("does not mutate the input dates", () => {
+    const createdAt = createdAtOffset(5 * 60_000);
+    const createdMs = createdAt.getTime();
+    const nowMs = now.getTime();
+    formatOrderElapsedTime(createdAt, now);
+    assert.equal(createdAt.getTime(), createdMs);
+    assert.equal(now.getTime(), nowMs);
   });
 });

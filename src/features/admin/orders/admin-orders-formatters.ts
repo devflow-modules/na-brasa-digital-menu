@@ -68,6 +68,36 @@ export function formatDateTime(date: Date): string {
   }).format(date);
 }
 
+const MS_PER_MINUTE = 60_000;
+const MS_PER_HOUR = 60 * MS_PER_MINUTE;
+const MS_PER_DAY = 24 * MS_PER_HOUR;
+
+/**
+ * Neutral elapsed time since order creation (`now - createdAt`).
+ * Not time-in-status. Uses Math.floor; future/zero → "Há pouco".
+ * Pass `now` explicitly (do not rely on Date.now inside callers' tests).
+ */
+export function formatOrderElapsedTime(createdAt: Date, now: Date): string {
+  const elapsedMs = Math.max(0, now.getTime() - createdAt.getTime());
+
+  if (elapsedMs < MS_PER_MINUTE) {
+    return "Há pouco";
+  }
+
+  const elapsedMinutes = Math.floor(elapsedMs / MS_PER_MINUTE);
+  if (elapsedMinutes < 60) {
+    return elapsedMinutes === 1 ? "Há 1 min" : `Há ${elapsedMinutes} min`;
+  }
+
+  const elapsedHours = Math.floor(elapsedMs / MS_PER_HOUR);
+  if (elapsedHours < 24) {
+    return elapsedHours === 1 ? "Há 1 h" : `Há ${elapsedHours} h`;
+  }
+
+  const elapsedDays = Math.floor(elapsedMs / MS_PER_DAY);
+  return elapsedDays === 1 ? "Há 1 dia" : `Há ${elapsedDays} dias`;
+}
+
 export function formatPhone(phone: string | null): string {
   if (phone == null || phone.trim() === "") {
     return "Sem telefone";
