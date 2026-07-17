@@ -4,6 +4,22 @@ All notable changes to this project are documented in this file.
 
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventions where practical.
 
+## [Unreleased]
+
+### Added
+
+- Admin order queue live refresh: coordinated `router.refresh()` from existing notification polling (new DIRECT), tab visibility, successful status updates, and COUNTER create — without a second list poll, WebSocket, or SSE
+
+### Status
+
+```text
+Admin order queue live refresh complete
+Existing notification polling reused
+No duplicate queue polling introduced
+Visibility, status and COUNTER refresh coordinated
+No WebSocket or SSE
+```
+
 ## [v0.1.0-pilot] — 2026-07-14
 
 Pilot-ready release for Na Brasa validation. Documentation and operational gate; see [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).

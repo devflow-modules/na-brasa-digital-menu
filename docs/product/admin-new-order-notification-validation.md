@@ -9,9 +9,8 @@ E2E validation complete
 Admin order queue live refresh complete
 Existing notification polling reused
 No duplicate queue polling introduced
-Visibility refresh implemented
-Status and COUNTER updates coordinated
-WebSocket not implemented
+Visibility, status and COUNTER refresh coordinated
+No WebSocket or SSE
 Product hypothesis pending real validation
 ```
 
