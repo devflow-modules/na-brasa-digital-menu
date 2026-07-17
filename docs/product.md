@@ -216,6 +216,7 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - Observação operacional contínua e backlog priorizado por evidência (fricções reais da loja)
 - Observação de 7–14 dias dos filtros da fila (uso efetivo, legenda “Na lista”, limites do `take: 50`)
 - Observação de 7–14 dias do tempo decorrido na fila (ajuda a priorizar? confusão com “atraso”?)
+- Histórico de status do pedido: experimento **VALIDATE** — [product/order-history-validation.md](product/order-history-validation.md) (sem schema/timeline até evidência + novo grill)
 - Hipóteses pontuais de UX/notificações/Balcão sob observação — ver planos em `docs/product/`
 - Storefront por slug e onboarding de tenants (quando evidência e grill autorizarem)
 - CRUD de `Store` no master, billing, polish de marca white-label (fora do ciclo imediato do piloto)
@@ -230,6 +231,7 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 ## Referências
 
 - [product/pilot-validation-plan.md](product/pilot-validation-plan.md)
+- [product/order-history-validation.md](product/order-history-validation.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)
