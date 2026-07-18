@@ -11,11 +11,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 - Admin order queue live refresh: coordinated `router.refresh()` from existing notification polling (new DIRECT), tab visibility, successful status updates, and COUNTER create — without a second list poll, WebSocket, or SSE
 - Admin order queue filters: status, source, and code/customer-name search via URL `searchParams` and server-side Prisma `where` (before `take: 50`); live refresh reused; no phone search or pagination
 - Admin order queue elapsed time since creation (`formatOrderElapsedTime`) next to the absolute timestamp; server-rendered; updates via existing live refresh; no urgency threshold, SLA, or client timer
+- Admin store settings: `minimumOrderAmountCents` editable as “Pedido mínimo para entrega”; save rejected when both pickup and delivery are disabled.
 
 ### Changed
 
 - Documentation aligned with the client-validated, production-active pilot stage.
 - Checkout / `createOrder`: minimum order amount applies only to `DELIVERY` (compared to product+addon subtotal before delivery fee). `PICKUP` and `COUNTER` have no minimum. Public copy says “pedido mínimo para entrega”.
+- `/admin/configuracoes` form reorganized into Operação / Entrega / Contato / Horário sections with impact hints; opening hours remain informational.
 
 ### Status
 

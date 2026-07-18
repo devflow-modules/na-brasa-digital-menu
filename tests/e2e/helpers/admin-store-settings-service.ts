@@ -10,6 +10,7 @@ export type E2eStoreSettingsSnapshot = {
   address: string | null;
   openingHours: string | null;
   deliveryFeeCents: number;
+  minimumOrderAmountCents: number;
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
   isOpen: boolean;
@@ -27,6 +28,7 @@ export async function captureE2eStoreSettings(
       address: true,
       openingHours: true,
       deliveryFeeCents: true,
+      minimumOrderAmountCents: true,
       pickupEnabled: true,
       deliveryEnabled: true,
       isOpen: true,
@@ -41,6 +43,7 @@ export async function captureE2eStoreSettings(
     address: store.address,
     openingHours: store.openingHours,
     deliveryFeeCents: store.deliveryFeeCents,
+    minimumOrderAmountCents: store.minimumOrderAmountCents,
     pickupEnabled: store.pickupEnabled,
     deliveryEnabled: store.deliveryEnabled,
     isOpen: store.isOpen,
@@ -59,6 +62,7 @@ export async function restoreE2eStoreSettings(
       address: snapshot.address,
       openingHours: snapshot.openingHours,
       deliveryFeeCents: snapshot.deliveryFeeCents,
+      minimumOrderAmountCents: snapshot.minimumOrderAmountCents,
       pickupEnabled: snapshot.pickupEnabled,
       deliveryEnabled: snapshot.deliveryEnabled,
       isOpen: snapshot.isOpen,

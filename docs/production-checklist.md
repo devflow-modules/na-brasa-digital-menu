@@ -103,7 +103,7 @@ Detalhes: [deployment.md](deployment.md#rollback-manual-básico).
 - [ ] Testar abertura do link (WhatsApp / Instagram bio, se for o caso)
 - [ ] Confirmar texto da mensagem WhatsApp
 - [ ] Confirmar preços no cardápio
-- [ ] Confirmar taxa de entrega / pedido mínimo **para entrega** (se aplicável; retirada e Balcão sem mínimo)
+- [ ] Confirmar taxa de entrega / pedido mínimo **para entrega** em `/admin/configuracoes` (se aplicável; retirada e Balcão sem mínimo; pelo menos uma modalidade habilitada)
 - [ ] Confirmar horários / aberto-fechado
 - [ ] Confirmar operação do painel (login, lista, status)
 

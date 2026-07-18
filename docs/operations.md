@@ -15,7 +15,7 @@ Fonte: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md). Slug téc
 - Taxa base de entrega (piloto): R$ 6,00 · pedido mínimo entrega: R$ 30,00
 - Retirada e entrega habilitadas no piloto
 
-**Pedido mínimo:** o valor mínimo é aplicado **somente** a pedidos com entrega (`DELIVERY`). Pedidos para retirada e pedidos de Balcão **não** possuem valor mínimo.
+**Pedido mínimo:** o valor mínimo é aplicado **somente** a pedidos com entrega (`DELIVERY`). Pedidos para retirada e pedidos de Balcão **não** possuem valor mínimo. O Store Owner pode alterar o valor em `/admin/configuracoes` (“Pedido mínimo para entrega”). Pelo menos uma modalidade (entrega ou retirada) deve permanecer habilitada. O horário em texto é só informativo; quem abre/fecha a loja é o campo “Loja aberta”.
 
 Em banco **já existente** (produção ou dev compartilhado), aplicar settings manualmente com `DATABASE_URL` correto:
 
