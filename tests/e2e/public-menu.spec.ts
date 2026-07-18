@@ -372,11 +372,7 @@ test.describe("public menu", () => {
   test.describe("cart minimum order indicator", () => {
     const PRODUCT_PRICE_CENTS = 2_000;
     const MINIMUM_ORDER_CENTS = 5_000;
-    const remainingCents = MINIMUM_ORDER_CENTS - PRODUCT_PRICE_CENTS;
-    const quantityToMeetMinimum = Math.ceil(
-      MINIMUM_ORDER_CENTS / PRODUCT_PRICE_CENTS,
-    );
-    const expectedBelowMinimumMessage = `Faltam ${formatMoneyBr(remainingCents)} para atingir o pedido mínimo de ${formatMoneyBr(MINIMUM_ORDER_CENTS)}.`;
+    const expectedDeliveryMinimumMessage = `Pedido mínimo para entrega: ${formatMoneyBr(MINIMUM_ORDER_CENTS)}`;
 
     let originalMinimumOrderAmountCents: number | null = null;
     let e2eProductName = "";
@@ -406,9 +402,7 @@ test.describe("public menu", () => {
       }
     });
 
-    test("empty cart does not show minimum-order gap message", async ({
-      page,
-    }) => {
+    test("empty cart does not show minimum-order message", async ({ page }) => {
       await page.goto("/na-brasa");
       await expect(page.getByTestId("store-hero")).toBeVisible();
       await expect(page.getByTestId("cart-summary")).toHaveCount(0);
@@ -417,41 +411,31 @@ test.describe("public menu", () => {
       );
     });
 
-    test("shows remaining amount when cart is below store minimum", async ({
+    test("shows neutral delivery-minimum info without blocking checkout CTA", async ({
       page,
     }) => {
       await addProductToCartByName(page, e2eProductName, { quantity: 1 });
 
       const indicator = page.getByTestId("cart-minimum-order-indicator");
       await expect(indicator).toBeVisible();
-      await expect(indicator).toHaveText(expectedBelowMinimumMessage);
+      await expect(indicator).toHaveText(expectedDeliveryMinimumMessage);
       await expect(page.getByTestId("checkout-cta")).toBeVisible();
     });
 
-    test("shows reached message when cart meets store minimum", async ({
+    test("keeps delivery-minimum message after reload regardless of subtotal", async ({
       page,
     }) => {
-      await addProductToCartByName(page, e2eProductName, {
-        quantity: quantityToMeetMinimum,
-      });
-
-      const indicator = page.getByTestId("cart-minimum-order-indicator");
-      await expect(indicator).toBeVisible();
-      await expect(indicator).toHaveText("Pedido mínimo atingido.");
-    });
-
-    test("keeps minimum-order message correct after reload", async ({ page }) => {
       await addProductToCartByName(page, e2eProductName, { quantity: 1 });
 
       await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveText(
-        expectedBelowMinimumMessage,
+        expectedDeliveryMinimumMessage,
       );
 
       await page.reload();
       await expect(page.getByTestId("cart-summary")).toBeVisible();
       await expect(page.getByTestId("cart-subtotal")).toBeVisible();
       await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveText(
-        expectedBelowMinimumMessage,
+        expectedDeliveryMinimumMessage,
       );
     });
 

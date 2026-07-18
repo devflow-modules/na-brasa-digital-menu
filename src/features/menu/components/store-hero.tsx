@@ -149,13 +149,14 @@ export function StoreHero({ store }: StoreHeroProps) {
               </span>
             </div>
           ) : null}
-          {store.minimumOrderAmountCents > 0 ? (
+          {store.deliveryEnabled && store.minimumOrderAmountCents > 0 ? (
             <div className="flex flex-col gap-0.5">
               <span className="text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Pedido mínimo
+                Pedido mínimo para entrega
               </span>
-              <span>
-                Pedido mínimo: {formatMoney(store.minimumOrderAmountCents)}
+              <span data-testid="store-minimum-order">
+                Pedido mínimo para entrega:{" "}
+                {formatMoney(store.minimumOrderAmountCents)}
               </span>
             </div>
           ) : null}

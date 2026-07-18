@@ -10,12 +10,27 @@ import type {
   CreateOrderPersistenceInput,
   CreateOrderResult,
 } from "@/features/orders/types";
+import { isBelowDeliveryMinimumOrder } from "@/features/orders/utils/delivery-minimum-order";
 import { generateOrderCode } from "@/features/orders/utils/order-code";
 import { parseCurrencyToCents } from "@/features/orders/utils/parse-currency-to-cents";
 import { createWhatsAppUrl } from "@/features/orders/whatsapp/create-whatsapp-url";
 import { formatWhatsAppMessage } from "@/features/orders/whatsapp/format-whatsapp-message";
 
 const MAX_CODE_ATTEMPTS = 5;
+
+export type CreateOrderDeps = {
+  findStoreForOrderBySlug: typeof findStoreForOrderBySlug;
+  resolveAndPriceOrderItems: typeof resolveAndPriceOrderItems;
+  createOrderWithItems: typeof createOrderWithItems;
+  generateOrderCode: typeof generateOrderCode;
+};
+
+const defaultDeps: CreateOrderDeps = {
+  findStoreForOrderBySlug,
+  resolveAndPriceOrderItems,
+  createOrderWithItems,
+  generateOrderCode,
+};
 
 function paymentLabel(method: CreateOrderPaymentMethod): string {
   switch (method) {
@@ -48,6 +63,7 @@ function firstZodMessage(error: {
 
 export async function createOrder(
   rawInput: CreateOrderInput,
+  deps: CreateOrderDeps = defaultDeps,
 ): Promise<CreateOrderResult> {
   const parsed = createOrderSchema.safeParse(rawInput);
 
@@ -57,7 +73,7 @@ export async function createOrder(
 
   const input = parsed.data;
 
-  const store = await findStoreForOrderBySlug(input.storeSlug);
+  const store = await deps.findStoreForOrderBySlug(input.storeSlug);
   if (!store) {
     return { ok: false, message: "Loja não encontrada." };
   }
@@ -78,7 +94,7 @@ export async function createOrder(
     return { ok: false, message: "Entrega indisponível no momento." };
   }
 
-  const priced = await resolveAndPriceOrderItems(
+  const priced = await deps.resolveAndPriceOrderItems(
     store.id,
     input.items.map((item) => ({
       productId: item.productId,
@@ -93,12 +109,15 @@ export async function createOrder(
   }
 
   if (
-    store.minimumOrderAmountCents > 0 &&
-    priced.subtotalCents < store.minimumOrderAmountCents
+    isBelowDeliveryMinimumOrder({
+      deliveryType: input.deliveryType,
+      subtotalCents: priced.subtotalCents,
+      minimumOrderAmountCents: store.minimumOrderAmountCents,
+    })
   ) {
     return {
       ok: false,
-      message: "O pedido não atingiu o valor mínimo.",
+      message: "O pedido não atingiu o valor mínimo para entrega.",
     };
   }
 
@@ -127,7 +146,7 @@ export async function createOrder(
   const paymentMethod = toPrismaPaymentMethod(input.paymentMethod);
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
-    const code = generateOrderCode();
+    const code = deps.generateOrderCode();
 
     const whatsappMessage = formatWhatsAppMessage({
       code,
@@ -173,7 +192,7 @@ export async function createOrder(
     };
 
     try {
-      const created = await createOrderWithItems(persistence);
+      const created = await deps.createOrderWithItems(persistence);
       const whatsappUrl = createWhatsAppUrl(store.whatsapp, whatsappMessage);
 
       return {

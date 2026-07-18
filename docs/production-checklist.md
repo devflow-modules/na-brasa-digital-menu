@@ -103,7 +103,7 @@ Detalhes: [deployment.md](deployment.md#rollback-manual-básico).
 - [ ] Testar abertura do link (WhatsApp / Instagram bio, se for o caso)
 - [ ] Confirmar texto da mensagem WhatsApp
 - [ ] Confirmar preços no cardápio
-- [ ] Confirmar taxa de entrega / pedido mínimo (se aplicável)
+- [ ] Confirmar taxa de entrega / pedido mínimo **para entrega** (se aplicável; retirada e Balcão sem mínimo)
 - [ ] Confirmar horários / aberto-fechado
 - [ ] Confirmar operação do painel (login, lista, status)
 
@@ -152,7 +152,7 @@ Rodar o script manual em produção só após merge desta PR e com `DATABASE_URL
 - [ ] WhatsApp do pedido aponta para **5513981091971** (smoke com número de teste; não spamar o número real)
 - [ ] Endereço e horário conferidos no hero
 - [ ] Taxa de entrega exibe **R$ 6,00** (quando entrega habilitada)
-- [ ] Pedido mínimo exibe **R$ 30,00** (quando configurado)
+- [ ] Pedido mínimo para entrega exibe **R$ 30,00** quando a entrega está habilitada
 - [ ] Retirada e entrega habilitadas conforme piloto
 
 Fonte dos valores: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md).

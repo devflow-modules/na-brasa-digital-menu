@@ -15,6 +15,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 ### Changed
 
 - Documentation aligned with the client-validated, production-active pilot stage.
+- Checkout / `createOrder`: minimum order amount applies only to `DELIVERY` (compared to product+addon subtotal before delivery fee). `PICKUP` and `COUNTER` have no minimum. Public copy says “pedido mínimo para entrega”.
 
 ### Status
 

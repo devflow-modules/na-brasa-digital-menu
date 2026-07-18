@@ -15,6 +15,8 @@ Fonte: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md). Slug téc
 - Taxa base de entrega (piloto): R$ 6,00 · pedido mínimo entrega: R$ 30,00
 - Retirada e entrega habilitadas no piloto
 
+**Pedido mínimo:** o valor mínimo é aplicado **somente** a pedidos com entrega (`DELIVERY`). Pedidos para retirada e pedidos de Balcão **não** possuem valor mínimo.
+
 Em banco **já existente** (produção ou dev compartilhado), aplicar settings manualmente com `DATABASE_URL` correto:
 
 `pnpm store:apply-na-braza-settings`

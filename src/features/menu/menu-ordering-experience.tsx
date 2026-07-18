@@ -16,12 +16,14 @@ type MenuOrderingExperienceProps = {
   menu: Pick<PublicMenu, "categories" | "featuredProducts">;
   storeIsOpen: boolean;
   minimumOrderAmountCents?: number;
+  deliveryEnabled?: boolean;
 };
 
 export function MenuOrderingExperience({
   menu,
   storeIsOpen,
   minimumOrderAmountCents = 0,
+  deliveryEnabled = false,
 }: MenuOrderingExperienceProps) {
   const { categories, featuredProducts } = menu;
   const { cart, addItem, setItemQuantity, removeItem } = useCart();
@@ -151,6 +153,7 @@ export function MenuOrderingExperience({
         cart={cart}
         storeIsOpen={storeIsOpen}
         minimumOrderAmountCents={minimumOrderAmountCents}
+        deliveryEnabled={deliveryEnabled}
         onIncrease={(itemId) => {
           const item = cart.items.find((entry) => entry.id === itemId);
           if (!item) return;

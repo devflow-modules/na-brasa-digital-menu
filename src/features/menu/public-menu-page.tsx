@@ -13,6 +13,7 @@ export function PublicMenuPage({ menu }: PublicMenuPageProps) {
       <MenuOrderingExperience
         storeIsOpen={menu.store.isOpen}
         minimumOrderAmountCents={menu.store.minimumOrderAmountCents}
+        deliveryEnabled={menu.store.deliveryEnabled}
         menu={{
           categories: menu.categories,
           featuredProducts: menu.featuredProducts,
