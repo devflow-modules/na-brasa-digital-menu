@@ -165,9 +165,11 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 ### Configurações da loja (`/admin/configuracoes`)
 
-- Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.
-- `minimumOrderAmountCents` (ainda não editável nesta UI) significa **pedido mínimo para entrega**; retirada e Balcão não usam esse valor.
-- Reflexo no público **`/na-brasa`**: badge aberto/fechado, taxas no checkout (server).
+- Campos: WhatsApp, endereço, taxa, **pedido mínimo para entrega**, retirada/entrega, `openingHours` (texto informativo), `isOpen`.
+- O pedido mínimo para entrega pode ser alterado pelo Store Owner nas configurações da loja.
+- Pelo menos uma modalidade — entrega ou retirada — deve permanecer habilitada (validação no servidor e aviso na UI).
+- O campo de horário continua informativo. A abertura operacional é controlada por “Loja aberta”.
+- Reflexo no público **`/na-brasa`**: badge aberto/fechado, taxas e mínimo no checkout/hero (server).
 - Loja fechada ou tipo de entrega desabilitado: bloqueio no server em checkout/`createOrder`.
 
 | Role | Ver | Editar dados estruturais | Abrir/fechar loja |

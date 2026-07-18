@@ -9,6 +9,7 @@ export type AdminStoreSettings = {
   pickupEnabled: boolean;
   deliveryEnabled: boolean;
   deliveryFeeCents: number;
+  minimumOrderAmountCents: number;
 };
 
 export type AdminStoreSettingsActionResult =

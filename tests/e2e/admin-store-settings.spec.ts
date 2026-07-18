@@ -95,6 +95,7 @@ test.describe("admin store settings", () => {
         whatsapp: baseline.whatsapp,
         address: "Hacked",
         deliveryFeeCents: "0",
+        minimumOrderAmountCents: "0",
         pickupEnabled: true,
         deliveryEnabled: true,
         isOpen: true,
@@ -239,8 +240,95 @@ test.describe("admin store settings", () => {
     expect(storeBAfter.address).toBe(storeBBefore.address);
     expect(storeBAfter.whatsapp).toBe(storeBBefore.whatsapp);
     expect(storeBAfter.deliveryFeeCents).toBe(storeBBefore.deliveryFeeCents);
+    expect(storeBAfter.minimumOrderAmountCents).toBe(
+      storeBBefore.minimumOrderAmountCents,
+    );
 
     await restoreE2eStoreSettings(storeB.id, storeBBefore);
+  });
+
+  test("MANAGER updates delivery minimum and public hero reflects it", async ({
+    page,
+  }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-store-settings-minimum@example.com",
+    });
+
+    await loginAsUser(page, manager);
+    await page.goto("/admin/configuracoes");
+
+    await page.getByRole("checkbox", { name: /Entrega habilitada/i }).check();
+    await page.getByRole("checkbox", { name: /Retirada habilitada/i }).check();
+    await page
+      .getByTestId("admin-store-minimum-order-input")
+      .fill("50,00");
+    await page.getByTestId("admin-store-settings-save").click();
+    await expect(page.getByTestId("admin-store-settings-success")).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.goto("/na-brasa");
+    await expect(page.getByTestId("store-minimum-order")).toContainText(
+      "R$ 50,00",
+    );
+
+    const prisma = getPrisma();
+    const store = await prisma.store.findUnique({
+      where: { id: baseline.storeId },
+      select: { minimumOrderAmountCents: true },
+    });
+    expect(store?.minimumOrderAmountCents).toBe(5_000);
+  });
+
+  test("rejects saving with both modalities disabled", async ({ page }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-store-settings-modality@example.com",
+    });
+
+    await loginAsUser(page, manager);
+    await page.goto("/admin/configuracoes");
+
+    await page.getByRole("checkbox", { name: /Retirada habilitada/i }).uncheck();
+    await page.getByRole("checkbox", { name: /Entrega habilitada/i }).uncheck();
+
+    await expect(
+      page.getByTestId("admin-store-settings-modality-error"),
+    ).toContainText(/pelo menos uma modalidade/i);
+    await expect(page.getByTestId("admin-store-settings-save")).toBeDisabled();
+
+    const denied = await attemptUpdateStoreSettings({
+      input: {
+        whatsapp: baseline.whatsapp,
+        address: baseline.address ?? "",
+        openingHours: baseline.openingHours ?? "",
+        deliveryFeeCents: String(baseline.deliveryFeeCents / 100).replace(
+          ".",
+          ",",
+        ),
+        minimumOrderAmountCents: String(
+          baseline.minimumOrderAmountCents / 100,
+        ).replace(".", ","),
+        pickupEnabled: false,
+        deliveryEnabled: false,
+        isOpen: baseline.isOpen,
+      },
+      storeId: baseline.storeId,
+      role: "MANAGER",
+    });
+    expect(denied.ok).toBe(false);
+    if (!denied.ok) {
+      expect(denied.message).toMatch(/pelo menos uma modalidade/i);
+    }
+
+    const prisma = getPrisma();
+    const store = await prisma.store.findUnique({
+      where: { id: baseline.storeId },
+      select: { pickupEnabled: true, deliveryEnabled: true },
+    });
+    expect(store?.pickupEnabled).toBe(baseline.pickupEnabled);
+    expect(store?.deliveryEnabled).toBe(baseline.deliveryEnabled);
   });
 
   test("updated WhatsApp is used in order wa.me link", async () => {

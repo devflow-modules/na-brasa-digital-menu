@@ -12,6 +12,7 @@ const storeSettingsSelect = {
   pickupEnabled: true,
   deliveryEnabled: true,
   deliveryFeeCents: true,
+  minimumOrderAmountCents: true,
 } as const;
 
 export async function getAdminStoreSettings(
@@ -30,6 +31,7 @@ export async function updateAdminStoreSettings(
     address: string | null;
     openingHours: string | null;
     deliveryFeeCents: number;
+    minimumOrderAmountCents: number;
     pickupEnabled: boolean;
     deliveryEnabled: boolean;
     isOpen: boolean;
@@ -42,6 +44,7 @@ export async function updateAdminStoreSettings(
       address: input.address,
       openingHours: input.openingHours,
       deliveryFeeCents: input.deliveryFeeCents,
+      minimumOrderAmountCents: input.minimumOrderAmountCents,
       pickupEnabled: input.pickupEnabled,
       deliveryEnabled: input.deliveryEnabled,
       isOpen: input.isOpen,
