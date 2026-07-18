@@ -18,6 +18,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) conventi
 - Documentation aligned with the client-validated, production-active pilot stage.
 - Checkout / `createOrder`: minimum order amount applies only to `DELIVERY` (compared to product+addon subtotal before delivery fee). `PICKUP` and `COUNTER` have no minimum. Public copy says “pedido mínimo para entrega”.
 - `/admin/configuracoes` form reorganized into Operação / Entrega / Contato / Horário sections with impact hints; opening hours remain informational.
+- Checkout availability hardening: docs clarify `isOpen=false` blocks Online/`DIRECT` only (COUNTER may continue); public checkout shows an explicit unavailable state when both Online modalities are disabled; default modality prefers PICKUP, then DELIVERY, else none; unit coverage for closed-store `createOrder`; E2E for direct closed-store checkout URL and legacy no-modality Store.
 
 ### Status
 

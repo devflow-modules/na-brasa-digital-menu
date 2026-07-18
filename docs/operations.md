@@ -183,11 +183,12 @@ Se um perfil autenticado abrir por URL uma área operacional bloqueada (exemplo:
 1. Na navegação do chrome, use **Configurações** (visível para dono, gerente e operador; Cozinha não vê o link).
 
 2. Dono/gerente editam WhatsApp, endereço, taxa de entrega (R$ na tela, centavos no banco), retirada/entrega e texto de horário.
-3. Operador **não** altera dados estruturais, mas pode **abrir ou fechar** a loja para pedidos (`isOpen`).
+3. Operador **não** altera dados estruturais, mas pode **abrir ou fechar** a loja para pedidos Online (`isOpen`).
 4. Cozinha só visualiza.
 5. Mudanças refletem no cardápio público e no checkout após salvar (revalidate).
-6. Com a loja fechada, o cliente ainda vê o cardápio, mas não consegue finalizar pedido.
-7. E2E/smoke: testes que alteram a Store **restauram** WhatsApp, flags e `isOpen` ao final — não deixe a Na Braza fechada após rodar testes em banco compartilhado.
+6. Com `isOpen=false`, o cliente ainda vê o cardápio, mas **não** consegue finalizar pedidos Online/`DIRECT`. Pedidos de Balcão (`COUNTER`) podem continuar sendo criados por usuários autorizados. `openingHours` é apenas informativo e **não** altera `isOpen` automaticamente.
+7. Store legada com retirada e entrega desabilitadas (`pickupEnabled=false` e `deliveryEnabled=false`): o checkout público mostra indisponibilidade explícita; o Admin impede salvar esse estado em novas edições.
+8. E2E/smoke: testes que alteram a Store **restauram** WhatsApp, flags e `isOpen` ao final — não deixe a Na Braza fechada após rodar testes em banco compartilhado.
 
 ## Pilot operation
 
@@ -200,8 +201,9 @@ do que já está entregue.
 1. Login como `MANAGER`, `STORE_OWNER` ou `OPERATOR` (conforme permissão).
 2. Abra `/admin/configuracoes`.
 3. **Abrir loja:** `OPERATOR` usa o botão abrir/fechar; dono/gerente pode usar o mesmo toggle ou o checkbox “Loja aberta” + salvar.
-4. **Fechar loja:** mesmo fluxo — cardápio público continua visível, mas checkout e novos pedidos ficam bloqueados no server.
-5. Ao fim do turno, confira que a loja está no estado desejado (geralmente **aberta** se ainda aceita pedidos pelo link).
+4. **Fechar loja:** mesmo fluxo — cardápio público continua visível; checkout Online e `createOrder` (`DIRECT`) ficam bloqueados no server. Pedidos de Balcão autorizados **não** são bloqueados por `isOpen`.
+5. Acesso direto a `/{slug}/checkout` com loja fechada também comunica indisponibilidade (banner + submit desabilitado); não depende só do CTA do cardápio.
+6. Ao fim do turno, confira que a loja está no estado desejado (geralmente **aberta** se ainda aceita pedidos Online pelo link).
 
 ### Cardápio e disponibilidade
 
@@ -247,7 +249,7 @@ do que já está entregue.
 1. Volte como `MANAGER`/`STORE_OWNER` em `/admin/configuracoes`.
 2. Restaure WhatsApp, endereço, horário, taxa, entrega/retirada e **loja aberta**.
 3. Confira `/na-brasa` em aba anônima ou outro aparelho.
-4. Em emergência, feche a loja (`isOpen=false`) para parar novos pedidos enquanto corrige.
+4. Em emergência, feche a loja (`isOpen=false`) para parar novos pedidos **Online** enquanto corrige. Balcão autorizado pode seguir, se necessário.
 
 ## Painel Master (`/master`)
 

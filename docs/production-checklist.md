@@ -136,7 +136,7 @@ Resumo dos fluxos já validados em produção (jul/2026). Repetir após mudança
 - [ ] Checkout cria pedido e abre `wa.me`
 - [ ] `/admin` lista o pedido; status avança conforme role
 - [ ] `/admin/configuracoes`: MANAGER edita endereço/taxa/horário; público reflete
-- [ ] Loja fechada bloqueia checkout e criação de pedido
+- [ ] Loja fechada (`isOpen=false`) bloqueia checkout Online e criação de pedido `DIRECT` (incluindo acesso direto à URL); Balcão autorizado não depende de `isOpen`
 - [ ] Entrega desligada bloqueia pedido delivery (server)
 - [ ] Retirada desligada bloqueia pedido pickup (server)
 - [ ] OPERATOR só abre/fecha; KITCHEN só leitura

@@ -16,6 +16,11 @@ import { DeliveryAddressFields } from "@/features/checkout/components/delivery-a
 import { DeliveryTypeField } from "@/features/checkout/components/delivery-type-field";
 import { PaymentMethodField } from "@/features/checkout/components/payment-method-field";
 import { getCheckoutEstimatedTotalCents } from "@/features/checkout/get-checkout-estimated-total-cents";
+import {
+  isOnlineCheckoutAvailable,
+  resolveDefaultCheckoutDeliveryType,
+  type CheckoutDeliveryType,
+} from "@/features/checkout/resolve-default-checkout-delivery-type";
 import type { CheckoutStoreInfo } from "@/features/checkout/types";
 import { formatMoney } from "@/features/menu/format-money";
 import { createOrderAction } from "@/features/orders/actions/create-order-action";
@@ -25,19 +30,90 @@ type CheckoutFormProps = {
   store: CheckoutStoreInfo;
 };
 
-export function CheckoutForm({ store }: CheckoutFormProps) {
+function CheckoutShell({
+  store,
+  children,
+}: {
+  store: CheckoutStoreInfo;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-8 sm:px-6">
+      <header className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300/90">
+            Checkout
+          </p>
+          <h1 className="mt-1 text-2xl font-semibold text-orange-50">
+            {store.name}
+          </h1>
+          <p className="mt-1 text-sm text-stone-400">
+            Último passo antes do WhatsApp
+          </p>
+        </div>
+        <Link
+          href="/na-brasa"
+          data-testid="checkout-back-to-menu"
+          className="shrink-0 text-sm font-medium text-orange-200 underline-offset-2 hover:text-orange-100 hover:underline"
+        >
+          ← Voltar ao cardápio
+        </Link>
+      </header>
+      {children}
+    </div>
+  );
+}
+
+function StoreClosedBanner() {
+  return (
+    <p
+      data-testid="checkout-store-closed-banner"
+      className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-50"
+      role="alert"
+    >
+      <span className="font-semibold">A loja está fechada no momento.</span> Você
+      pode voltar ao cardápio, mas não é possível enviar pedidos Online agora.
+    </p>
+  );
+}
+
+function OnlineUnavailableNotice({ showClosedBanner }: { showClosedBanner: boolean }) {
+  return (
+    <>
+      {showClosedBanner ? <StoreClosedBanner /> : null}
+      <p
+        data-testid="checkout-online-unavailable"
+        role="alert"
+        className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-50"
+      >
+        <span className="font-semibold">
+          Pedidos Online estão temporariamente indisponíveis.
+        </span>{" "}
+        Entre em contato com a loja para mais informações.
+      </p>
+      <p className="text-sm text-stone-400">
+        O cardápio continua visível. Não é possível finalizar pedidos Online
+        enquanto retirada e entrega estiverem desabilitadas.
+      </p>
+    </>
+  );
+}
+
+type AvailableCheckoutFormProps = {
+  store: CheckoutStoreInfo;
+  defaultDeliveryType: CheckoutDeliveryType;
+};
+
+function AvailableCheckoutForm({
+  store,
+  defaultDeliveryType,
+}: AvailableCheckoutFormProps) {
   const { cart, hydrated, clearCart } = useCart();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [whatsappFallbackUrl, setWhatsappFallbackUrl] = useState<string | null>(
     null,
   );
   const [isPending, startTransition] = useTransition();
-
-  const defaultDeliveryType = store.pickupEnabled
-    ? "PICKUP"
-    : store.deliveryEnabled
-      ? "DELIVERY"
-      : "PICKUP";
 
   const {
     register,
@@ -67,6 +143,10 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
   );
 
   function onSubmit(values: CheckoutFormValues) {
+    if (!store.isOpen) {
+      return;
+    }
+
     setErrorMessage(null);
     setWhatsappFallbackUrl(null);
 
@@ -135,38 +215,8 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-6 px-4 py-8 sm:px-6">
-      <header className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-orange-300/90">
-            Checkout
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold text-orange-50">
-            {store.name}
-          </h1>
-          <p className="mt-1 text-sm text-stone-400">
-            Último passo antes do WhatsApp
-          </p>
-        </div>
-        <Link
-          href="/na-brasa"
-          data-testid="checkout-back-to-menu"
-          className="shrink-0 text-sm font-medium text-orange-200 underline-offset-2 hover:text-orange-100 hover:underline"
-        >
-          ← Voltar ao cardápio
-        </Link>
-      </header>
-
-      {!store.isOpen ? (
-        <p
-          data-testid="checkout-store-closed-banner"
-          className="rounded-xl border border-amber-500/35 bg-amber-500/10 px-4 py-3 text-sm leading-relaxed text-amber-50"
-          role="alert"
-        >
-          <span className="font-semibold">A loja está fechada no momento.</span>{" "}
-          Você pode voltar ao cardápio, mas não é possível enviar pedidos agora.
-        </p>
-      ) : null}
+    <CheckoutShell store={store}>
+      {!store.isOpen ? <StoreClosedBanner /> : null}
 
       {cart.items.length > 0 ? (
         <CheckoutCartSummary
@@ -265,10 +315,6 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
           </p>
         ) : null}
 
-        {/*
-          One submit control: fixed bottom bar on mobile (matches cart pattern),
-          static in-flow footer on md+ so desktop layout stays unchanged.
-        */}
         <div
           data-testid="checkout-submit-bar"
           className="fixed inset-x-0 bottom-0 z-40 border-t border-orange-500/30 bg-stone-950/98 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 shadow-[0_-8px_30px_rgba(0,0,0,0.45)] backdrop-blur-md md:static md:z-auto md:mt-1 md:border-0 md:bg-transparent md:p-0 md:shadow-none md:backdrop-blur-none"
@@ -309,6 +355,42 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
           </div>
         </div>
       </form>
-    </div>
+    </CheckoutShell>
+  );
+}
+
+export function CheckoutForm({ store }: CheckoutFormProps) {
+  const { cart, hydrated } = useCart();
+  const onlineAvailable = isOnlineCheckoutAvailable(store);
+  const defaultDeliveryType = resolveDefaultCheckoutDeliveryType(store);
+
+  if (!hydrated) {
+    return (
+      <p className="px-4 py-10 text-center text-sm text-stone-400">
+        Carregando checkout...
+      </p>
+    );
+  }
+
+  if (!onlineAvailable || !defaultDeliveryType) {
+    return (
+      <CheckoutShell store={store}>
+        <OnlineUnavailableNotice showClosedBanner={!store.isOpen} />
+        {cart.items.length > 0 ? (
+          <CheckoutCartSummary
+            cart={cart}
+            deliveryFeeCents={store.deliveryFeeCents}
+            showDeliveryFee={false}
+          />
+        ) : null}
+      </CheckoutShell>
+    );
+  }
+
+  return (
+    <AvailableCheckoutForm
+      store={store}
+      defaultDeliveryType={defaultDeliveryType}
+    />
   );
 }

@@ -4,8 +4,12 @@ import {
   createE2eMenuProduct,
   ensurePilotMenuForE2e,
   findLatestOrderByCustomerName,
+  getOfficialStoreIsOpenForE2e,
   getOfficialStoreMinimumOrderAmountCentsForE2e,
+  getOfficialStoreOnlineModalitiesForE2e,
+  setOfficialStoreIsOpenForE2e,
   setOfficialStoreMinimumOrderAmountCentsForE2e,
+  setOfficialStoreOnlineModalitiesForE2e,
 } from "./helpers/db";
 import { addProductToCartByName, clearCartStorage } from "./helpers/menu";
 import {
@@ -175,6 +179,92 @@ test.describe("checkout order", () => {
     } finally {
       if (originalMinimum !== null) {
         await setOfficialStoreMinimumOrderAmountCentsForE2e(originalMinimum);
+      }
+    }
+  });
+
+  test("direct checkout URL with closed store blocks submit and creates no order", async ({
+    page,
+  }) => {
+    const customerName = uniqueCustomerName("Closed Store Checkout");
+    const originalIsOpen = await getOfficialStoreIsOpenForE2e();
+
+    try {
+      await setOfficialStoreIsOpenForE2e(true);
+      await addProductToCartByName(page, PILOT_BURGER_PRODUCT_NAME, {
+        quantity: 1,
+      });
+
+      await setOfficialStoreIsOpenForE2e(false);
+      await page.goto("/na-brasa/checkout");
+
+      await expect(page.getByTestId("checkout-store-closed-banner")).toBeVisible();
+      await expect(page.getByTestId("checkout-submit-button")).toBeDisabled();
+
+      await page.getByLabel("Nome").fill(customerName);
+      await page.getByLabel("WhatsApp para contato").fill(e2ePhone);
+      await page.getByText("Retirada", { exact: true }).click();
+      await page.getByText("Pix", { exact: true }).click();
+      await page.getByTestId("checkout-submit-button").click({ force: true });
+
+      await expect(page).toHaveURL(/\/na-brasa\/checkout/);
+      const order = await findLatestOrderByCustomerName(customerName);
+      expect(order).toBeNull();
+
+      await setOfficialStoreIsOpenForE2e(true);
+      await page.goto("/na-brasa/checkout");
+      await expect(page.getByTestId("checkout-store-closed-banner")).toHaveCount(
+        0,
+      );
+      await expect(page.getByTestId("checkout-submit-button")).toBeEnabled();
+    } finally {
+      if (originalIsOpen !== null) {
+        await setOfficialStoreIsOpenForE2e(originalIsOpen);
+      }
+    }
+  });
+
+  test("legacy store with no Online modalities shows unavailable state", async ({
+    page,
+  }) => {
+    const customerName = uniqueCustomerName("No Modalities Checkout");
+    const originalModalities = await getOfficialStoreOnlineModalitiesForE2e();
+    const originalIsOpen = await getOfficialStoreIsOpenForE2e();
+
+    try {
+      await setOfficialStoreIsOpenForE2e(true);
+      await setOfficialStoreOnlineModalitiesForE2e({
+        pickupEnabled: true,
+        deliveryEnabled: true,
+      });
+      await addProductToCartByName(page, PILOT_BURGER_PRODUCT_NAME, {
+        quantity: 1,
+      });
+
+      await setOfficialStoreOnlineModalitiesForE2e({
+        pickupEnabled: false,
+        deliveryEnabled: false,
+      });
+      await page.goto("/na-brasa/checkout");
+
+      await expect(page.getByTestId("checkout-online-unavailable")).toBeVisible();
+      await expect(page.getByTestId("checkout-online-unavailable")).toContainText(
+        /Pedidos Online estão temporariamente indisponíveis/i,
+      );
+      await expect(page.getByTestId("checkout-submit-button")).toHaveCount(0);
+      await expect(page.getByRole("radio")).toHaveCount(0);
+
+      await page.goto("/na-brasa");
+      await expect(page.getByTestId("store-hero")).toBeVisible();
+
+      const order = await findLatestOrderByCustomerName(customerName);
+      expect(order).toBeNull();
+    } finally {
+      if (originalModalities) {
+        await setOfficialStoreOnlineModalitiesForE2e(originalModalities);
+      }
+      if (originalIsOpen !== null) {
+        await setOfficialStoreIsOpenForE2e(originalIsOpen);
       }
     }
   });

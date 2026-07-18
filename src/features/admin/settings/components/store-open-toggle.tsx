@@ -19,7 +19,10 @@ export function StoreOpenToggle({ isOpen, canToggle }: StoreOpenToggleProps) {
         data-testid="admin-store-open-status"
         className="text-sm text-stone-400"
       >
-        Status: {isOpen ? "Aberta para pedidos" : "Fechada no momento"}
+        Status:{" "}
+        {isOpen
+          ? "Aberta para pedidos Online"
+          : "Fechada para pedidos Online"}
       </p>
     );
   }
@@ -42,7 +45,9 @@ export function StoreOpenToggle({ isOpen, canToggle }: StoreOpenToggleProps) {
         data-testid="admin-store-open-status"
         className="text-sm text-stone-200"
       >
-        {isOpen ? "Loja aberta para pedidos" : "Loja fechada no momento"}
+        {isOpen
+          ? "Loja aberta para pedidos Online"
+          : "Loja fechada para pedidos Online (Balcão pode continuar)"}
       </p>
       <button
         type="button"

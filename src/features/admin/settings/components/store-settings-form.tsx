@@ -97,7 +97,8 @@ export function StoreSettingsForm({
             Loja aberta
           </span>
           <span id="isOpen-hint" className="pl-6 text-xs text-stone-500">
-            Controla se novos pedidos podem ser realizados.
+            Bloqueia novos pedidos Online. Pedidos de Balcão autorizados podem
+            continuar. Horário de funcionamento é só informativo.
           </span>
         </label>
 

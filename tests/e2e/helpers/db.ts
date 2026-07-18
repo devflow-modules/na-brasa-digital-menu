@@ -138,6 +138,41 @@ export async function setOfficialStoreIsOpenForE2e(
   });
 }
 
+export async function getOfficialStoreOnlineModalitiesForE2e(): Promise<{
+  pickupEnabled: boolean;
+  deliveryEnabled: boolean;
+} | null> {
+  if (process.env.NODE_ENV === "production") {
+    return null;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { pickupEnabled: true, deliveryEnabled: true },
+  });
+  return store;
+}
+
+/** Sets official store Online modalities for E2E (does not run in production). */
+export async function setOfficialStoreOnlineModalitiesForE2e(options: {
+  pickupEnabled: boolean;
+  deliveryEnabled: boolean;
+}): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  await prisma.store.updateMany({
+    where: { slug: storeSlug },
+    data: {
+      pickupEnabled: options.pickupEnabled,
+      deliveryEnabled: options.deliveryEnabled,
+    },
+  });
+}
+
 /** Applies pilot catalog to the E2E store (does not run in production). */
 export async function ensurePilotMenuForE2e(): Promise<void> {
   if (process.env.NODE_ENV === "production") {
