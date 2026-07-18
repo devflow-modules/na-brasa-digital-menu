@@ -260,4 +260,32 @@ describe("createOrder delivery minimum", () => {
     assert.equal(result.ok, true);
     assert.equal(captured[0]?.source, "DIRECT");
   });
+
+  it("rejects when store is closed before pricing or persistence", async () => {
+    let pricedCalls = 0;
+    let createCalls = 0;
+
+    const result = await createOrder(validInput({ deliveryType: "PICKUP" }), {
+      findStoreForOrderBySlug: async () => baseStore({ isOpen: false }),
+      resolveAndPriceOrderItems: async () => {
+        pricedCalls += 1;
+        return {
+          ok: true as const,
+          subtotalCents: 1_000,
+          items: [pricedItem(1_000)],
+        };
+      },
+      createOrderWithItems: async () => {
+        createCalls += 1;
+        return { id: "order_x", code: "NB-000000-000" };
+      },
+      generateOrderCode: () => "NB-000000-000",
+    });
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.equal(result.message, "A loja está fechada no momento.");
+    assert.equal(pricedCalls, 0);
+    assert.equal(createCalls, 0);
+  });
 });

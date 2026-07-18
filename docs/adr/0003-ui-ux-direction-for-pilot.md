@@ -70,7 +70,7 @@ Rules (must stay aligned with server behavior):
 | `Product.active = false` | Hidden from public menu |
 | `Product.available = false` | Shown as unavailable; cannot order |
 | Inactive or unlinked addon | Not offered in add-to-cart |
-| `Store.isOpen = false` | Menu visible; **order/checkout blocked** |
+| `Store.isOpen = false` | Menu visible; **Online/DIRECT checkout blocked**; COUNTER may continue for authorized users |
 
 ### 4. Checkout UX
 

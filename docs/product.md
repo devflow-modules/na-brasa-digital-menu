@@ -165,12 +165,12 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 ### Configurações da loja (`/admin/configuracoes`)
 
-- Campos: WhatsApp, endereço, taxa, **pedido mínimo para entrega**, retirada/entrega, `openingHours` (texto informativo), `isOpen`.
+- Campos: WhatsApp, endereço, taxa, **pedido mínimo para entrega**, retirada/entrega, `openingHours` (texto informativo; não altera abertura sozinho), `isOpen` (bloqueia Online/`DIRECT`; não impede Balcão/`COUNTER` autorizado).
 - O pedido mínimo para entrega pode ser alterado pelo Store Owner nas configurações da loja.
 - Pelo menos uma modalidade — entrega ou retirada — deve permanecer habilitada (validação no servidor e aviso na UI).
 - O campo de horário continua informativo. A abertura operacional é controlada por “Loja aberta”.
 - Reflexo no público **`/na-brasa`**: badge aberto/fechado, taxas e mínimo no checkout/hero (server).
-- Loja fechada ou tipo de entrega desabilitado: bloqueio no server em checkout/`createOrder`.
+- Loja fechada (`isOpen=false`): bloqueio no server para pedidos Online/`DIRECT` (Balcão permanece operacional para usuários autorizados). Tipo de entrega desabilitado: bloqueio no server em checkout/`createOrder`. Store sem modalidade Online (legado): UI pública de indisponibilidade + rejeição no server.
 
 | Role | Ver | Editar dados estruturais | Abrir/fechar loja |
 | --- | --- | --- | --- |

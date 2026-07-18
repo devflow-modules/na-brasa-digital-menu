@@ -9,7 +9,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | Spec | Fluxo |
 | --- | --- |
 | `tests/e2e/public-menu.spec.ts` | Cardápio, carrinho, persistência local, CTA checkout; indicador neutro de pedido mínimo **para entrega** |
-| `tests/e2e/checkout-order.spec.ts` | Checkout → Order PENDING → `wa.me` → limpa carrinho; mínimo só em `DELIVERY` (PICKUP abaixo do mínimo ok) |
+| `tests/e2e/checkout-order.spec.ts` | Checkout → Order PENDING → `wa.me` → limpa carrinho; mínimo só em `DELIVERY` (PICKUP abaixo do mínimo ok); loja fechada por URL direta; Store legada sem modalidades Online |
 | `tests/e2e/admin-auth.spec.ts` | Redirect, senha inválida, user inativo, login MASTER → `/master`, claims JWT, logout |
 | `tests/e2e/master-landing-flow.spec.ts` | Landing por role: MASTER → `/master`, Store → `/admin`, redirect direto `/admin`, sessão ausente |
 | `tests/e2e/master-dashboard.spec.ts` | `/master` auth: redirect, MASTER ok, non-MASTER blocked, lista `na-brasa`, logout |
