@@ -107,8 +107,7 @@ test.describe("mobile storefront", () => {
   }) => {
     const stamp = Date.now();
     const productName = `E2E Menu Mobile Cart Product ${stamp}`;
-    const remainingCents = MINIMUM_ORDER_CENTS - PRODUCT_PRICE_CENTS;
-    const expectedGap = `Faltam ${formatMoneyBr(remainingCents)} para atingir o pedido mínimo de ${formatMoneyBr(MINIMUM_ORDER_CENTS)}.`;
+    const expectedDeliveryMinimum = `Pedido mínimo para entrega: ${formatMoneyBr(MINIMUM_ORDER_CENTS)}`;
 
     const originalMinimum =
       await getOfficialStoreMinimumOrderAmountCentsForE2e();
@@ -137,7 +136,7 @@ test.describe("mobile storefront", () => {
       await expect(cart).toBeVisible();
       await expect(page.getByTestId("cart-subtotal")).toBeVisible();
       await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveText(
-        expectedGap,
+        expectedDeliveryMinimum,
       );
 
       const checkoutCta = page.getByTestId("checkout-cta");
@@ -148,7 +147,7 @@ test.describe("mobile storefront", () => {
       await expect(page.getByTestId("cart-summary")).toBeVisible();
       await expect(page.getByTestId("cart-subtotal")).toBeVisible();
       await expect(page.getByTestId("cart-minimum-order-indicator")).toHaveText(
-        expectedGap,
+        expectedDeliveryMinimum,
       );
 
       await page.getByTestId("checkout-cta").click();

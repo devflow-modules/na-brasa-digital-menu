@@ -80,6 +80,7 @@ Detalhes do release: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dad
 
 - Renderiza `Store`, categorias e produtos ativos (Server Components + Prisma).
 - Carrinho local (`localStorage`); totais no checkout são estimados no client.
+- **Pedido mínimo:** aplicado somente a pedidos com entrega (`deliveryType = DELIVERY`), sobre o subtotal de produtos e adicionais (antes da taxa). Pedidos para retirada e pedidos de Balcão não possuem valor mínimo.
 - **Direção planejada:** storefront público por slug genérico (não implementado como App Router dinâmico).
 
 ### Painel da loja
@@ -165,6 +166,7 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 ### Configurações da loja (`/admin/configuracoes`)
 
 - Campos: WhatsApp, endereço, taxa, retirada/entrega, `openingHours`, `isOpen`.
+- `minimumOrderAmountCents` (ainda não editável nesta UI) significa **pedido mínimo para entrega**; retirada e Balcão não usam esse valor.
 - Reflexo no público **`/na-brasa`**: badge aberto/fechado, taxas no checkout (server).
 - Loja fechada ou tipo de entrega desabilitado: bloqueio no server em checkout/`createOrder`.
 

@@ -19,6 +19,7 @@ import { getCheckoutEstimatedTotalCents } from "@/features/checkout/get-checkout
 import type { CheckoutStoreInfo } from "@/features/checkout/types";
 import { formatMoney } from "@/features/menu/format-money";
 import { createOrderAction } from "@/features/orders/actions/create-order-action";
+import { isBelowDeliveryMinimumOrder } from "@/features/orders/utils/delivery-minimum-order";
 
 type CheckoutFormProps = {
   store: CheckoutStoreInfo;
@@ -219,16 +220,26 @@ export function CheckoutForm({ store }: CheckoutFormProps) {
           </label>
         </div>
 
-        {store.minimumOrderAmountCents > 0 &&
-        cart.items.length > 0 &&
-        cart.subtotalCents < store.minimumOrderAmountCents ? (
-          <p className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-100">
-            Pedido mínimo estimado: o valor será validado ao finalizar.
+        {cart.items.length > 0 &&
+        isBelowDeliveryMinimumOrder({
+          deliveryType,
+          subtotalCents: cart.subtotalCents,
+          minimumOrderAmountCents: store.minimumOrderAmountCents,
+        }) ? (
+          <p
+            data-testid="checkout-minimum-order-warning"
+            role="status"
+            className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-3 py-2 text-sm text-orange-100"
+          >
+            Pedido mínimo para entrega:{" "}
+            {formatMoney(store.minimumOrderAmountCents)}. O valor será validado
+            ao finalizar.
           </p>
         ) : null}
 
         {errorMessage ? (
           <p
+            data-testid="checkout-error-message"
             role="alert"
             className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-3 text-sm text-red-100"
           >

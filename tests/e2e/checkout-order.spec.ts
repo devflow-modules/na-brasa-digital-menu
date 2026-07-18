@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test";
 import {
+  createE2eMenuCategory,
+  createE2eMenuProduct,
   ensurePilotMenuForE2e,
   findLatestOrderByCustomerName,
+  getOfficialStoreMinimumOrderAmountCentsForE2e,
+  setOfficialStoreMinimumOrderAmountCentsForE2e,
 } from "./helpers/db";
 import { addProductToCartByName, clearCartStorage } from "./helpers/menu";
 import {
@@ -94,5 +98,84 @@ test.describe("checkout order", () => {
     expect(order?.customerName).toBe(customerName);
     expect(order?.totalCents).toBeGreaterThan(0);
     expect(order?.whatsappMessage ?? "").toContain("Novo pedido");
+  });
+
+  test("applies minimum only to delivery; pickup below minimum succeeds", async ({
+    page,
+  }) => {
+    const PRODUCT_PRICE_CENTS = 700;
+    const MINIMUM_ORDER_CENTS = 5_000;
+    const stamp = Date.now();
+    const productName = `E2E Checkout Min Coke ${stamp}`;
+    const customerName = uniqueCustomerName("MinOrder Pickup");
+
+    const originalMinimum =
+      await getOfficialStoreMinimumOrderAmountCentsForE2e();
+
+    try {
+      await setOfficialStoreMinimumOrderAmountCentsForE2e(MINIMUM_ORDER_CENTS);
+
+      const category = await createE2eMenuCategory({
+        name: `E2E Checkout Min Cat ${stamp}`,
+      });
+      await createE2eMenuProduct({
+        categoryId: category.id,
+        storeId: category.storeId,
+        name: productName,
+        priceCents: PRODUCT_PRICE_CENTS,
+      });
+
+      await addProductToCartByName(page, productName, { quantity: 1 });
+      await page.getByTestId("checkout-cta").click();
+      await expect(page).toHaveURL(/\/na-brasa\/checkout/);
+
+      await page.getByLabel("Nome").fill(customerName);
+      await page.getByLabel("WhatsApp para contato").fill(e2ePhone);
+      await page.getByText("Entrega", { exact: true }).click();
+      await page.getByLabel(/endereço/i).fill("Rua E2E, 100 — Santos");
+      await page.getByText("Pix", { exact: true }).click();
+
+      await expect(
+        page.getByTestId("checkout-minimum-order-warning"),
+      ).toBeVisible();
+
+      await page.getByTestId("checkout-submit-button").click();
+      await expect(page.getByTestId("checkout-error-message")).toContainText(
+        /valor mínimo para entrega/i,
+      );
+      await expect(page).toHaveURL(/\/na-brasa\/checkout/);
+
+      await page.getByText("Retirada", { exact: true }).click();
+      await expect(
+        page.getByTestId("checkout-minimum-order-warning"),
+      ).toHaveCount(0);
+
+      await page.route(/wa\.me|api\.whatsapp\.com/, async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "text/html",
+          body: "<!doctype html><title>whatsapp-stub</title><body>ok</body>",
+        });
+      });
+
+      await Promise.all([
+        page.waitForURL(/wa\.me|api\.whatsapp\.com/, {
+          timeout: 45_000,
+          waitUntil: "commit",
+        }),
+        page.getByTestId("checkout-submit-button").click(),
+      ]);
+
+      const order = await findLatestOrderByCustomerName(customerName);
+      expect(order).not.toBeNull();
+      expect(order?.deliveryType).toBe("PICKUP");
+      expect(order?.source).toBe("DIRECT");
+      expect(order?.subtotalCents).toBe(PRODUCT_PRICE_CENTS);
+      expect(order?.subtotalCents).toBeLessThan(MINIMUM_ORDER_CENTS);
+    } finally {
+      if (originalMinimum !== null) {
+        await setOfficialStoreMinimumOrderAmountCentsForE2e(originalMinimum);
+      }
+    }
   });
 });

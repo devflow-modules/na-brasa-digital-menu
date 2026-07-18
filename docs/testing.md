@@ -8,8 +8,8 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 
 | Spec | Fluxo |
 | --- | --- |
-| `tests/e2e/public-menu.spec.ts` | Cardápio, carrinho, persistência local, CTA checkout |
-| `tests/e2e/checkout-order.spec.ts` | Checkout → Order PENDING → `wa.me` → limpa carrinho |
+| `tests/e2e/public-menu.spec.ts` | Cardápio, carrinho, persistência local, CTA checkout; indicador neutro de pedido mínimo **para entrega** |
+| `tests/e2e/checkout-order.spec.ts` | Checkout → Order PENDING → `wa.me` → limpa carrinho; mínimo só em `DELIVERY` (PICKUP abaixo do mínimo ok) |
 | `tests/e2e/admin-auth.spec.ts` | Redirect, senha inválida, user inativo, login MASTER → `/master`, claims JWT, logout |
 | `tests/e2e/master-landing-flow.spec.ts` | Landing por role: MASTER → `/master`, Store → `/admin`, redirect direto `/admin`, sessão ausente |
 | `tests/e2e/master-dashboard.spec.ts` | `/master` auth: redirect, MASTER ok, non-MASTER blocked, lista `na-brasa`, logout |
@@ -91,6 +91,8 @@ Arquivos relevantes:
 - `src/features/admin/orders/new-order-notifications/admin-login-route-gating.test.ts` (não inicia polling em `/admin/login`)
 - `src/features/admin/orders/new-order-notifications/new-order-notification-controller.test.ts` (polling state machine / dedupe / backoff)
 - `src/features/admin/orders/new-order-notifications/new-order-sound-preference.test.ts` (preferência e play seguro)
+- `src/features/orders/utils/delivery-minimum-order.test.ts` (mínimo só para `DELIVERY`)
+- `src/features/orders/services/create-order.service.test.ts` (`createOrder`: DELIVERY abaixo rejeita; PICKUP abaixo cria)
 
 E2E de notificações: ver `docs/product/admin-new-order-notification-validation.md`. Contador `data-sound-play-count` existe só em `development`/`test` (webServer E2E usa `pnpm dev`). Em produção o atributo não é renderizado.
 
