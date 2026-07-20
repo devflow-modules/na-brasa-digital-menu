@@ -62,9 +62,9 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 
 | Área | Estado | Evidência | Lacuna | Próxima ação |
 | ---- | ------ | --------- | ------ | ------------ |
-| CI workflows | EXISTS — ADEQUATE | `.github/workflows/quality.yml` e `e2e.yml`; triggers `pull_request` + `push` em `main`; concurrency com cancel-in-progress; runs recentes verdes; E2E com Postgres efêmero; artefatos em falha; CI não usa produção | Units no Quality: ver PPR-07 | PPR-07 |
-| Branch protection | IN PROGRESS | Ruleset / proteção de `main` em configuração neste ciclo (PPR-08); required checks Quality + E2E | Confirmar após apply da API | PPR-08 |
-| Secret scanning e Dependabot | IN PROGRESS | Habilitação via API + `.github/dependabot.yml` neste ciclo (PPR-09) | Confirmar status no GitHub após apply | PPR-09 |
+| CI workflows | EXISTS — ADEQUATE | Quality inclui `pnpm test` (PPR-07); E2E com Postgres efêmero; triggers PR + push `main`; concurrency | — | PPR-07 done |
+| Branch protection | EXISTS — ADEQUATE | Ruleset `Protect main` (id 19223806): PR obrigatório; checks `Lint, typecheck and build` + `Playwright E2E`; non-fast-forward; push direto bloqueado | — | PPR-08 done |
+| Secret scanning e Dependabot | EXISTS — ADEQUATE | Secret scanning + push protection + Dependabot security updates enabled; `.github/dependabot.yml` (npm + github-actions semanal) | Validity checks / non-provider patterns ainda disabled (opcional) | PPR-09 done |
 | Observabilidade | MISSING | Cobertura parcial: `console.error` em catches; Vercel Runtime Logs possivelmente disponíveis (externo) | Sem error tracking, correlação, dashboard, retenção documentada, alertas, uptime, política de logs, APM | PPR-01 → PPR-02 → PPR-03 |
 | Backup e PITR | EXTERNAL CONFIRMATION REQUIRED | Rollback de aplicação documentado; preservação do banco e migrations seguras em docs | Provedor real, PITR, retenção, restore testado e responsável não confirmados | PPR-04 → PPR-05 |
 | Recuperação administrativa | EXISTS — INCOMPLETE | Script criar Owner; MASTER cria/desativa usuários; bcrypt; JWT rotacionável por secret; usuário inativo não autentica | Sem runbook único, fluxo de reset, validação de identidade, substituição de Owner, registro da intervenção, checklist de rotação JWT | PPR-06 |
@@ -215,9 +215,9 @@ O epic só pode ser marcado como concluído quando:
 * [ ] PITR estiver confirmado ou alternativa formalmente aceita;
 * [ ] restore tiver sido testado;
 * [ ] recuperação de acesso estiver documentada;
-* [ ] `main` estiver protegida;
-* [ ] unit tests rodarem no CI;
-* [ ] secret scanning estiver habilitado ou risco formalmente aceito;
+* [x] `main` estiver protegida;
+* [x] unit tests rodarem no CI;
+* [x] secret scanning estiver habilitado ou risco formalmente aceito;
 * [ ] rate limiting estiver implementado ou decisão formal estiver registrada;
 * [ ] runbook de incidentes existir;
 * [ ] uptime estiver monitorado;
@@ -253,9 +253,9 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | NOT CONFIRMED | — | Provedor + PITR + retenção no checklist (painel humano; não bloqueia PPR-07/08/09) |
 | PPR-05 | Execute restore drill | P1 | VALIDATION | BLOCKED | PPR-04 | Restore em branch/DB temporário documentado |
 | PPR-06 | Document admin recovery runbook | P1 | DOCUMENTATION | NOT STARTED | — | Runbook com reset, Owner, JWT, desativação, registro |
-| PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | IN PROGRESS | — | `pnpm test` no `quality.yml`; CI verde |
-| PPR-08 | Protect main branch | P1 | CONFIGURATION | IN PROGRESS | — | Branch protection + required checks (Quality + E2E); push direto bloqueado via PR obrigatório |
-| PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | IN PROGRESS | — | Controles habilitados **ou** risco formalmente aceito |
+| PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | DONE | — | `pnpm test` no `quality.yml`; CI verde (PR #73) |
+| PPR-08 | Protect main branch | P1 | CONFIGURATION | DONE | — | Ruleset `Protect main`; required checks Quality + E2E; push direto bloqueado |
+| PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | DONE | — | Secret scanning + push protection + Dependabot security updates + `dependabot.yml` |
 | PPR-10 | Plan rate limiting | P1 | PRODUCT-GRILL | NOT STARTED | Preferível após PPR-01/02 | Product Decision |
 | PPR-11 | Implement approved rate limiting | P1 | BUILD | BLOCKED | PPR-10 = BUILD | Limites em login/`createOrder` (escopo aprovado) |
 | PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | NOT STARTED | — | Monitor externo + alerta de indisponibilidade |
