@@ -223,6 +223,7 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - Observação de 7–14 dias dos filtros da fila (uso efetivo, legenda “Na lista”, limites do `take: 50`)
 - Observação de 7–14 dias do tempo decorrido na fila (ajuda a priorizar? confusão com “atraso”?)
 - Histórico de status do pedido: experimento **VALIDATE** — [product/order-history-validation.md](product/order-history-validation.md) (sem schema/timeline até evidência + novo grill)
+- Checkout idempotency → **VALIDATE** → observe DIRECT duplicate candidates for 14 days → no migration or contract change authorized — [product/checkout-idempotency-validation.md](product/checkout-idempotency-validation.md)
 - Admin daily summary expansion → **DEFER** → current cards validated as operationally useful → no copy correction required → reopen only with a concrete operational gap — [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - Hipóteses pontuais de UX/notificações/Balcão sob observação — ver planos em `docs/product/`
 - Storefront por slug e onboarding de tenants (quando evidência e grill autorizarem)
@@ -239,6 +240,7 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 
 - [product/pilot-validation-plan.md](product/pilot-validation-plan.md)
 - [product/order-history-validation.md](product/order-history-validation.md)
+- [product/checkout-idempotency-validation.md](product/checkout-idempotency-validation.md)
 - [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
