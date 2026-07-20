@@ -12,7 +12,7 @@ operacionalmente protegido
 
 Inventário baseado **exclusivamente** na auditoria C (repositório + GitHub API). Controles de painel (Neon, Vercel, org GitHub) permanecem até confirmação humana.
 
-Relacionado: [../product.md](../product.md) · [../deployment.md](../deployment.md) · [../production-checklist.md](../production-checklist.md) · [checkout-idempotency-validation.md](checkout-idempotency-validation.md) · [order-history-validation.md](order-history-validation.md)
+Relacionado: [../product.md](../product.md) · [../deployment.md](../deployment.md) · [../production-checklist.md](../production-checklist.md) · [../admin-access-recovery.md](../admin-access-recovery.md) · [checkout-idempotency-validation.md](checkout-idempotency-validation.md) · [order-history-validation.md](order-history-validation.md)
 
 ---
 
@@ -67,7 +67,7 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 | Secret scanning e Dependabot | EXISTS — ADEQUATE | Secret scanning + push protection + Dependabot security updates enabled; `.github/dependabot.yml` (npm + github-actions semanal) | Validity checks / non-provider patterns ainda disabled (opcional) | PPR-09 done |
 | Observabilidade | MISSING | Cobertura parcial: `console.error` em catches; Vercel Runtime Logs possivelmente disponíveis (externo) | Sem error tracking, correlação, dashboard, retenção documentada, alertas, uptime, política de logs, APM | PPR-01 → PPR-02 → PPR-03 |
 | Backup e PITR | EXTERNAL CONFIRMATION REQUIRED | Rollback de aplicação documentado; preservação do banco e migrations seguras em docs | Provedor real, PITR, retenção, restore testado e responsável não confirmados | PPR-04 → PPR-05 |
-| Recuperação administrativa | EXISTS — INCOMPLETE | Script criar Owner; MASTER cria/desativa usuários; bcrypt; JWT rotacionável por secret; usuário inativo não autentica | Sem runbook único, fluxo de reset, validação de identidade, substituição de Owner, registro da intervenção, checklist de rotação JWT | PPR-06 |
+| Recuperação administrativa | EXISTS — ADEQUATE (docs) | Runbook [admin-access-recovery.md](../admin-access-recovery.md); script Owner; MASTER users UI; bcrypt; rotação JWT; inativo bloqueia novo login | Reset self-service no painel continua roadmap; sessão JWT pré-existente até 8h sem recheck de `isActive` | PPR-06 done |
 | Rate limiting | MISSING | Nenhuma dependência/código/docs de rate limit | Login, `createOrder`, polling Admin (e catálogo público se aplicável) sem limite; sem incidente de abuso documentado | PPR-10 → PPR-11 |
 | Deploy, smoke e rollback | EXISTS — ADEQUATE | Deploy Vercel; migrations; seed controlado; checklist; smoke; rollback de app; scripts operacionais | Rollback de **dados** não coberto | PPR-04 / PPR-05 |
 | Health e uptime | MISSING | Sem `/health`; sem monitor externo documentado; sem alerta de indisponibilidade | Detecção tardia de outage | PPR-12 (Fase 2) |
@@ -190,10 +190,10 @@ NOT APPLICABLE
 | Retenção do PITR | NOT CONFIRMED | | | |
 | Restore testado | NOT CONFIRMED | | | |
 | Resultado do restore | NOT CONFIRMED | | | |
-| Vercel Runtime Logs | NOT CONFIRMED | | | |
-| Retenção dos logs (Vercel) | NOT CONFIRMED | | | |
-| Alertas da Vercel | NOT CONFIRMED | | | |
-| Log Drain | NOT CONFIRMED | | | |
+| Vercel Runtime Logs | NOT CONFIRMED | Preencher na PPR-01 (ADEQUATE / PARTIAL / INADEQUATE) | | |
+| Retenção dos logs (Vercel) | NOT CONFIRMED | PPR-01 | | |
+| Alertas da Vercel | NOT CONFIRMED | PPR-01 | | |
+| Log Drain | NOT CONFIRMED | PPR-01 | | |
 | Monitoramento Neon | NOT CONFIRMED | | | |
 | Alertas Neon | NOT CONFIRMED | | | |
 | Admins GitHub | NOT CONFIRMED | | | |
@@ -214,7 +214,7 @@ O epic só pode ser marcado como concluído quando:
 * [ ] alertas críticos estiverem configurados;
 * [ ] PITR estiver confirmado ou alternativa formalmente aceita;
 * [ ] restore tiver sido testado;
-* [ ] recuperação de acesso estiver documentada;
+* [x] recuperação de acesso estiver documentada;
 * [x] `main` estiver protegida;
 * [x] unit tests rodarem no CI;
 * [x] secret scanning estiver habilitado ou risco formalmente aceito;
@@ -247,12 +247,12 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 
 | ID | Item | Prioridade | Tipo | Estado | Dependência | Evidência de conclusão |
 | -- | ---- | ---------- | ---- | ------ | ----------- | ---------------------- |
-| PPR-01 | Confirm Vercel logging and alerts | P1 | EXTERNAL | NOT STARTED | — | Checklist externo preenchido (logs, retenção, alertas, Log Drain) |
+| PPR-01 | Confirm Vercel logging and alerts | P1 | EXTERNAL | READY | — | Classificar ADEQUATE / PARTIAL / INADEQUATE no checklist; grill só se PARTIAL/INADEQUATE |
 | PPR-02 | Plan production error tracking | P1 | PRODUCT-GRILL | BLOCKED | PPR-01 | Product Decision BUILD (ou DEFER/VALIDATE) |
 | PPR-03 | Configure error tracking | P1 | BUILD | BLOCKED | PPR-02 = BUILD | Erros de checkout/Admin capturados sem PII + alerta |
 | PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | NOT CONFIRMED | — | Provedor + PITR + retenção no checklist (painel humano; não bloqueia PPR-07/08/09) |
 | PPR-05 | Execute restore drill | P1 | VALIDATION | BLOCKED | PPR-04 | Restore em branch/DB temporário documentado |
-| PPR-06 | Document admin recovery runbook | P1 | DOCUMENTATION | NOT STARTED | — | Runbook com reset, Owner, JWT, desativação, registro |
+| PPR-06 | Document admin recovery runbook | P1 | DOCUMENTATION | DONE | — | [admin-access-recovery.md](../admin-access-recovery.md) |
 | PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | DONE | — | `pnpm test` no `quality.yml`; CI verde (PR #73) |
 | PPR-08 | Protect main branch | P1 | CONFIGURATION | DONE | — | Ruleset `Protect main`; required checks Quality + E2E; push direto bloqueado |
 | PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | DONE | — | Secret scanning + push protection + Dependabot security updates + `dependabot.yml` |
