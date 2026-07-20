@@ -62,9 +62,9 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 
 | Área | Estado | Evidência | Lacuna | Próxima ação |
 | ---- | ------ | --------- | ------ | ------------ |
-| CI workflows | EXISTS — ADEQUATE | `.github/workflows/quality.yml` e `e2e.yml`; triggers `pull_request` + `push` em `main`; concurrency com cancel-in-progress; runs recentes verdes; E2E com Postgres efêmero; artefatos em falha; CI não usa produção | `pnpm test` não roda no Quality Checks | PPR-07 |
-| Branch protection | MISSING | API: `main` não protegida; rulesets do repositório vazios; push direto permitido; required checks não bloqueiam merge | Merge/push sem checks obrigatórios | PPR-08 |
-| Secret scanning e Dependabot | MISSING OR DISABLED | Repo público; secret scanning disabled; push protection disabled; Dependabot security updates disabled; `.github/dependabot.yml` ausente | Sem higiene automatizada de secrets/deps | PPR-09 |
+| CI workflows | EXISTS — ADEQUATE | `.github/workflows/quality.yml` e `e2e.yml`; triggers `pull_request` + `push` em `main`; concurrency com cancel-in-progress; runs recentes verdes; E2E com Postgres efêmero; artefatos em falha; CI não usa produção | Units no Quality: ver PPR-07 | PPR-07 |
+| Branch protection | IN PROGRESS | Ruleset / proteção de `main` em configuração neste ciclo (PPR-08); required checks Quality + E2E | Confirmar após apply da API | PPR-08 |
+| Secret scanning e Dependabot | IN PROGRESS | Habilitação via API + `.github/dependabot.yml` neste ciclo (PPR-09) | Confirmar status no GitHub após apply | PPR-09 |
 | Observabilidade | MISSING | Cobertura parcial: `console.error` em catches; Vercel Runtime Logs possivelmente disponíveis (externo) | Sem error tracking, correlação, dashboard, retenção documentada, alertas, uptime, política de logs, APM | PPR-01 → PPR-02 → PPR-03 |
 | Backup e PITR | EXTERNAL CONFIRMATION REQUIRED | Rollback de aplicação documentado; preservação do banco e migrations seguras em docs | Provedor real, PITR, retenção, restore testado e responsável não confirmados | PPR-04 → PPR-05 |
 | Recuperação administrativa | EXISTS — INCOMPLETE | Script criar Owner; MASTER cria/desativa usuários; bcrypt; JWT rotacionável por secret; usuário inativo não autentica | Sem runbook único, fluxo de reset, validação de identidade, substituição de Owner, registro da intervenção, checklist de rotação JWT | PPR-06 |
@@ -250,12 +250,12 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-01 | Confirm Vercel logging and alerts | P1 | EXTERNAL | NOT STARTED | — | Checklist externo preenchido (logs, retenção, alertas, Log Drain) |
 | PPR-02 | Plan production error tracking | P1 | PRODUCT-GRILL | BLOCKED | PPR-01 | Product Decision BUILD (ou DEFER/VALIDATE) |
 | PPR-03 | Configure error tracking | P1 | BUILD | BLOCKED | PPR-02 = BUILD | Erros de checkout/Admin capturados sem PII + alerta |
-| PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | NOT STARTED | — | Provedor + PITR + retenção no checklist |
+| PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | NOT CONFIRMED | — | Provedor + PITR + retenção no checklist (painel humano; não bloqueia PPR-07/08/09) |
 | PPR-05 | Execute restore drill | P1 | VALIDATION | BLOCKED | PPR-04 | Restore em branch/DB temporário documentado |
 | PPR-06 | Document admin recovery runbook | P1 | DOCUMENTATION | NOT STARTED | — | Runbook com reset, Owner, JWT, desativação, registro |
-| PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | NOT STARTED | — | `pnpm test` no `quality.yml`; CI verde |
-| PPR-08 | Protect main branch | P1 | CONFIGURATION | NOT STARTED | — | Branch protection + required checks (Quality + E2E) |
-| PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | NOT STARTED | — | Controles habilitados **ou** risco formalmente aceito |
+| PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | IN PROGRESS | — | `pnpm test` no `quality.yml`; CI verde |
+| PPR-08 | Protect main branch | P1 | CONFIGURATION | IN PROGRESS | — | Branch protection + required checks (Quality + E2E); push direto bloqueado via PR obrigatório |
+| PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | IN PROGRESS | — | Controles habilitados **ou** risco formalmente aceito |
 | PPR-10 | Plan rate limiting | P1 | PRODUCT-GRILL | NOT STARTED | Preferível após PPR-01/02 | Product Decision |
 | PPR-11 | Implement approved rate limiting | P1 | BUILD | BLOCKED | PPR-10 = BUILD | Limites em login/`createOrder` (escopo aprovado) |
 | PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | NOT STARTED | — | Monitor externo + alerta de indisponibilidade |
