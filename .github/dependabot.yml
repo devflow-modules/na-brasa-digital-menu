@@ -1,5 +1,10 @@
 # Keep GitHub Actions and npm dependencies current with weekly PRs.
 # Security advisories are also covered by Dependabot security updates (repo setting).
+#
+# Policy (pilot):
+# - Group only minor/patch npm updates (production and development separately).
+# - Major npm upgrades stay ungrouped so each can get a dedicated migration cycle.
+# - GitHub Actions updates remain isolated (no groups).
 version: 2
 updates:
   - package-ecosystem: npm
@@ -13,8 +18,14 @@ updates:
     groups:
       production-dependencies:
         dependency-type: production
+        update-types:
+          - minor
+          - patch
       development-dependencies:
         dependency-type: development
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: "/"
