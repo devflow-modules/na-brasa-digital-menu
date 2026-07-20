@@ -342,8 +342,9 @@ O MVP **não** envia mensagem automática pela API do WhatsApp: só abre o link 
 - Credenciais de login ficam no **banco** (`User`); secrets de sessão (`ADMIN_JWT_SECRET`) só nas envs do servidor
 - `MASTER` entra em `/master` após login; `/admin` sem Store explícita redireciona para `/master`
 - Usuários de loja são gerenciados em `/master/stores/[storeId]/users`
+- Recuperação de acesso (senha, Owner, JWT, desativação): [admin-access-recovery.md](admin-access-recovery.md)
 
-- Reset de senha ainda não existe no painel
+- Reset de senha **self-service** ainda não existe no painel (roadmap)
 - Sem CRUD de **lojas** no `/master` nesta etapa (cardápio é em `/admin/cardapio`)
 - Bootstrap inicial do MASTER continua via seed `MASTER_ADMIN_*`
 
