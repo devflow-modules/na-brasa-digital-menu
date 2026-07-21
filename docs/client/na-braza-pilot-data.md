@@ -105,32 +105,27 @@ Pilot categories:
 
 | Product | Description | Price | Status |
 | --- | --- | ---: | --- |
-| Pão Carne Queijo | Hambúrguer artesanal 160g com pão, carne e queijo. Personalize com adicionais. Escolha apenas uma opção de queijo extra. | R$ 25,00 | confirmed |
+| Pão Carne Queijo | Hambúrguer artesanal 160g com pão, carne e queijo. Personalize com adicionais. | R$ 25,00 | confirmed |
 
 ### Burger addons
 
 | Addon | Price | Status |
 | --- | ---: | --- |
-| Bacon extra | R$ 5,00 | confirmed |
-| Salada | R$ 5,00 | confirmed |
-| Cheddar extra | R$ 3,00 | confirmed |
-| Queijo prato extra | R$ 3,00 | confirmed |
-| Hambúrguer extra | R$ 15,00 | confirmed |
-| Queijo extra (legado) | R$ 3,00 | inactive — kept for historical snapshots; not offered on new orders |
+| Bacon extra | R$ 5,00 | confirmed — independent |
+| Salada | R$ 5,00 | confirmed — independent |
+| Cheddar extra | R$ 3,00 | confirmed — cheese group |
+| Queijo prato extra | R$ 3,00 | confirmed — cheese group |
+| Hambúrguer extra | R$ 15,00 | confirmed — independent |
+| Queijo extra (legado) | R$ 3,00 | inactive — historical snapshots only |
 
 Addon linkage:
 
-- Link active burger addons only to `Pão Carne Queijo`.
+- Independent addons linked to `Pão Carne Queijo` via `ProductAddon`.
+- Cheese group `Escolha o queijo extra` (min 0, max 1) on the same product via `AddonGroup`.
 
 Operational note:
 
-The base product is Pão Carne Queijo. The customer adds optional extras; the product should not be modeled as multiple fixed variations in this pilot.
-
-Cheese exclusivity (temporary):
-
-- Catalog copy asks the customer to choose only one cheese extra.
-- The platform cannot yet enforce `maxSelection = 1` (no addon groups). Selecting both cheddar and prato remains technically possible until that feature exists.
-- Product debt: addon complement groups with `minSelection` / `maxSelection` (cheese group: min 0, max 1).
+The base product is Pão Carne Queijo. The customer adds optional extras; the product should not be modeled as multiple fixed variations in this pilot. Cheese exclusivity is enforced by selection groups (server + UI). Detalhe: [../product/addon-selection-groups.md](../product/addon-selection-groups.md).
 
 ### Espetinhos na Brasa
 
