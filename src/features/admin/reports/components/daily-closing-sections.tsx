@@ -1,18 +1,6 @@
 import { formatMoney } from "@/features/menu/format-money";
+import { dailyClosingPaymentLabel } from "@/features/admin/reports/daily-closing-payment-labels";
 import type { DailyClosingReport } from "@/features/admin/reports/daily-closing.types";
-
-function paymentLabel(method: DailyClosingReport["payments"][number]["method"]) {
-  switch (method) {
-    case "PIX":
-      return "Pix";
-    case "CASH":
-      return "Dinheiro";
-    case "CARD":
-      return "Cartão";
-    case "UNSET":
-      return "Não informado";
-  }
-}
 
 function channelLabel(
   channel: DailyClosingReport["fulfillment"][number]["channel"],
@@ -70,7 +58,7 @@ export function DailyClosingSections({ report }: DailyClosingSectionsProps) {
                     key={row.method}
                     className="flex flex-wrap justify-between gap-2 border-b border-stone-800 py-2"
                   >
-                    <span>{paymentLabel(row.method)}</span>
+                    <span>{dailyClosingPaymentLabel(row.method)}</span>
                     <span>
                       {formatMoney(row.amountCents)} — {row.orderCount} pedidos
                     </span>

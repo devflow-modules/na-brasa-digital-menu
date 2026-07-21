@@ -1,28 +1,13 @@
 import { formatMoney } from "@/features/menu/format-money";
+import { dailyClosingPaymentLabel } from "@/features/admin/reports/daily-closing-payment-labels";
 import type {
   DailyClosingFulfillmentChannel,
-  DailyClosingPaymentMethod,
   DailyClosingReport,
 } from "@/features/admin/reports/daily-closing.types";
 
 function formatOperationalDate(date: string): string {
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
-}
-
-function paymentLabel(method: DailyClosingPaymentMethod): string {
-  switch (method) {
-    case "PIX":
-      return "Pix";
-    case "CASH":
-      return "Dinheiro";
-    case "CARD":
-      return "Cartão";
-    case "UNSET":
-      return "Não informado";
-    default:
-      return method;
-  }
 }
 
 function channelLabel(channel: DailyClosingFulfillmentChannel): string {
@@ -90,7 +75,7 @@ export function formatDailyClosingWhatsapp(report: DailyClosingReport): string {
     lines.push("", "💳 *FORMAS DE PAGAMENTO*");
     for (const row of report.payments) {
       lines.push(
-        `• ${paymentLabel(row.method)}: ${formatMoney(row.amountCents)} — ${pedidoCountLabel(row.orderCount)} — ${formatWhatsappPercentage(row.percentageBps)}`,
+        `• ${dailyClosingPaymentLabel(row.method)}: ${formatMoney(row.amountCents)} — ${pedidoCountLabel(row.orderCount)} — ${formatWhatsappPercentage(row.percentageBps)}`,
       );
     }
   }

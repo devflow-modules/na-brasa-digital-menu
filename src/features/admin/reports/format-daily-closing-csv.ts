@@ -1,6 +1,6 @@
+import { dailyClosingPaymentLabel } from "@/features/admin/reports/daily-closing-payment-labels";
 import type {
   DailyClosingFulfillmentChannel,
-  DailyClosingPaymentMethod,
   DailyClosingReport,
 } from "@/features/admin/reports/daily-closing.types";
 
@@ -12,21 +12,6 @@ export type DailyClosingCsvExport = {
 
 const UTF8_BOM = "\uFEFF";
 const CRLF = "\r\n";
-
-function paymentLabel(method: DailyClosingPaymentMethod): string {
-  switch (method) {
-    case "PIX":
-      return "Pix";
-    case "CASH":
-      return "Dinheiro";
-    case "CARD":
-      return "Cartão";
-    case "UNSET":
-      return "Não informado";
-    default:
-      return method;
-  }
-}
 
 function channelLabel(channel: DailyClosingFulfillmentChannel): string {
   switch (channel) {
@@ -206,7 +191,7 @@ export function formatDailyClosingCsv(
     ...buildCsvSection("PAGAMENTOS", [
       ["Forma", "Pedidos", "Valor", "Percentual"],
       ...report.payments.map((row) => [
-        paymentLabel(row.method),
+        dailyClosingPaymentLabel(row.method),
         row.orderCount,
         formatCsvMoney(row.amountCents),
         formatCsvPercentage(row.percentageBps),

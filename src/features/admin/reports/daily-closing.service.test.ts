@@ -160,16 +160,32 @@ describe("aggregateDailyClosingReport", () => {
           code: "B1",
           source: "COUNTER",
           deliveryType: "PICKUP",
-          paymentMethod: "CARD",
+          paymentMethod: "DEBIT_CARD",
           totalCents: 3000,
           subtotalCents: 3000,
+        }),
+        baseOrder({
+          code: "B2",
+          source: "COUNTER",
+          deliveryType: "PICKUP",
+          paymentMethod: "CREDIT_CARD",
+          totalCents: 1200,
+          subtotalCents: 1200,
+        }),
+        baseOrder({
+          code: "B3",
+          source: "COUNTER",
+          deliveryType: "PICKUP",
+          paymentMethod: "CARD",
+          totalCents: 800,
+          subtotalCents: 800,
         }),
       ],
     });
 
-    assert.equal(report.summary.grossTotalCents, 6500);
+    assert.equal(report.summary.grossTotalCents, 8500);
     assert.equal(report.summary.deliveryFeesCents, 500);
-    assert.equal(report.summary.averageTicketCents, Math.round(6500 / 3));
+    assert.equal(report.summary.averageTicketCents, Math.round(8500 / 5));
 
     const byChannel = Object.fromEntries(
       report.fulfillment.map((row) => [row.channel, row]),
@@ -177,14 +193,20 @@ describe("aggregateDailyClosingReport", () => {
     assert.equal(byChannel.DELIVERY?.orderCount, 1);
     assert.equal(byChannel.DELIVERY?.totalCents, 1500);
     assert.equal(byChannel.PICKUP?.orderCount, 1);
-    assert.equal(byChannel.COUNTER?.orderCount, 1);
+    assert.equal(byChannel.COUNTER?.orderCount, 3);
 
     const byPay = Object.fromEntries(
       report.payments.map((row) => [row.method, row]),
     );
     assert.equal(byPay.PIX?.amountCents, 1500);
     assert.equal(byPay.CASH?.amountCents, 2000);
-    assert.equal(byPay.CARD?.amountCents, 3000);
+    assert.equal(byPay.DEBIT_CARD?.amountCents, 3000);
+    assert.equal(byPay.CREDIT_CARD?.amountCents, 1200);
+    assert.equal(byPay.CARD?.amountCents, 800);
+    assert.deepEqual(
+      report.payments.map((row) => row.method),
+      ["PIX", "CASH", "DEBIT_CARD", "CREDIT_CARD", "CARD"],
+    );
   });
 
   it("buckets missing payment method as UNSET", () => {
