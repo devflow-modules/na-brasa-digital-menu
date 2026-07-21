@@ -59,9 +59,15 @@ test.describe("admin store settings", () => {
     await expect(page.getByTestId("admin-store-settings-form")).toBeVisible();
     await expect(page.getByTestId("admin-store-settings-save")).toBeVisible();
 
+    await expect(page.getByTestId("admin-store-open-toggle")).toBeVisible();
+    await expect(page.getByTestId("admin-store-settings-save")).toBeDisabled();
+
     await page.getByLabel("Endereço").fill(E2E_ADDRESS_MARKER);
-    await page.getByLabel("Horário / funcionamento").fill(E2E_HOURS_MARKER);
+    await page
+      .getByLabel("Descrição do horário de funcionamento")
+      .fill(E2E_HOURS_MARKER);
     await page.getByLabel("Taxa de entrega (R$)").fill("12,50");
+    await expect(page.getByTestId("admin-store-settings-dirty")).toBeVisible();
     await page.getByTestId("admin-store-settings-save").click();
     await expect(page.getByText("Configurações salvas.")).toBeVisible({
       timeout: 15_000,
@@ -98,7 +104,6 @@ test.describe("admin store settings", () => {
         minimumOrderAmountCents: "0",
         pickupEnabled: true,
         deliveryEnabled: true,
-        isOpen: true,
       },
       storeId: operator.storeId!,
       role: "OPERATOR",
@@ -258,8 +263,14 @@ test.describe("admin store settings", () => {
     await loginAsUser(page, manager);
     await page.goto("/admin/configuracoes");
 
-    await page.getByRole("checkbox", { name: /Entrega habilitada/i }).check();
-    await page.getByRole("checkbox", { name: /Retirada habilitada/i }).check();
+    const deliverySwitch = page.getByRole("switch", { name: "Entrega" });
+    const pickupSwitch = page.getByRole("switch", { name: "Retirada" });
+    if ((await deliverySwitch.getAttribute("aria-checked")) !== "true") {
+      await deliverySwitch.click();
+    }
+    if ((await pickupSwitch.getAttribute("aria-checked")) !== "true") {
+      await pickupSwitch.click();
+    }
     await page
       .getByTestId("admin-store-minimum-order-input")
       .fill("50,00");
@@ -290,8 +301,14 @@ test.describe("admin store settings", () => {
     await loginAsUser(page, manager);
     await page.goto("/admin/configuracoes");
 
-    await page.getByRole("checkbox", { name: /Retirada habilitada/i }).uncheck();
-    await page.getByRole("checkbox", { name: /Entrega habilitada/i }).uncheck();
+    const pickupSwitch = page.getByRole("switch", { name: "Retirada" });
+    const deliverySwitch = page.getByRole("switch", { name: "Entrega" });
+    if ((await pickupSwitch.getAttribute("aria-checked")) === "true") {
+      await pickupSwitch.click();
+    }
+    if ((await deliverySwitch.getAttribute("aria-checked")) === "true") {
+      await deliverySwitch.click();
+    }
 
     await expect(
       page.getByTestId("admin-store-settings-modality-error"),
@@ -312,7 +329,6 @@ test.describe("admin store settings", () => {
         ).replace(".", ","),
         pickupEnabled: false,
         deliveryEnabled: false,
-        isOpen: baseline.isOpen,
       },
       storeId: baseline.storeId,
       role: "MANAGER",
