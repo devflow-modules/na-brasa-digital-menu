@@ -17,14 +17,22 @@ export function DailyClosingFilters({
   const router = useRouter();
   const formKey = `${date}|${startTime}|${endTime}`;
 
+  function normalizeTimeParam(value: string): string {
+    const trimmed = value.trim();
+    if (/^\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+      return trimmed.slice(0, 5);
+    }
+    return trimmed;
+  }
+
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     const params = new URLSearchParams();
 
     const nextDate = String(formData.get("date") ?? "").trim();
-    const nextStart = String(formData.get("start") ?? "").trim();
-    const nextEnd = String(formData.get("end") ?? "").trim();
+    const nextStart = normalizeTimeParam(String(formData.get("start") ?? ""));
+    const nextEnd = normalizeTimeParam(String(formData.get("end") ?? ""));
 
     if (nextDate) params.set("date", nextDate);
     if (nextStart) params.set("start", nextStart);
