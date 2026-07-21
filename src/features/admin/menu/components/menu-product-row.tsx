@@ -9,6 +9,7 @@ import type {
   AdminMenuCategory,
   AdminMenuProduct,
 } from "@/features/admin/menu/admin-menu.types";
+import { ProductAddonGroupsPanel } from "@/features/admin/addon-groups/components/product-addon-groups-panel";
 import { ProductForm } from "@/features/admin/menu/components/product-form";
 
 type MenuProductRowProps = {
@@ -139,6 +140,10 @@ export function MenuProductRow({
             product={product}
             canSubmit={canUpdateProduct}
             onCancel={onCancelEdit}
+          />
+          <ProductAddonGroupsPanel
+            productId={product.id}
+            canManage={canUpdateProduct}
           />
         </div>
       ) : null}
