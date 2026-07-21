@@ -62,7 +62,7 @@ Status geral:
 | Opening days | Monday to Sunday | received |
 | Opening hours | 17:30–00:00 | received |
 | Holiday operation | Works normally | received |
-| Weather note | Does not open on heavy rain days | received |
+| Weather note | Operation may vary on heavy rain days (status “Loja aberta” is the real control) | received |
 | Pickup | enabled | confirmed |
 | Delivery | enabled | confirmed |
 | Delivery areas | Santos; São Vicente depending on order | received |
