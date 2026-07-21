@@ -65,7 +65,7 @@ Scope: layout/density only — no DTO, aggregation, WhatsApp/CSV contracts or pe
 | Canais | entrega / retirada / balcão (`DELIVERY`, `PICKUP`≠COUNTER, `COUNTER`) |
 | Taxa de entrega | separada do subtotal de produtos |
 | Produtos | nome (snapshot), quantidade, valor da linha (`OrderItem.totalCents`) |
-| Pagamentos | `CASH` / `PIX` / `CARD` / não informado |
+| Pagamentos | `CASH` / `PIX` / `DEBIT_CARD` / `CREDIT_CARD` / legado `CARD` (só se houver valor) / não informado |
 | Acesso | `reports.read` → `STORE_OWNER` e `MANAGER` |
 | Mutabilidade | relatório dinâmico (pode mudar se um pedido for corrigido) |
 | Compartilhamento | copiar resumo para WhatsApp |
