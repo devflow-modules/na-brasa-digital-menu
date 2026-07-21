@@ -19,6 +19,7 @@
     "store:create-na-braza-owner": "tsx scripts/create-na-braza-store-owner.ts",
     "data:clean-na-braza-tests": "tsx scripts/clean-na-braza-test-data.ts",
     "data:purge-na-braza-tests": "tsx scripts/purge-na-braza-test-records.ts",
+    "data:remove-na-braza-legacy-seed": "tsx scripts/remove-na-braza-legacy-seed-products.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
