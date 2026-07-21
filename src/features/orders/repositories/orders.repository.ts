@@ -33,6 +33,23 @@ export type CatalogProductRecord = {
       active: boolean;
     };
   }>;
+  addonGroups: Array<{
+    id: string;
+    name: string;
+    minSelection: number;
+    maxSelection: number;
+    active: boolean;
+    sortOrder: number;
+    options: Array<{
+      sortOrder: number;
+      addon: {
+        id: string;
+        name: string;
+        priceCents: number;
+        active: boolean;
+      };
+    }>;
+  }>;
 };
 
 export async function findStoreForOrderBySlug(
@@ -78,6 +95,30 @@ export async function findActiveProductsForOrder(
               name: true,
               priceCents: true,
               active: true,
+            },
+          },
+        },
+      },
+      addonGroups: {
+        select: {
+          id: true,
+          name: true,
+          minSelection: true,
+          maxSelection: true,
+          active: true,
+          sortOrder: true,
+          options: {
+            orderBy: { sortOrder: "asc" },
+            select: {
+              sortOrder: true,
+              addon: {
+                select: {
+                  id: true,
+                  name: true,
+                  priceCents: true,
+                  active: true,
+                },
+              },
             },
           },
         },

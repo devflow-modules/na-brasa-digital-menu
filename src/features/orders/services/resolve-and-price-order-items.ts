@@ -1,11 +1,9 @@
+import { validateAddonSelectionForProduct } from "@/features/orders/addon-group-selection";
 import {
   findActiveProductsForOrder,
   type CatalogProductRecord,
 } from "@/features/orders/repositories/orders.repository";
 import type { PreparedOrderItem } from "@/features/orders/types";
-
-const ADDON_UNAVAILABLE_MESSAGE =
-  "Adicional indisponível para este produto.";
 
 export type OrderItemPricingRequest = {
   productId: string;
@@ -70,29 +68,16 @@ export function priceOrderItemsFromCatalog(
       };
     }
 
-    const addonsById = new Map(
-      product.productAddons.map((link) => [link.addon.id, link.addon]),
-    );
-
-    const uniqueAddonIds = [...new Set(item.addonIds)];
-    const preparedAddons = [];
-
-    for (const addonId of uniqueAddonIds) {
-      const addon = addonsById.get(addonId);
-
-      if (!addon || !addon.active) {
-        return {
-          ok: false,
-          message: ADDON_UNAVAILABLE_MESSAGE,
-        };
-      }
-
-      preparedAddons.push({
-        addonId: addon.id,
-        addonNameSnapshot: addon.name,
-        addonPriceCents: addon.priceCents,
-      });
+    const selection = validateAddonSelectionForProduct(product, item.addonIds);
+    if (!selection.ok) {
+      return selection;
     }
+
+    const preparedAddons = selection.selectedAddons.map((addon) => ({
+      addonId: addon.id,
+      addonNameSnapshot: addon.name,
+      addonPriceCents: addon.priceCents,
+    }));
 
     const addonsTotalCents = preparedAddons.reduce(
       (sum, addon) => sum + addon.addonPriceCents,
