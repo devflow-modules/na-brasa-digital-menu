@@ -30,8 +30,8 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-new-order-notifications.spec.ts` | Notificações admin: login lifecycle, bootstrap, DIRECT, som, Dispensar aviso, COUNTER, tenant, badge → fila `/admin` |
 | `tests/e2e/admin-orders-live-refresh.spec.ts` | Fila admin live refresh: novo DIRECT na lista sem reload; status no detalhe; COUNTER → Pedidos |
 | `tests/e2e/mobile-admin-new-order-notifications.spec.ts` | Banner/badge navegável/Dispensar aviso no viewport Pixel 5 |
-| `tests/e2e/admin-chrome-by-role.spec.ts` | Chrome por papel: links filtrados, active state, login sem chrome, KITCHEN só Pedidos |
-| `tests/e2e/mobile-admin-chrome.spec.ts` | Chrome admin utilizável no Pixel 5 |
+| `tests/e2e/admin-chrome-by-role.spec.ts` | AdminShell por papel: links filtrados, active state, menu do usuário/logout, KITCHEN só Pedidos |
+| `tests/e2e/mobile-admin-chrome.spec.ts` | AdminShell no Pixel 5: hamburger, navegação e menu do usuário |
 | `tests/e2e/admin-access-denied.spec.ts` | Acesso negado explícito (Balcão/KITCHEN), login redirect, 404 tenant, Cardápio read-only |
 
 Browsers / projetos Playwright:

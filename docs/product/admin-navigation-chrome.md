@@ -7,6 +7,7 @@ Shared authenticated shell for `/admin` tenant routes. **UI visibility ≠ autho
 ```txt
 Role-aware admin chrome complete
 Shared admin navigation complete
+Compact admin shell
 Local navigation duplication reduced
 Explicit admin access-denied UX complete
 Tenant resource concealment preserved
@@ -23,18 +24,19 @@ Navigation audit backlog in progress
 ## Architecture
 
 ```txt
-app/admin/layout.tsx                    → notifications provider (login included)
+app/admin/layout.tsx                    → notifications provider + chrome context
 app/admin/login                         → no chrome
-app/admin/(store)/layout.tsx            → requireAdminStoreContext + AdminChrome
-AdminChrome
-├── store identity + role + logout
-├── AdminNavigationLinks (client, usePathname)
-└── page content
+app/admin/(store)/layout.tsx            → requireAdminStoreContext + AdminShell
+AdminShell
+├── AdminHeader (loja Admin · som · menu do usuário · logout)
+├── AdminNavigation (desktop tabs / mobile hamburger)
+└── page content (AdminPageHeader por rota)
 ```
 
 - Single nav source: `src/features/admin/chrome/admin-navigation.ts`
-- Desktop and mobile consume the same items (horizontal scroll on narrow viewports; thin scrollbar kept as overflow affordance)
-- PENDING badge stays in the notifications provider (not duplicated in chrome)
+- Shell UI: `src/features/admin-shell/`
+- Desktop: duas linhas (marca/ações + abas). Mobile: hamburger + menu do usuário
+- Badge PENDING e som entram no header via context de notificações
 - `/master` stays outside tenant chrome
 
 ## Chrome visibility matrix (links)
@@ -95,4 +97,4 @@ Next.js `forbidden()` / `forbidden.tsx` exist in 15.5.x but require `experimenta
 
 ## Out of scope
 
-Backend auth changes, new roles/permissions, polling/notification changes, Store picker/switcher, full page redesign, enabling experimental auth interrupts.
+Backend auth changes, new roles/permissions, Store picker/switcher, breadcrumbs, global search, sidebar fixa, command palette, enabling experimental auth interrupts.
