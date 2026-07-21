@@ -1,6 +1,27 @@
 import type { Page } from "@playwright/test";
 import { CART_STORAGE_KEY } from "./test-data";
 
+export async function openStoreOperationalDetails(page: Page): Promise<void> {
+  const toggle = page.getByTestId("store-details-toggle");
+  if ((await toggle.count()) === 0) {
+    return;
+  }
+  if ((await toggle.getAttribute("aria-expanded")) === "true") {
+    return;
+  }
+  await toggle.click();
+  await page.getByTestId("store-operational-details").waitFor();
+}
+
+export async function expandCartSummary(page: Page): Promise<void> {
+  const toggle = page.getByTestId("cart-summary-toggle");
+  await toggle.waitFor();
+  if ((await toggle.getAttribute("aria-expanded")) === "true") {
+    return;
+  }
+  await toggle.click();
+}
+
 export async function openAddToCartForProduct(
   page: Page,
   productName: string,
@@ -24,11 +45,14 @@ export async function addProductToCartByName(
   await page.getByTestId("add-to-cart-button").click();
   await page.getByTestId("cart-summary").waitFor();
 
-  const increaseButton = page
-    .getByRole("button", { name: new RegExp(`^Aumentar ${productName}`) })
-    .first();
-  for (let i = 1; i < quantity; i++) {
-    await increaseButton.click();
+  if (quantity > 1) {
+    await expandCartSummary(page);
+    const increaseButton = page
+      .getByRole("button", { name: new RegExp(`^Aumentar ${productName}`) })
+      .first();
+    for (let i = 1; i < quantity; i++) {
+      await increaseButton.click();
+    }
   }
 }
 
@@ -45,11 +69,14 @@ export async function addFirstProductToCart(
   await page.getByTestId("add-to-cart-button").click();
   await page.getByTestId("cart-summary").waitFor();
 
-  const increaseButton = page
-    .getByRole("button", { name: /^Aumentar / })
-    .first();
-  for (let i = 1; i < quantity; i++) {
-    await increaseButton.click();
+  if (quantity > 1) {
+    await expandCartSummary(page);
+    const increaseButton = page
+      .getByRole("button", { name: /^Aumentar / })
+      .first();
+    for (let i = 1; i < quantity; i++) {
+      await increaseButton.click();
+    }
   }
 }
 

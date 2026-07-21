@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import {
+  clearOfficialStoreFeaturedForE2e,
   createE2eMenuCategory,
   createE2eMenuProduct,
   ensureOfficialStoreDisplayNameForE2e,
@@ -15,6 +16,7 @@ import {
   addFirstProductToCart,
   addProductToCartByName,
   clearCartStorage,
+  expandCartSummary,
 } from "./helpers/menu";
 import { CART_STORAGE_KEY, OFFICIAL_STORE_DISPLAY_NAME } from "./helpers/test-data";
 import { PILOT_BURGER_PRODUCT_NAME } from "../../prisma/na-braza-pilot-menu";
@@ -42,7 +44,18 @@ test.describe("public menu", () => {
     await expect(hero.getByRole("heading", { level: 1 })).toHaveText(
       OFFICIAL_STORE_DISPLAY_NAME,
     );
+    await expect(hero).toContainText(
+      "Monte o pedido aqui e confirme pelo WhatsApp.",
+    );
+    await expect(page.getByTestId("store-start-order-cta")).toBeVisible();
+    await expect(page.getByTestId("store-details-toggle")).toBeVisible();
+    await expect(page.getByTestId("store-operational-details")).toHaveCount(0);
     await expect(page.getByTestId("menu-product-card").first()).toBeVisible();
+    await expect(page.getByTestId("menu-featured-section")).toBeVisible();
+    await expect(
+      page.getByTestId("menu-featured-section").getByTestId("menu-product-card"),
+    ).toHaveCount(3);
+    await expect(page.getByTestId("menu-closing-cta")).toBeVisible();
   });
 
   test("hero eyebrow and title are tenant-aware", async ({ page }) => {
@@ -209,6 +222,7 @@ test.describe("public menu", () => {
     page,
   }) => {
     await addFirstProductToCart(page);
+    await expandCartSummary(page);
     await expect(
       page.getByRole("button", { name: /Remover .+ do carrinho/ }).first(),
     ).toBeVisible();
@@ -461,52 +475,57 @@ test.describe("public menu", () => {
       const featuredName = `E2E Menu Featured Product ${stamp}`;
       const regularName = `E2E Menu Regular Product ${stamp}`;
 
-      const category = await createE2eMenuCategory({ name: categoryName });
-      await createE2eMenuProduct({
-        categoryId: category.id,
-        storeId: category.storeId,
-        name: featuredName,
-        featured: true,
-      });
-      await createE2eMenuProduct({
-        categoryId: category.id,
-        storeId: category.storeId,
-        name: regularName,
-        featured: false,
-      });
+      try {
+        await clearOfficialStoreFeaturedForE2e();
+        const category = await createE2eMenuCategory({ name: categoryName });
+        await createE2eMenuProduct({
+          categoryId: category.id,
+          storeId: category.storeId,
+          name: featuredName,
+          featured: true,
+        });
+        await createE2eMenuProduct({
+          categoryId: category.id,
+          storeId: category.storeId,
+          name: regularName,
+          featured: false,
+        });
 
-      await page.goto("/na-brasa");
+        await page.goto("/na-brasa");
 
-      const featuredSection = page.getByTestId("menu-featured-section");
-      await expect(featuredSection).toBeVisible();
-      await expect(
-        featuredSection.getByTestId("menu-product-card").filter({
-          hasText: featuredName,
-        }),
-      ).toHaveCount(1);
+        const featuredSection = page.getByTestId("menu-featured-section");
+        await expect(featuredSection).toBeVisible();
+        await expect(
+          featuredSection.getByTestId("menu-product-card").filter({
+            hasText: featuredName,
+          }),
+        ).toHaveCount(1);
 
-      await expect(
-        page.getByTestId("menu-product-card").filter({ hasText: featuredName }),
-      ).toHaveCount(1);
+        await expect(
+          page.getByTestId("menu-product-card").filter({ hasText: featuredName }),
+        ).toHaveCount(1);
 
-      const categorySection = page.getByRole("region", { name: categoryName });
-      await expect(categorySection).toBeVisible();
-      await expect(
-        categorySection.getByTestId("menu-product-card").filter({
-          hasText: featuredName,
-        }),
-      ).toHaveCount(0);
-      await expect(
-        categorySection.getByTestId("menu-product-card").filter({
-          hasText: regularName,
-        }),
-      ).toHaveCount(1);
+        const categorySection = page.getByRole("region", { name: categoryName });
+        await expect(categorySection).toBeVisible();
+        await expect(
+          categorySection.getByTestId("menu-product-card").filter({
+            hasText: featuredName,
+          }),
+        ).toHaveCount(0);
+        await expect(
+          categorySection.getByTestId("menu-product-card").filter({
+            hasText: regularName,
+          }),
+        ).toHaveCount(1);
 
-      await expect(
-        featuredSection.getByTestId("menu-product-card").filter({
-          hasText: regularName,
-        }),
-      ).toHaveCount(0);
+        await expect(
+          featuredSection.getByTestId("menu-product-card").filter({
+            hasText: regularName,
+          }),
+        ).toHaveCount(0);
+      } finally {
+        await ensurePilotMenuForE2e();
+      }
     });
 
     test("category with only featured products is not rendered after filter", async ({
@@ -516,27 +535,68 @@ test.describe("public menu", () => {
       const categoryName = `E2E Menu Featured Only Cat ${stamp}`;
       const featuredName = `E2E Menu Featured Only Product ${stamp}`;
 
+      try {
+        await clearOfficialStoreFeaturedForE2e();
+        const category = await createE2eMenuCategory({ name: categoryName });
+        await createE2eMenuProduct({
+          categoryId: category.id,
+          storeId: category.storeId,
+          name: featuredName,
+          featured: true,
+        });
+
+        await page.goto("/na-brasa");
+
+        await expect(
+          page
+            .getByTestId("menu-featured-section")
+            .getByTestId("menu-product-card")
+            .filter({
+              hasText: featuredName,
+            }),
+        ).toHaveCount(1);
+        await expect(
+          page.getByTestId("menu-product-card").filter({ hasText: featuredName }),
+        ).toHaveCount(1);
+        await expect(
+          page.getByRole("heading", { name: categoryName, level: 2 }),
+        ).toHaveCount(0);
+      } finally {
+        await ensurePilotMenuForE2e();
+      }
+    });
+
+    test("overflow featured beyond display limit stays in its category", async ({
+      page,
+    }) => {
+      const stamp = Date.now();
+      const categoryName = `E2E Menu Featured Overflow Cat ${stamp}`;
+      const overflowName = `E2E Menu Featured Overflow Product ${stamp}`;
+
       const category = await createE2eMenuCategory({ name: categoryName });
       await createE2eMenuProduct({
         categoryId: category.id,
         storeId: category.storeId,
-        name: featuredName,
+        name: overflowName,
         featured: true,
       });
 
       await page.goto("/na-brasa");
 
       await expect(
-        page.getByTestId("menu-featured-section").getByTestId("menu-product-card").filter({
-          hasText: featuredName,
+        page
+          .getByTestId("menu-featured-section")
+          .getByTestId("menu-product-card")
+          .filter({ hasText: overflowName }),
+      ).toHaveCount(0);
+
+      const categorySection = page.getByRole("region", { name: categoryName });
+      await expect(categorySection).toBeVisible();
+      await expect(
+        categorySection.getByTestId("menu-product-card").filter({
+          hasText: overflowName,
         }),
       ).toHaveCount(1);
-      await expect(
-        page.getByTestId("menu-product-card").filter({ hasText: featuredName }),
-      ).toHaveCount(1);
-      await expect(
-        page.getByRole("heading", { name: categoryName, level: 2 }),
-      ).toHaveCount(0);
     });
 
     test("regular product stays in category and never in Destaques", async ({
@@ -581,33 +641,41 @@ test.describe("public menu", () => {
       const categoryName = `E2E Menu Featured Unavailable Cat ${stamp}`;
       const featuredName = `E2E Menu Featured Unavailable ${stamp}`;
 
-      const category = await createE2eMenuCategory({ name: categoryName });
-      await createE2eMenuProduct({
-        categoryId: category.id,
-        storeId: category.storeId,
-        name: featuredName,
-        featured: true,
-        available: false,
-      });
+      try {
+        await clearOfficialStoreFeaturedForE2e();
+        const category = await createE2eMenuCategory({ name: categoryName });
+        await createE2eMenuProduct({
+          categoryId: category.id,
+          storeId: category.storeId,
+          name: featuredName,
+          featured: true,
+          available: false,
+        });
 
-      await page.goto("/na-brasa");
+        await page.goto("/na-brasa");
 
-      const cards = page
-        .getByTestId("menu-product-card")
-        .filter({ hasText: featuredName });
-      await expect(cards).toHaveCount(1);
+        const cards = page
+          .getByTestId("menu-product-card")
+          .filter({ hasText: featuredName });
+        await expect(cards).toHaveCount(1);
 
-      const card = cards.first();
-      await expect(card.getByTestId("menu-product-unavailable-badge")).toBeVisible();
-      await expect(card.getByTestId("open-add-to-cart-button")).toBeDisabled();
-      await expect(
-        page.getByTestId("menu-featured-section").getByTestId("menu-product-card").filter({
-          hasText: featuredName,
-        }),
-      ).toHaveCount(1);
-      await expect(
-        page.getByRole("heading", { name: categoryName, level: 2 }),
-      ).toHaveCount(0);
+        const card = cards.first();
+        await expect(card.getByTestId("menu-product-unavailable-badge")).toBeVisible();
+        await expect(card.getByTestId("open-add-to-cart-button")).toBeDisabled();
+        await expect(
+          page
+            .getByTestId("menu-featured-section")
+            .getByTestId("menu-product-card")
+            .filter({
+              hasText: featuredName,
+            }),
+        ).toHaveCount(1);
+        await expect(
+          page.getByRole("heading", { name: categoryName, level: 2 }),
+        ).toHaveCount(0);
+      } finally {
+        await ensurePilotMenuForE2e();
+      }
     });
   });
 
@@ -620,71 +688,85 @@ test.describe("public menu", () => {
       const catBName = `E2E Menu Jump Cat B ${stamp}`;
       const featuredOnlyCatName = `E2E Menu Jump Featured Only Cat ${stamp}`;
 
-      const catA = await createE2eMenuCategory({
-        name: catAName,
-        sortOrder: 9100,
-      });
-      const catB = await createE2eMenuCategory({
-        name: catBName,
-        sortOrder: 9101,
-      });
-      const featuredOnlyCat = await createE2eMenuCategory({
-        name: featuredOnlyCatName,
-        sortOrder: 9102,
-      });
+      try {
+        await clearOfficialStoreFeaturedForE2e();
 
-      await createE2eMenuProduct({
-        categoryId: catA.id,
-        storeId: catA.storeId,
-        name: `E2E Menu Jump Product A ${stamp}`,
-      });
-      await createE2eMenuProduct({
-        categoryId: catB.id,
-        storeId: catB.storeId,
-        name: `E2E Menu Jump Product B ${stamp}`,
-      });
-      await createE2eMenuProduct({
-        categoryId: featuredOnlyCat.id,
-        storeId: featuredOnlyCat.storeId,
-        name: `E2E Menu Jump Featured Only Product ${stamp}`,
-        featured: true,
-      });
+        const catA = await createE2eMenuCategory({
+          name: catAName,
+          sortOrder: 9100,
+        });
+        const catB = await createE2eMenuCategory({
+          name: catBName,
+          sortOrder: 9101,
+        });
+        const featuredOnlyCat = await createE2eMenuCategory({
+          name: featuredOnlyCatName,
+          sortOrder: 9102,
+        });
 
-      await page.goto("/na-brasa");
+        await createE2eMenuProduct({
+          categoryId: catA.id,
+          storeId: catA.storeId,
+          name: `E2E Menu Jump Product A ${stamp}`,
+        });
+        await createE2eMenuProduct({
+          categoryId: catB.id,
+          storeId: catB.storeId,
+          name: `E2E Menu Jump Product B ${stamp}`,
+        });
+        await createE2eMenuProduct({
+          categoryId: featuredOnlyCat.id,
+          storeId: featuredOnlyCat.storeId,
+          name: `E2E Menu Jump Featured Only Product ${stamp}`,
+          featured: true,
+        });
 
-      const nav = page.getByRole("navigation", {
-        name: "Categorias do cardápio",
-      });
-      await expect(nav).toBeVisible();
+        await page.goto("/na-brasa");
 
-      const linkA = nav.getByRole("link", { name: catAName });
-      const linkB = nav.getByRole("link", { name: catBName });
-      await expect(linkA).toBeVisible();
-      await expect(linkB).toBeVisible();
-      await expect(linkA).toHaveAttribute("href", `#category-${catA.id}`);
-      await expect(linkB).toHaveAttribute("href", `#category-${catB.id}`);
-      await expect(
-        nav.getByRole("link", { name: featuredOnlyCatName }),
-      ).toHaveCount(0);
-      await expect(nav.getByRole("link", { name: "Destaques" })).toHaveCount(0);
+        const nav = page.getByRole("navigation", {
+          name: "Categorias do cardápio",
+        });
+        await expect(nav).toBeVisible();
 
-      const linkOrder = await nav.evaluate((element, names) => {
-        const labels = [...element.querySelectorAll("a")].map((anchor) =>
-          (anchor.textContent ?? "").trim(),
+        const linkA = nav.getByRole("link", { name: catAName });
+        const linkB = nav.getByRole("link", { name: catBName });
+        await expect(linkA).toBeVisible();
+        await expect(linkB).toBeVisible();
+        await expect(linkA).toHaveAttribute("href", `#category-${catA.id}`);
+        await expect(linkB).toHaveAttribute("href", `#category-${catB.id}`);
+
+        const featuredOnlyLink = nav.getByRole("link", {
+          name: featuredOnlyCatName,
+        });
+        await expect(featuredOnlyLink).toBeVisible();
+        await expect(featuredOnlyLink).toHaveAttribute(
+          "href",
+          "#menu-featured-section",
         );
-        return labels.indexOf(names[0]!) < labels.indexOf(names[1]!);
-      }, [catAName, catBName]);
-      expect(linkOrder).toBe(true);
+        await expect(nav.getByRole("link", { name: "Destaques" })).toHaveCount(
+          0,
+        );
 
-      await expect(page.locator(`#category-${catA.id}`)).toBeVisible();
-      await expect(page.locator(`#category-${catB.id}`)).toBeVisible();
-      await expect(
-        page.getByRole("heading", { name: catAName, level: 2 }),
-      ).toBeVisible();
-      await expect(
-        page.getByRole("heading", { name: featuredOnlyCatName, level: 2 }),
-      ).toHaveCount(0);
-      await expect(page.getByTestId("menu-featured-section")).toBeVisible();
+        const linkOrder = await nav.evaluate((element, names) => {
+          const labels = [...element.querySelectorAll("a")].map((anchor) =>
+            (anchor.textContent ?? "").trim(),
+          );
+          return labels.indexOf(names[0]!) < labels.indexOf(names[1]!);
+        }, [catAName, catBName]);
+        expect(linkOrder).toBe(true);
+
+        await expect(page.locator(`#category-${catA.id}`)).toBeVisible();
+        await expect(page.locator(`#category-${catB.id}`)).toBeVisible();
+        await expect(
+          page.getByRole("heading", { name: catAName, level: 2 }),
+        ).toBeVisible();
+        await expect(
+          page.getByRole("heading", { name: featuredOnlyCatName, level: 2 }),
+        ).toHaveCount(0);
+        await expect(page.getByTestId("menu-featured-section")).toBeVisible();
+      } finally {
+        await ensurePilotMenuForE2e();
+      }
     });
 
     test("click and keyboard activate category jump links", async ({

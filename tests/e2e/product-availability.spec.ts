@@ -47,6 +47,8 @@ test.describe("product active vs available", () => {
       .filter({ hasText: product.name });
     await card.getByTestId("open-add-to-cart-button").click();
     await page.getByTestId("add-to-cart-button").click();
+    await page.getByTestId("cart-summary").waitFor();
+    await page.getByTestId("cart-summary-toggle").click();
     await expect(page.getByTestId("cart-summary")).toContainText(product.name);
   });
 

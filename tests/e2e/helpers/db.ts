@@ -190,6 +190,30 @@ export async function ensurePilotMenuForE2e(): Promise<void> {
   await applyNaBrazaPilotMenu(prisma, store.id);
 }
 
+/**
+ * Clears featured flags so E2E products can occupy the Destaques strip
+ * (UI shows at most 3; pilot products would otherwise fill the slots).
+ * Call `ensurePilotMenuForE2e` afterward to restore.
+ */
+export async function clearOfficialStoreFeaturedForE2e(): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { id: true },
+  });
+  if (!store) {
+    throw new Error(`Store "${storeSlug}" not found for E2E featured clear.`);
+  }
+  await prisma.product.updateMany({
+    where: { storeId: store.id, featured: true },
+    data: { featured: false },
+  });
+}
+
 function assertCleanupAllowed(): void {
   if (process.env.NODE_ENV === "production") {
     throw new Error("E2E DB cleanup is blocked when NODE_ENV=production");
