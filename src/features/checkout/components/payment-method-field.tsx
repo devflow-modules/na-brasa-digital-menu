@@ -15,8 +15,8 @@ const PAYMENT_OPTIONS: Array<{
 }> = [
   { value: "PIX", label: "Pix" },
   { value: "CASH", label: "Dinheiro" },
-  { value: "DEBIT_CARD", label: "Débito" },
-  { value: "CREDIT_CARD", label: "Crédito" },
+  { value: "DEBIT_CARD", label: "Cartão de débito" },
+  { value: "CREDIT_CARD", label: "Cartão de crédito" },
 ];
 
 type PaymentMethodFieldProps = {
