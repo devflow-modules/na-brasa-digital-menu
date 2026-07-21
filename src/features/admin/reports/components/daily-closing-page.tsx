@@ -88,12 +88,20 @@ export function DailyClosingPage({ report }: DailyClosingPageProps) {
 
       <DailyClosingSections report={report} />
 
-      <pre
-        data-testid="daily-closing-summary-text"
-        className="overflow-x-auto whitespace-pre-wrap rounded-2xl border border-stone-800 bg-stone-950/80 p-4 text-xs text-stone-300"
+      <details
+        data-testid="daily-closing-preview"
+        className="rounded-2xl border border-stone-800 bg-stone-950/60 open:bg-stone-950/80"
       >
-        {summaryText}
-      </pre>
+        <summary className="cursor-pointer select-none px-4 py-3 text-sm font-medium text-stone-200 marker:text-stone-500">
+          Ver mensagem que será compartilhada
+        </summary>
+        <pre
+          data-testid="daily-closing-summary-text"
+          className="overflow-x-auto whitespace-pre-wrap border-t border-stone-800 px-4 py-3 text-xs text-stone-300"
+        >
+          {summaryText}
+        </pre>
+      </details>
     </div>
   );
 }
