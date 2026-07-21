@@ -26,6 +26,8 @@ enum PaymentMethod {
   CASH
   PIX
   CARD
+  DEBIT_CARD
+  CREDIT_CARD
 }
 
 enum OrderSource {
@@ -63,11 +65,12 @@ model Store {
   createdAt                DateTime   @default(now())
   updatedAt                DateTime   @updatedAt
 
-  categories Category[]
-  products   Product[]
-  addons     Addon[]
-  orders     Order[]
-  users      User[]
+  categories  Category[]
+  products    Product[]
+  addons      Addon[]
+  addonGroups AddonGroup[]
+  orders      Order[]
+  users       User[]
 }
 
 model User {
@@ -124,6 +127,7 @@ model Product {
   store         Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
   category      Category       @relation(fields: [categoryId], references: [id], onDelete: Restrict)
   productAddons ProductAddon[]
+  addonGroups   AddonGroup[]
   orderItems    OrderItem[]
 
   @@index([storeId, categoryId])
@@ -144,6 +148,7 @@ model Addon {
 
   store              Store               @relation(fields: [storeId], references: [id], onDelete: Cascade)
   productAddons      ProductAddon[]
+  groupOptions       AddonGroupOption[]
   orderItemAddons    OrderItemAddon[]
 
   @@index([storeId, active])
@@ -159,6 +164,41 @@ model ProductAddon {
   addon   Addon   @relation(fields: [addonId], references: [id], onDelete: Cascade)
 
   @@id([productId, addonId])
+  @@index([addonId])
+}
+
+/// Product-scoped selection group (optional/required/exclusive addons).
+model AddonGroup {
+  id           String   @id @default(cuid())
+  storeId      String
+  productId    String
+  name         String
+  description  String?
+  minSelection Int      @default(0)
+  maxSelection Int
+  active       Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  store   Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  product Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  options AddonGroupOption[]
+
+  @@index([storeId, productId, active])
+  @@index([productId, sortOrder])
+}
+
+model AddonGroupOption {
+  groupId   String
+  addonId   String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+
+  group AddonGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  addon Addon      @relation(fields: [addonId], references: [id], onDelete: Restrict)
+
+  @@id([groupId, addonId])
   @@index([addonId])
 }
 

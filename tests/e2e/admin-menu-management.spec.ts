@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { attemptUpdateMenuProduct } from "./helpers/admin-menu-service";
+import { focusAdminMenuCategory } from "./helpers/admin-menu-ui";
 import { loginAsUser } from "./helpers/auth";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 import {
@@ -34,21 +35,37 @@ test.describe("admin menu management", () => {
     await page.goto("/admin/cardapio");
 
     await expect(page.getByTestId("admin-menu-page")).toBeVisible();
+    await expect(page.getByTestId("admin-menu-create-product-form")).toHaveCount(0);
+    await page.getByTestId("admin-menu-show-create-product").click();
     await expect(page.getByTestId("admin-menu-create-product-form")).toBeVisible();
-    await expect(page.getByTestId(`admin-menu-category-${category.id}`)).toBeVisible();
 
     const productName = `E2E Menu Product Create ${Date.now()}`;
-    await page.getByTestId("admin-menu-create-product-form").locator('[name="categoryId"]').selectOption(category.id);
-    await page.getByTestId("admin-menu-create-product-form").locator('[name="name"]').fill(productName);
-    await page.getByTestId("admin-menu-create-product-form").locator('[name="priceCents"]').fill("25,50");
-    await page.getByTestId("admin-menu-create-product-form").locator('button[type="submit"]').click();
+    await page
+      .getByTestId("admin-menu-create-product-form")
+      .locator('[name="categoryId"]')
+      .selectOption(category.id);
+    await page
+      .getByTestId("admin-menu-create-product-form")
+      .locator('[name="name"]')
+      .fill(productName);
+    await page
+      .getByTestId("admin-menu-create-product-form")
+      .locator('[name="priceCents"]')
+      .fill("25,50");
+    await page
+      .getByTestId("admin-menu-create-product-form")
+      .locator('button[type="submit"]')
+      .click();
 
+    await focusAdminMenuCategory(page, category.id);
     await expect(
-      page.getByTestId("admin-menu-product-list").getByText(productName, { exact: true }),
+      page.getByTestId("admin-menu-product-list").getByText(productName, {
+        exact: true,
+      }),
     ).toBeVisible({ timeout: 15_000 });
   });
 
-  test("MANAGER edits product price", async ({ page }) => {
+  test("MANAGER edits product price on demand", async ({ page }) => {
     const manager = await ensureE2eStoreUser({
       role: "MANAGER",
       email: "e2e-store-manager-menu-edit@example.com",
@@ -63,12 +80,20 @@ test.describe("admin menu management", () => {
 
     await loginAsUser(page, manager);
     await page.goto("/admin/cardapio");
+    await focusAdminMenuCategory(page, category.id);
 
+    await expect(
+      page.getByTestId(`admin-menu-edit-product-form-${product.id}`),
+    ).toHaveCount(0);
+    await page.getByTestId(`admin-menu-edit-product-${product.id}`).click();
     const form = page.getByTestId(`admin-menu-edit-product-form-${product.id}`);
+    await expect(form).toBeVisible();
     await form.locator('[name="priceCents"]').fill("32,00");
     await form.locator('button[type="submit"]').click();
 
-    await expect(page.getByText("R$ 32,00")).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.getByTestId(`admin-menu-product-${product.id}`),
+    ).toContainText("R$ 32,00", { timeout: 15_000 });
     const updated = await getProductById(product.id);
     expect(updated?.priceCents).toBe(3200);
   });
@@ -84,6 +109,8 @@ test.describe("admin menu management", () => {
     await page.goto("/admin/cardapio");
 
     await expect(page.getByTestId("admin-menu-page")).toBeVisible();
+    await expect(page.getByTestId("admin-menu-show-create-product")).toHaveCount(0);
+    await expect(page.getByTestId("admin-menu-show-create-category")).toHaveCount(0);
     await expect(page.getByTestId("admin-menu-create-product-form")).toHaveCount(0);
     await expect(page.getByTestId("admin-menu-create-category-form")).toHaveCount(0);
 
@@ -105,6 +132,7 @@ test.describe("admin menu management", () => {
 
     await loginAsUser(page, operator);
     await page.goto("/admin/cardapio");
+    await focusAdminMenuCategory(page, category.id);
 
     await page.getByTestId(`admin-menu-toggle-availability-${product.id}`).click();
     await expect(
@@ -129,12 +157,19 @@ test.describe("admin menu management", () => {
 
     await loginAsUser(page, kitchen);
     await page.goto("/admin/cardapio");
+    await focusAdminMenuCategory(page, category.id);
 
     await expect(page.getByTestId("admin-menu-page")).toBeVisible();
     await expect(page.getByTestId(`admin-menu-product-${product.id}`)).toBeVisible();
-    await expect(page.getByTestId(`admin-menu-toggle-availability-${product.id}`)).toHaveCount(0);
-    await expect(page.getByTestId(`admin-menu-toggle-active-${product.id}`)).toHaveCount(0);
-    await expect(page.getByTestId(`admin-menu-edit-product-form-${product.id}`)).toHaveCount(0);
+    await expect(
+      page.getByTestId(`admin-menu-toggle-availability-${product.id}`),
+    ).toHaveCount(0);
+    await expect(
+      page.getByTestId(`admin-menu-toggle-active-${product.id}`),
+    ).toHaveCount(0);
+    await expect(
+      page.getByTestId(`admin-menu-edit-product-form-${product.id}`),
+    ).toHaveCount(0);
   });
 
   test("store A user cannot update product from store B", async () => {
@@ -217,6 +252,7 @@ test.describe("admin menu management", () => {
 
     await loginAsUser(page, manager);
     await page.goto("/admin/cardapio");
+    await focusAdminMenuCategory(page, category.id);
     await page.getByTestId(`admin-menu-toggle-active-${product.id}`).click();
     await expect(
       page.getByTestId(`admin-menu-product-publication-${product.id}`),

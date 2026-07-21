@@ -16,6 +16,7 @@ const product: CounterCatalogProduct = {
   name: "Smash",
   description: "Blend",
   priceCents: 2800,
+  addonGroups: [],
   addons: [
     { id: "a1", name: "Bacon", priceCents: 400 },
     { id: "a2", name: "Cheddar", priceCents: 300 },

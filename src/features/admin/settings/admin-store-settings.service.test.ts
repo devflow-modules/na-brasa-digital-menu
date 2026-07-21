@@ -13,7 +13,6 @@ function validInput(overrides: Record<string, unknown> = {}) {
     minimumOrderAmountCents: "30,00",
     pickupEnabled: true,
     deliveryEnabled: true,
-    isOpen: true,
     ...overrides,
   };
 }

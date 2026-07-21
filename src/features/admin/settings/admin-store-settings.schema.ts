@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { parsePriceInputToCents } from "@/features/admin/menu/admin-menu.schema";
+import { normalizeWhatsappDigits } from "@/features/admin/settings/admin-store-whatsapp";
 
 /** Soft ceiling for store fee / delivery minimum (R$ 10.000,00). */
 export const STORE_MONEY_MAX_CENTS = 1_000_000;
@@ -25,10 +26,6 @@ const priceInputSchema = z
     return cents;
   });
 
-function normalizeWhatsapp(value: string): string {
-  return value.replace(/\D/g, "");
-}
-
 export const MODALITY_REQUIRED_MESSAGE =
   "Pelo menos uma modalidade deve permanecer habilitada.";
 
@@ -38,7 +35,7 @@ export const updateStoreSettingsSchema = z
       .string()
       .trim()
       .min(1, "WhatsApp é obrigatório.")
-      .transform((value) => normalizeWhatsapp(value))
+      .transform((value) => normalizeWhatsappDigits(value))
       .refine((digits) => digits.length >= 10 && digits.length <= 13, {
         message: "Informe um WhatsApp válido com DDD.",
       }),
@@ -56,7 +53,6 @@ export const updateStoreSettingsSchema = z
     minimumOrderAmountCents: priceInputSchema,
     pickupEnabled: z.coerce.boolean(),
     deliveryEnabled: z.coerce.boolean(),
-    isOpen: z.coerce.boolean(),
   })
   .refine((data) => data.pickupEnabled || data.deliveryEnabled, {
     message: MODALITY_REQUIRED_MESSAGE,

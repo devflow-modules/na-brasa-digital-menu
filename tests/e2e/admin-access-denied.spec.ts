@@ -53,7 +53,7 @@ test.describe("admin access-denied UX", () => {
     await safeLink.click();
     await expect(page).toHaveURL(/\/admin\/?$/);
     await expect(page.getByTestId("admin-orders-dashboard")).toBeVisible();
-    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
+    await expect(page.getByTestId("admin-user-menu-trigger")).toBeVisible();
   });
 
   test("unauthenticated Balcão visit keeps login redirect", async ({ page }) => {

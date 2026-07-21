@@ -441,12 +441,12 @@ test.describe("counter order operational flow", () => {
       orderId: order.id,
       storeId: operator.storeId!,
       role: "OPERATOR",
-      paymentMethod: "CARD",
+      paymentMethod: "DEBIT_CARD",
     });
     expect(first.ok).toBe(true);
 
     const afterFirst = await getOrderPaymentSnapshot(order.id);
-    expect(afterFirst.paymentMethod).toBe("CARD");
+    expect(afterFirst.paymentMethod).toBe("DEBIT_CARD");
     expect(afterFirst.paidAt).not.toBeNull();
     const paidAtFirst = afterFirst.paidAt!.toISOString();
 
@@ -463,7 +463,7 @@ test.describe("counter order operational flow", () => {
 
     const afterSecond = await getOrderPaymentSnapshot(order.id);
     expect(afterSecond.status).toBe("COMPLETED");
-    expect(afterSecond.paymentMethod).toBe("CARD");
+    expect(afterSecond.paymentMethod).toBe("DEBIT_CARD");
     expect(afterSecond.paidAt?.toISOString()).toBe(paidAtFirst);
     expect(afterSecond.changeForCents).toBeNull();
   });
@@ -491,7 +491,7 @@ test.describe("counter order operational flow", () => {
         orderId: order.id,
         storeId: operator.storeId!,
         role: "OPERATOR",
-        paymentMethod: "CARD",
+        paymentMethod: "DEBIT_CARD",
       }),
     ]);
 
@@ -511,7 +511,7 @@ test.describe("counter order operational flow", () => {
     expect(snapshot.status).toBe("COMPLETED");
     expect(snapshot.paidAt).not.toBeNull();
     expect(snapshot.changeForCents).toBeNull();
-    expect(["PIX", "CARD"]).toContain(snapshot.paymentMethod);
+    expect(["PIX", "DEBIT_CARD"]).toContain(snapshot.paymentMethod);
     const winner = oks[0];
     if (winner?.ok) {
       expect(snapshot.paymentMethod).toBe(winner.paymentMethod);

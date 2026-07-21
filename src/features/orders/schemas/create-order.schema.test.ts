@@ -37,6 +37,30 @@ describe("createOrderSchema public DIRECT regression", () => {
     assert.equal(result.success, true);
   });
 
+  it("accepts debit and credit cards and rejects legacy CARD", () => {
+    assert.equal(
+      createOrderSchema.safeParse({
+        ...validBase,
+        paymentMethod: "DEBIT_CARD",
+      }).success,
+      true,
+    );
+    assert.equal(
+      createOrderSchema.safeParse({
+        ...validBase,
+        paymentMethod: "CREDIT_CARD",
+      }).success,
+      true,
+    );
+    assert.equal(
+      createOrderSchema.safeParse({
+        ...validBase,
+        paymentMethod: "CARD",
+      }).success,
+      false,
+    );
+  });
+
   it("still requires storeSlug and deliveryType for DIRECT", () => {
     const withoutStore = createOrderSchema.safeParse({
       customerName: validBase.customerName,

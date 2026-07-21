@@ -44,6 +44,13 @@ export async function loginAsUser(
 }
 
 export async function logoutAdmin(page: Page): Promise<void> {
+  const userMenuTrigger = page.getByTestId("admin-user-menu-trigger");
+  if ((await userMenuTrigger.count()) > 0) {
+    if ((await userMenuTrigger.getAttribute("aria-expanded")) !== "true") {
+      await userMenuTrigger.click();
+    }
+    await page.getByTestId("admin-user-menu-panel").waitFor({ state: "visible" });
+  }
   await page.getByTestId("admin-logout-button").click();
   await page.waitForURL(/\/admin\/login/);
 }

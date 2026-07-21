@@ -8,7 +8,10 @@ import {
   DAILY_CLOSING_E2E_DATE,
   uniqueDailyClosingCustomer,
 } from "./helpers/daily-closing-fixtures";
-import { openDefaultDailyClosingWindow } from "./helpers/daily-closing-ui";
+import {
+  openDefaultDailyClosingWindow,
+  readDailyClosingSummaryText,
+} from "./helpers/daily-closing-ui";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 
 async function createBoundaryOrder(options: {
@@ -171,11 +174,8 @@ test.describe("admin daily closing period", () => {
     await expect(page.getByTestId("daily-closing-products")).toContainText(
       "Period Overnight Depois MeiaNoite",
     );
-    await expect(page.getByTestId("daily-closing-summary-text")).toContainText(
-      "Data operacional: 21/07/2026",
-    );
-    await expect(page.getByTestId("daily-closing-summary-text")).toContainText(
-      "Período: 17:00–01:00",
-    );
+    const summary = await readDailyClosingSummaryText(page);
+    expect(summary).toContain("Data operacional:* 21/07/2026");
+    expect(summary).toContain("Período:* 17:00–01:00");
   });
 });

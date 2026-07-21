@@ -29,7 +29,6 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
   return (
     <main>
       <AdminOrdersDashboard
-        storeName={context.storeName}
         orders={orders}
         summary={summary}
         filters={filters}

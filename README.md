@@ -138,6 +138,7 @@ Definidos em `package.json`; usam `DATABASE_URL` e afetam a loja **Na Braza** (`
 | `pnpm menu:apply-na-braza-pilot` | Aplica cardápio do piloto |
 | `pnpm store:create-na-braza-owner` | Cria/atualiza usuário dono da loja piloto |
 | `pnpm data:clean-na-braza-tests` / `data:purge-na-braza-tests` | Limpeza de dados de teste do piloto |
+| `pnpm data:remove-na-braza-legacy-seed` | Remove resíduos inativos do seed antigo (preserva piloto) |
 
 ## Testes e CI
 

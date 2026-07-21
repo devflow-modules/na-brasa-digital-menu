@@ -1,28 +1,13 @@
 import { formatMoney } from "@/features/menu/format-money";
+import { dailyClosingPaymentLabel } from "@/features/admin/reports/daily-closing-payment-labels";
 import type {
   DailyClosingFulfillmentChannel,
-  DailyClosingPaymentMethod,
   DailyClosingReport,
 } from "@/features/admin/reports/daily-closing.types";
 
 function formatOperationalDate(date: string): string {
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
-}
-
-function paymentLabel(method: DailyClosingPaymentMethod): string {
-  switch (method) {
-    case "PIX":
-      return "Pix";
-    case "CASH":
-      return "Dinheiro";
-    case "CARD":
-      return "Cartão";
-    case "UNSET":
-      return "Não informado";
-    default:
-      return method;
-  }
 }
 
 function channelLabel(channel: DailyClosingFulfillmentChannel): string {
@@ -38,83 +23,110 @@ function channelLabel(channel: DailyClosingFulfillmentChannel): string {
   }
 }
 
+function pedidoCountLabel(count: number): string {
+  return count === 1 ? "1 pedido" : `${count} pedidos`;
+}
+
+/** Format basis points (1% = 100 bps) as Brazilian percentage text. */
+function formatWhatsappPercentage(bps: number): string {
+  const whole = Math.floor(bps / 100);
+  const fraction = String(bps % 100).padStart(2, "0");
+  return `${whole},${fraction}%`;
+}
+
 /**
  * Pure WhatsApp-ready summary. No PII. Values from the report DTO only.
  */
 export function formatDailyClosingWhatsapp(report: DailyClosingReport): string {
   const lines: string[] = [
-    `FECHAMENTO OPERACIONAL — ${report.storeName.toUpperCase()}`,
-    `Data operacional: ${formatOperationalDate(report.period.date)}`,
-    `Período: ${report.period.startTime}–${report.period.endTime}`,
+    `🔥 *FECHAMENTO OPERACIONAL — ${report.storeName.toUpperCase()}*`,
     "",
-    "TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS",
-    `Pedidos concluídos: ${report.summary.completedOrders}`,
-    `Itens vendidos: ${report.summary.itemsSold}`,
-    `Total de produtos: ${formatMoney(report.summary.productsSubtotalCents)}`,
-    `Taxas de entrega: ${formatMoney(report.summary.deliveryFeesCents)}`,
-    `Total vendido: ${formatMoney(report.summary.grossTotalCents)}`,
-    `Ticket médio: ${formatMoney(report.summary.averageTicketCents)}`,
-    `Cancelados: ${report.summary.cancelledOrders}`,
+    `📅 *Data operacional:* ${formatOperationalDate(report.period.date)}`,
+    `🕒 *Período:* ${report.period.startTime}–${report.period.endTime}`,
   ];
 
   if (report.summary.openOrders > 0) {
-    lines.push("");
+    lines.push("", "⚠️ *ATENÇÃO*");
     if (report.summary.openOrders === 1) {
       lines.push(
-        "Atenção: existe 1 pedido ainda aberto no período.",
-        "O valor desse pedido não está incluído no total.",
+        "Existe 1 pedido ainda aberto.",
+        "O valor não está incluído no total.",
       );
     } else {
       lines.push(
-        `Atenção: existem ${report.summary.openOrders} pedidos ainda abertos no período.`,
-        "Os valores desses pedidos não estão incluídos no total.",
+        `Existem ${report.summary.openOrders} pedidos ainda abertos.`,
+        "Os valores não estão incluídos no total.",
       );
-    }
-  }
-
-  if (report.payments.length > 0) {
-    lines.push("", "FORMAS DE PAGAMENTO");
-    for (const row of report.payments) {
-      lines.push(
-        `${paymentLabel(row.method)}: ${formatMoney(row.amountCents)} — ${row.orderCount} pedidos`,
-      );
-    }
-  }
-
-  if (report.fulfillment.length > 0) {
-    lines.push("", "MODALIDADES");
-    for (const row of report.fulfillment) {
-      lines.push(
-        `${channelLabel(row.channel)}: ${row.orderCount} pedidos — ${formatMoney(row.totalCents)}`,
-      );
-    }
-  }
-
-  if (report.products.length > 0) {
-    lines.push("", "PRODUTOS");
-    for (const row of report.products) {
-      lines.push(`${row.name}: ${row.quantity}`);
-    }
-  }
-
-  if (report.cancelledOrders.length > 0) {
-    lines.push("", "CANCELADOS (não incluídos no faturamento)");
-    for (const row of report.cancelledOrders) {
-      lines.push(`${row.orderCode}: ${formatMoney(row.totalCents)}`);
     }
   }
 
   lines.push(
     "",
-    "Observações:",
-    "- Fechamento operacional — não é caixa conciliado nem resultado fiscal.",
+    "💰 *TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS*",
+    `Pedidos: ${report.summary.completedOrders}`,
+    `Itens vendidos: ${report.summary.itemsSold}`,
+    `Produtos: ${formatMoney(report.summary.productsSubtotalCents)}`,
+    `Taxas de entrega: ${formatMoney(report.summary.deliveryFeesCents)}`,
+    `*Total vendido: ${formatMoney(report.summary.grossTotalCents)}*`,
+    `Ticket médio: ${formatMoney(report.summary.averageTicketCents)}`,
   );
 
-  if (report.summary.cancelledOrders > 0) {
-    lines.push(
-      `- ${report.summary.cancelledOrders} pedidos cancelados não incluídos no faturamento.`,
-    );
+  if (report.payments.length > 0) {
+    lines.push("", "💳 *FORMAS DE PAGAMENTO*");
+    for (const row of report.payments) {
+      lines.push(
+        `• ${dailyClosingPaymentLabel(row.method)}: ${formatMoney(row.amountCents)} — ${pedidoCountLabel(row.orderCount)} — ${formatWhatsappPercentage(row.percentageBps)}`,
+      );
+    }
   }
+
+  if (report.fulfillment.length > 0) {
+    lines.push("", "🛵 *MODALIDADES*");
+    for (const row of report.fulfillment) {
+      lines.push(
+        `• ${channelLabel(row.channel)}: ${pedidoCountLabel(row.orderCount)} — ${formatMoney(row.totalCents)}`,
+      );
+      if (row.deliveryFeesCents > 0) {
+        lines.push(
+          `  Produtos: ${formatMoney(row.productsSubtotalCents)} | Taxas: ${formatMoney(row.deliveryFeesCents)}`,
+        );
+      }
+    }
+  }
+
+  if (report.products.length > 0) {
+    lines.push("", "🍔 *PRODUTOS*");
+    for (const row of report.products) {
+      lines.push(
+        `• ${row.quantity}x ${row.name} — ${formatMoney(row.amountCents)}`,
+      );
+    }
+  }
+
+  if (report.addons.length > 0) {
+    lines.push("", "➕ *ADICIONAIS*");
+    for (const row of report.addons) {
+      lines.push(
+        `• ${row.quantity}x ${row.name} — ${formatMoney(row.amountCents)}`,
+      );
+    }
+  }
+
+  if (report.cancelledOrders.length > 0) {
+    lines.push("", "❌ *CANCELADOS*");
+    for (const row of report.cancelledOrders) {
+      lines.push(
+        `• #${row.orderCode} — ${formatMoney(row.totalCents)}`,
+      );
+    }
+    lines.push("Não incluídos no faturamento.");
+  }
+
+  lines.push(
+    "",
+    "ℹ️ *Observação*",
+    "Fechamento operacional. Não representa caixa conciliado nem resultado fiscal.",
+  );
 
   return `${lines.join("\n")}\n`;
 }

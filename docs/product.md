@@ -87,7 +87,7 @@ Detalhes do release: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dad
 
 **Estado atual:** **`/admin`** (login em `/admin/login`), **store-scoped** via `requireAdminStoreContext`.
 
-- Pedidos, cardápio, adicionais, configurações — permissões por role no server.
+- Pedidos, cardápio (workspace com accordion/busca; edição sob demanda), adicionais (lista compacta + edição/vínculos sob demanda), configurações — permissões por role no server. Detalhe: [product/menu-management-workspace.md](product/menu-management-workspace.md), [product/addon-management-workspace.md](product/addon-management-workspace.md).
 - **Chrome compartilhado** nas rotas autenticadas (`app/admin/(store)`): navegação única filtrada por papel/permissão operacional, logout consistente, identidade da loja; login fora do chrome. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md).
 - Usuários de loja: contexto de `session.storeId`.
 - `MASTER` **não** recebe Store piloto implícita em `/admin`; login e acesso direto a `/admin` vão para `/master` até existir seleção explícita de Store.
@@ -156,9 +156,9 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 **Resumo no topo de `/admin`:** cards store-wide (Pedidos hoje, Pendentes, Receita estimada hoje, Na lista). Expansão do resumo: **DEFER** — cards atuais validados como úteis pelo Store Owner; sem correção de copy nem novos cards neste ciclo ([product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)). Limitações técnicas permanecem: “Receita estimada hoje” **não** é caixa/conciliação/faturamento fiscal; DIRECT **não** comprova pagamento; “hoje” usa timezone do servidor (sem timezone persistido por Store); “concluídos/cancelados hoje” como evento de transição **não** são confiáveis sem histórico de status. O fechamento operacional diário é rota dedicada (abaixo) e **não** altera esses cards.
 
-**Fechamento operacional diário (`/admin/relatorios/fechamento`):** relatório dinâmico TENANT para o fim do expediente — totais de pedidos `COMPLETED`, itens, subtotal, taxas, ticket, pagamentos, canais (entrega/retirada/balcão), produtos (snapshots), cancelados separados e alerta de abertos; janela padrão `17:00–01:00` em `America/Sao_Paulo` (editável); pertencimento por `createdAt` na janela; copy de resumo para WhatsApp; permissão `reports.read` só `STORE_OWNER` / `MANAGER`. **Não** é caixa, conciliação nem fiscal. Sem PDF/imutabilidade nesta entrega. Detalhe e Product Decision: [product/daily-closing-report.md](product/daily-closing-report.md).
+**Fechamento operacional diário (`/admin/relatorios/fechamento`):** relatório dinâmico TENANT para o fim do expediente — totais de pedidos `COMPLETED`, itens, subtotal, taxas, ticket, pagamentos, canais (entrega/retirada/balcão), produtos (snapshots), cancelados separados e alerta de abertos; janela padrão `17:00–01:00` em `America/Sao_Paulo` (editável); pertencimento por `createdAt` na janela; copy + link `wa.me` (sem destinatário/API) e download CSV (UTF-8 BOM, `;`) a partir do mesmo `DailyClosingReport`; UI compacta (empty state único, seções condicionais, ações unificadas, prévia recolhida); permissão `reports.read` só `STORE_OWNER` / `MANAGER`. **Não** é caixa, conciliação nem fiscal. Sem PDF/imutabilidade/Sheets nesta entrega. Detalhe: [product/daily-closing-report.md](product/daily-closing-report.md) · WhatsApp: [product/daily-closing-whatsapp-share.md](product/daily-closing-whatsapp-share.md) · CSV: [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md).
 
-**Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Relatórios / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações/Relatórios no chrome; `OPERATOR` não vê Relatórios; acesso direto read-only a outras áreas continua conforme guards. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
+**Navegação administrativa por papel:** `AdminShell` compacto (marca da loja, som, menu do usuário com logout, abas desktop / hamburger mobile), fonte única de links (Pedidos / Balcão / Relatórios / Cardápio / Configurações), estado ativo de rota, badge PENDING no header via context de notificações. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações/Relatórios no chrome; `OPERATOR` não vê Relatórios; acesso direto read-only a outras áreas continua conforme guards. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Compact admin shell · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
 
 **Acesso negado explícito (admin):** rotas operacionais com Store context válido e permissão de página negada (ex.: KITCHEN em `/admin/balcao`) renderizam `Acesso não permitido` dentro do chrome, com destino seguro derivado da navegação. `notFound()` permanece para recurso inexistente, pedido de outro tenant, Store context inválido e `/master` sem MASTER. Sessão ausente continua indo para login. **Explicit admin access-denied UX complete · Tenant resource concealment preserved · Session redirect behavior unchanged · Backend authorization unchanged · Navigation audit backlog in progress.**
 
@@ -167,10 +167,11 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 ### Configurações da loja (`/admin/configuracoes`)
 
-- Campos: WhatsApp, endereço, taxa, **pedido mínimo para entrega**, retirada/entrega, `openingHours` (texto informativo; não altera abertura sozinho), `isOpen` (bloqueia Online/`DIRECT`; não impede Balcão/`COUNTER` autorizado).
+- **Status da operação** (`isOpen`) fica separado das configurações permanentes: abrir/fechar a loja é ação imediata e independente do botão Salvar.
+- Configurações permanentes: modalidades (switches), taxa e pedido mínimo de entrega (desabilitados se entrega off), WhatsApp (máscara visual + dígitos na persistência), endereço, descrição do horário (texto exibido ao cliente).
 - O pedido mínimo para entrega pode ser alterado pelo Store Owner nas configurações da loja.
 - Pelo menos uma modalidade — entrega ou retirada — deve permanecer habilitada (validação no servidor e aviso na UI).
-- O campo de horário continua informativo. A abertura operacional é controlada por “Loja aberta”.
+- Salvamento: botão desabilitado sem alterações; estados Salvando / salvas / erro; aviso de alterações não salvas com Descartar.
 - Reflexo no público **`/na-brasa`**: badge aberto/fechado, taxas e mínimo no checkout/hero (server).
 - Loja fechada (`isOpen=false`): bloqueio no server para pedidos Online/`DIRECT` (Balcão permanece operacional para usuários autorizados). Tipo de entrega desabilitado: bloqueio no server em checkout/`createOrder`. Store sem modalidade Online (legado): UI pública de indisponibilidade + rejeição no server.
 
@@ -193,7 +194,7 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 ### Adicionais (`/admin/cardapio/adicionais`)
 
-Validação no server: adicional ativo e vinculado ao produto; preço do banco.
+Workspace com busca/filtros, linhas compactas, editor e vínculos sob demanda. Validação no server: adicional ativo e vinculado ao produto; preço do banco. Detalhe: [product/addon-management-workspace.md](product/addon-management-workspace.md).
 
 ### Status de pedido (`/admin/pedidos/[id]`)
 
@@ -213,11 +214,12 @@ Validação no server: adicional ativo e vinculado ao produto; preço do banco.
 Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 
 - Pagamento online, WhatsApp Business API
-- Reset de senha, upload de imagens, relatórios avançados (PDF/CSV/histórico imutável/BI), Web Push / tempo real push
+- Reset de senha, upload de imagens, relatórios avançados (PDF/Sheets/histórico imutável/BI; CSV do fechamento já entregue), Web Push / tempo real push
 - Zonas de entrega, horário por dia da semana estruturado
 - CRUD de lojas no `/master`
 - Storefront dinâmico por slug para novos tenants
 - PDV completo, caixa, fiscal, impressão, conciliação
+- Grupos compartilhados entre produtos / snapshot de nome do grupo (Lote 1 de seleção já entregue)
 
 ## Roadmap (pós-validação)
 
@@ -229,6 +231,9 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - Pilot Production Readiness → **IN PROGRESS** → **GO COM CONDIÇÕES** → reliability, recovery, security and operational controls — [product/pilot-production-readiness.md](product/pilot-production-readiness.md) · admin recovery runbook: [admin-access-recovery.md](admin-access-recovery.md)
 - Admin daily summary expansion → **DEFER** → current cards validated as operationally useful → no copy correction required → reopen only with a concrete operational gap — [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - Daily closing operational report → **BUILD** → dedicated `/admin/relatorios/fechamento` + WhatsApp copy; does not expand `/admin` summary cards — [product/daily-closing-report.md](product/daily-closing-report.md)
+- Daily closing CSV export → **BUILD** → download from the same `DailyClosingReport` DTO; no Sheets/XLSX — [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md)
+- Daily closing WhatsApp share → **BUILD** → improved message + `wa.me` link without destination/API — [product/daily-closing-whatsapp-share.md](product/daily-closing-whatsapp-share.md)
+- Grupos de seleção de adicionais → **BUILD** (Lote 1) — `minSelection`/`maxSelection` por produto; piloto do queijo configurado — [product/addon-selection-groups.md](product/addon-selection-groups.md)
 - Hipóteses pontuais de UX/notificações/Balcão sob observação — ver planos em `docs/product/`
 - Storefront por slug e onboarding de tenants (quando evidência e grill autorizarem)
 - CRUD de `Store` no master, billing, polish de marca white-label (fora do ciclo imediato do piloto)
@@ -248,6 +253,12 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 - [product/pilot-production-readiness.md](product/pilot-production-readiness.md)
 - [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - [product/daily-closing-report.md](product/daily-closing-report.md)
+- [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md)
+- [product/daily-closing-whatsapp-share.md](product/daily-closing-whatsapp-share.md)
+- [product/menu-management-workspace.md](product/menu-management-workspace.md)
+- [product/addon-management-workspace.md](product/addon-management-workspace.md)
+- [product/payment-methods-debit-credit.md](product/payment-methods-debit-credit.md)
+- [product/addon-selection-groups.md](product/addon-selection-groups.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)

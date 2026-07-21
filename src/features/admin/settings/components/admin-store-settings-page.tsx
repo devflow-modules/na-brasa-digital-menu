@@ -32,19 +32,32 @@ export function AdminStoreSettingsPage({
           data-testid="admin-store-settings-role-note"
           className="mt-2 text-sm text-stone-400"
         >
-          Dados operacionais exibidos no cardápio e no checkout.
+          Status operacional e dados permanentes do cardápio e do checkout.
         </p>
       </div>
 
-      {!canUpdate ? (
+      <section className="flex flex-col gap-3" aria-labelledby="settings-status">
+        <div>
+          <h2
+            id="settings-status"
+            className="text-sm font-semibold text-orange-50"
+          >
+            Status da operação
+          </h2>
+          <p className="mt-1 text-xs text-stone-400">
+            Controla se novos pedidos online são aceitos agora. É independente
+            das configurações permanentes abaixo.
+          </p>
+        </div>
         <StoreOpenToggle isOpen={settings.isOpen} canToggle={canToggle} />
-      ) : null}
+      </section>
 
       <StoreSettingsForm settings={settings} canSubmit={canUpdate} />
 
       {canUpdate ? (
         <p className="text-xs text-stone-500">
-          Alterações refletem no cardápio público e no checkout após salvar.
+          Alterações permanentes refletem no cardápio público e no checkout após
+          salvar. Abrir ou fechar a loja é imediato.
         </p>
       ) : null}
     </div>

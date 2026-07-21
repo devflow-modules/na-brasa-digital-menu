@@ -91,7 +91,7 @@ describe("finalizeCounterOrder", () => {
 
     const card = await finalizeCounterOrder(
       { storeId: "store_1", role: "MASTER" },
-      { orderId: "order_1", paymentMethod: "CARD" },
+      { orderId: "order_1", paymentMethod: "DEBIT_CARD" },
       {
         findOrderForCounterFinalize: async () => readyCounterOrder(),
         finalizeCounterOrderPayment: async (input) => {

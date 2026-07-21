@@ -11,9 +11,25 @@ BUILD
 Classification: TENANT
 MVP: dynamic operational closing report
 Default window: 17:00–01:00 America/Sao_Paulo
-Sharing: copy WhatsApp summary only
-No PDF / immutable close / cash reconciliation
+Sharing: WhatsApp copy + wa.me link + CSV download (same DTO)
+UI polish: compact empty state, conditional detail sections, unified actions, collapsed preview
+No WhatsApp API / PDF / Sheets / immutable close / cash reconciliation
 ```
+
+## UI polish (presentation only)
+
+```text
+Decision: BUILD
+Classification: TENANT
+Scope: layout/density only — no DTO, aggregation, WhatsApp/CSV contracts or permissions
+```
+
+- Zero concluded orders → single empty message; hide empty detail sections; keep export actions.
+- Detail sections render only when their data is present (cancelled still shows when count > 0).
+- Export actions share primary / secondary / tertiary visual language.
+- WhatsApp message preview starts collapsed (`<details>`).
+- Filters denser on desktop; total KPI emphasized; cancelled KPI alerts only when > 0.
+
 
 ## Product Decision
 
@@ -49,7 +65,7 @@ No PDF / immutable close / cash reconciliation
 | Canais | entrega / retirada / balcão (`DELIVERY`, `PICKUP`≠COUNTER, `COUNTER`) |
 | Taxa de entrega | separada do subtotal de produtos |
 | Produtos | nome (snapshot), quantidade, valor da linha (`OrderItem.totalCents`) |
-| Pagamentos | `CASH` / `PIX` / `CARD` / não informado |
+| Pagamentos | `CASH` / `PIX` / `DEBIT_CARD` / `CREDIT_CARD` / legado `CARD` (só se houver valor) / não informado |
 | Acesso | `reports.read` → `STORE_OWNER` e `MANAGER` |
 | Mutabilidade | relatório dinâmico (pode mudar se um pedido for corrigido) |
 | Compartilhamento | copiar resumo para WhatsApp |

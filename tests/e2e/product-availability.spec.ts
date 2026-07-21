@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { focusAdminMenuCategory } from "./helpers/admin-menu-ui";
 import { loginAsUser } from "./helpers/auth";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 import {
@@ -69,6 +70,7 @@ test.describe("product active vs available", () => {
 
     await loginAsUser(page, manager);
     await page.goto("/admin/cardapio");
+    await focusAdminMenuCategory(page, category.id);
     await page.getByTestId(`admin-menu-toggle-availability-${product.id}`).click();
     await expect(
       page.getByTestId(`admin-menu-product-availability-${product.id}`),
@@ -96,6 +98,7 @@ test.describe("product active vs available", () => {
 
     await loginAsUser(page, operator);
     await page.goto("/admin/cardapio");
+    await focusAdminMenuCategory(page, category.id);
     await expect(
       page.getByTestId(`admin-menu-toggle-active-${product.id}`),
     ).toHaveCount(0);

@@ -3,10 +3,10 @@ import {
   createOrderWithItems,
   findStoreForOrderBySlug,
 } from "@/features/orders/repositories/orders.repository";
+import { formatPaymentMethodLabel } from "@/features/orders/payment-method";
 import { resolveAndPriceOrderItems } from "@/features/orders/services/resolve-and-price-order-items";
 import type {
   CreateOrderInput,
-  CreateOrderPaymentMethod,
   CreateOrderPersistenceInput,
   CreateOrderResult,
 } from "@/features/orders/types";
@@ -31,29 +31,6 @@ const defaultDeps: CreateOrderDeps = {
   createOrderWithItems,
   generateOrderCode,
 };
-
-function paymentLabel(method: CreateOrderPaymentMethod): string {
-  switch (method) {
-    case "PIX":
-      return "Pix";
-    case "CASH":
-      return "Dinheiro";
-    case "DEBIT_CARD":
-      return "Débito";
-    case "CREDIT_CARD":
-      return "Crédito";
-  }
-}
-
-function toPrismaPaymentMethod(
-  method: CreateOrderPaymentMethod,
-): "PIX" | "CASH" | "CARD" {
-  if (method === "DEBIT_CARD" || method === "CREDIT_CARD") {
-    return "CARD";
-  }
-
-  return method;
-}
 
 function firstZodMessage(error: {
   issues: Array<{ message: string }>;
@@ -140,10 +117,10 @@ export async function createOrder(
       : null;
 
   const notes = input.notes?.trim() ? input.notes.trim() : null;
-  const label = paymentLabel(input.paymentMethod);
+  const label = formatPaymentMethodLabel(input.paymentMethod);
   const customerName = input.customerName.trim();
   const customerPhone = input.customerPhone.trim();
-  const paymentMethod = toPrismaPaymentMethod(input.paymentMethod);
+  const paymentMethod = input.paymentMethod;
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
     const code = deps.generateOrderCode();

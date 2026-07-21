@@ -51,6 +51,8 @@ function compareAddons(a: DailyClosingAddonRow, b: DailyClosingAddonRow): number
 const PAYMENT_ORDER: DailyClosingPaymentMethod[] = [
   "PIX",
   "CASH",
+  "DEBIT_CARD",
+  "CREDIT_CARD",
   "CARD",
   "UNSET",
 ];

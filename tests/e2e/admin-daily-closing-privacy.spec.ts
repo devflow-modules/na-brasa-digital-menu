@@ -8,7 +8,10 @@ import {
   DAILY_CLOSING_E2E_DATE,
   uniqueDailyClosingCustomer,
 } from "./helpers/daily-closing-fixtures";
-import { openDefaultDailyClosingWindow } from "./helpers/daily-closing-ui";
+import {
+  openDefaultDailyClosingWindow,
+  readDailyClosingSummaryText,
+} from "./helpers/daily-closing-ui";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 
 const SECRET_CUSTOMER = "E2E_SECRET_CUSTOMER";
@@ -103,9 +106,7 @@ test.describe("admin daily closing privacy", () => {
     await expect(pageRoot).not.toContainText(completed.order.customerName);
     await expect(pageRoot).not.toContainText(cancelled.order.customerName);
 
-    const summary = await page
-      .getByTestId("daily-closing-summary-text")
-      .innerText();
+    const summary = await readDailyClosingSummaryText(page);
     expect(summary).not.toContain(SECRET_CUSTOMER);
     expect(summary).not.toContain(SECRET_PHONE);
     expect(summary).not.toContain(SECRET_ADDRESS);

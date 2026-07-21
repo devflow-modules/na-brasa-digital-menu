@@ -33,7 +33,12 @@ describe("admin-orders-formatters domain compatibility", () => {
   it("keeps known payment method labels", () => {
     assert.equal(formatPaymentMethod("PIX"), "Pix");
     assert.equal(formatPaymentMethod("CASH"), "Dinheiro");
-    assert.equal(formatPaymentMethod("CARD"), "Cartão");
+    assert.equal(formatPaymentMethod("DEBIT_CARD"), "Cartão de débito");
+    assert.equal(formatPaymentMethod("CREDIT_CARD"), "Cartão de crédito");
+    assert.equal(
+      formatPaymentMethod("CARD"),
+      "Cartão — tipo não informado",
+    );
   });
 });
 

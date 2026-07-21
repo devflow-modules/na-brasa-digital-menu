@@ -22,13 +22,12 @@ import {
   markVisibilityResumed,
   type NewOrderNotificationControllerState,
 } from "@/features/admin/orders/new-order-notifications/new-order-notification-controller";
-import { NewOrderPendingBadge } from "@/features/admin/orders/new-order-notifications/new-order-pending-badge";
+import { AdminNotificationChromeProvider } from "@/features/admin/orders/new-order-notifications/admin-notification-chrome-context";
 import {
   playNewOrderSound,
   readNewOrderSoundPreference,
   writeNewOrderSoundPreference,
 } from "@/features/admin/orders/new-order-notifications/new-order-sound-preference";
-import { NewOrderSoundToggle } from "@/features/admin/orders/new-order-notifications/new-order-sound-toggle";
 import {
   requestAdminOrdersRefresh,
   resolveQueueRefreshAfterVisibilityPoll,
@@ -297,7 +296,16 @@ export function AdminNewOrderNotificationsProvider({
   }, []);
 
   return (
-    <>
+    <AdminNotificationChromeProvider
+      value={{
+        sessionActive,
+        pendingCount: state.pendingCount,
+        soundEnabled,
+        setSoundEnabled: (enabled) => {
+          void handleSoundChange(enabled);
+        },
+      }}
+    >
       {isDevInstrumentation ? (
         <span
           className="sr-only"
@@ -308,36 +316,12 @@ export function AdminNewOrderNotificationsProvider({
         </span>
       ) : null}
 
-      {sessionActive ? (
-        <div
-          className="sticky top-0 z-40 border-b border-stone-800 bg-stone-950/90 px-3 py-2 backdrop-blur sm:px-4"
-          data-testid="admin-new-order-chrome"
-        >
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
-            {state.pendingCount > 0 ? (
-              <NewOrderPendingBadge
-                pendingCount={state.pendingCount}
-                visible={sessionActive}
-              />
-            ) : (
-              <span className="text-sm text-stone-400">Pendentes</span>
-            )}
-            <NewOrderSoundToggle
-              enabled={soundEnabled}
-              onChange={(value) => {
-                void handleSoundChange(value);
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
-
       <NewOrderNotificationBanner
         banners={state.banners}
         onDismiss={handleDismiss}
       />
 
       {children}
-    </>
+    </AdminNotificationChromeProvider>
   );
 }

@@ -11,11 +11,11 @@ Fonte: [client/na-braza-pilot-data.md](client/na-braza-pilot-data.md). Slug téc
 - Nome exibido: **Na Braza**
 - WhatsApp de pedidos: **5513981091971** (13 98109-1971)
 - Endereço: Barão de Ramalho, 155 — Macuco — Santos/SP
-- Horário (texto no cardápio): segunda a domingo 17:30–00:00; em chuva forte não abre
+- Horário (texto no cardápio): segunda a domingo, das 17h30 às 00h; funcionamento pode variar em chuva forte
 - Taxa base de entrega (piloto): R$ 6,00 · pedido mínimo entrega: R$ 30,00
 - Retirada e entrega habilitadas no piloto
 
-**Pedido mínimo:** o valor mínimo é aplicado **somente** a pedidos com entrega (`DELIVERY`). Pedidos para retirada e pedidos de Balcão **não** possuem valor mínimo. O Store Owner pode alterar o valor em `/admin/configuracoes` (“Pedido mínimo para entrega”). Pelo menos uma modalidade (entrega ou retirada) deve permanecer habilitada. O horário em texto é só informativo; quem abre/fecha a loja é o campo “Loja aberta”.
+**Pedido mínimo:** o valor mínimo é aplicado **somente** a pedidos com entrega (`DELIVERY`). Pedidos para retirada e pedidos de Balcão **não** possuem valor mínimo. O Store Owner pode alterar o valor em `/admin/configuracoes` (“Pedido mínimo para entrega”). Pelo menos uma modalidade (entrega ou retirada) deve permanecer habilitada. O horário em texto é só informativo; quem abre/fecha a loja é o status “Loja aberta” (ação imediata, fora do Salvar).
 
 Em banco **já existente** (produção ou dev compartilhado), aplicar settings manualmente com `DATABASE_URL` correto:
 
@@ -108,6 +108,32 @@ $env:CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS="true"; pnpm data:purge-na-braza-tests
 - Não usa `Teste` genérico em nomes de cliente para delete automático (apenas aviso no dry-run).
 - Idempotente: após purga bem-sucedida, novo dry-run deve listar **0** candidatos.
 
+## Remoção de resíduos do seed antigo (catálogo)
+
+Quando o cardápio piloto publicado já é o catálogo real e ainda restam produtos/categorias **inativos** do seed inicial, use:
+
+```powershell
+pnpm data:remove-na-braza-legacy-seed
+$env:CONFIRM_REMOVE_NA_BRAZA_LEGACY_SEED="true"; pnpm data:remove-na-braza-legacy-seed
+```
+
+- Escopo: loja `na-brasa` apenas.
+- Seleção por **allowlist auditada** de nomes (não por `active=false` genérico).
+- Bloqueia se qualquer candidato estiver ativo/disponível ou colidir com o piloto.
+- Remove vínculos `ProductAddon` exclusivos; `OrderItem.productId` usa `SetNull` (snapshots preservados).
+- Remove categorias legadas só se ficarem vazias e não forem do piloto.
+- Idempotente: reexecutar dry-run após apply deve listar 0 candidatos.
+
+### Registro — limpeza aplicada (2026-07-21)
+
+| Item | Resultado |
+| --- | --- |
+| Produtos inativos do seed removidos | 8 |
+| Vínculos `ProductAddon` removidos | 15 |
+| Categorias vazias antigas removidas | 5 |
+| Produtos ativos do piloto preservados | 17 |
+| Produtos fora do piloto no público | 0 |
+
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
@@ -173,19 +199,20 @@ Se um perfil autenticado abrir por URL uma área operacional bloqueada (exemplo:
 ## Adicionais (`/admin/cardapio/adicionais`)
 
 1. Acesse pelo link **Gerenciar adicionais** em `/admin/cardapio` (ou URL direta).
-2. Dono/gerente podem criar, editar, ativar/desativar e vincular adicionais a produtos da mesma Store.
-3. Operador e cozinha só visualizam a lista e vínculos.
-4. Adicional inativo não aparece no modal público; desvinculado também não.
-5. Checkout rejeita adicional inválido com mensagem amigável no server.
+2. Use a lista compacta com busca e filtros (status / com ou sem vínculos). Abra **Editar** ou **Vínculos** sob demanda — um painel por vez.
+3. Dono/gerente podem criar (+ Novo adicional), editar, ativar/desativar e vincular adicionais a produtos da mesma Store.
+4. Operador e cozinha só visualizam a lista e vínculos.
+5. Adicional inativo não aparece no modal público; desvinculado também não.
+6. Checkout rejeita adicional inválido com mensagem amigável no server.
 
 ## Configurações da loja (`/admin/configuracoes`)
 
 1. Na navegação do chrome, use **Configurações** (visível para dono, gerente e operador; Cozinha não vê o link).
 
-2. Dono/gerente editam WhatsApp, endereço, taxa de entrega (R$ na tela, centavos no banco), retirada/entrega e texto de horário.
+2. No topo, **Status da operação** permite abrir/fechar a loja de imediato (sem Salvar). Dono/gerente editam abaixo as configurações permanentes: modalidades, taxa, pedido mínimo, WhatsApp, endereço e descrição do horário.
 3. Operador **não** altera dados estruturais, mas pode **abrir ou fechar** a loja para pedidos Online (`isOpen`).
 4. Cozinha só visualiza.
-5. Mudanças refletem no cardápio público e no checkout após salvar (revalidate).
+5. Mudanças permanentes refletem no cardápio público e no checkout após salvar (revalidate). Abrir/fechar é imediato.
 6. Com `isOpen=false`, o cliente ainda vê o cardápio, mas **não** consegue finalizar pedidos Online/`DIRECT`. Pedidos de Balcão (`COUNTER`) podem continuar sendo criados por usuários autorizados. `openingHours` é apenas informativo e **não** altera `isOpen` automaticamente.
 7. Store legada com retirada e entrega desabilitadas (`pickupEnabled=false` e `deliveryEnabled=false`): o checkout público mostra indisponibilidade explícita; o Admin impede salvar esse estado em novas edições.
 8. E2E/smoke: testes que alteram a Store **restauram** WhatsApp, flags e `isOpen` ao final — não deixe a Na Braza fechada após rodar testes em banco compartilhado.
@@ -200,8 +227,8 @@ do que já está entregue.
 
 1. Login como `MANAGER`, `STORE_OWNER` ou `OPERATOR` (conforme permissão).
 2. Abra `/admin/configuracoes`.
-3. **Abrir loja:** `OPERATOR` usa o botão abrir/fechar; dono/gerente pode usar o mesmo toggle ou o checkbox “Loja aberta” + salvar.
-4. **Fechar loja:** mesmo fluxo — cardápio público continua visível; checkout Online e `createOrder` (`DIRECT`) ficam bloqueados no server. Pedidos de Balcão autorizados **não** são bloqueados por `isOpen`.
+3. **Abrir loja:** use o botão **Abrir loja** no card de status (dono, gerente ou operador com permissão).
+4. **Fechar loja:** use **Fechar loja** no mesmo card — cardápio público continua visível; checkout Online e `createOrder` (`DIRECT`) ficam bloqueados no server. Pedidos de Balcão autorizados **não** são bloqueados por `isOpen`.
 5. Acesso direto a `/{slug}/checkout` com loja fechada também comunica indisponibilidade (banner + submit desabilitado); não depende só do CTA do cardápio.
 6. Ao fim do turno, confira que a loja está no estado desejado (geralmente **aberta** se ainda aceita pedidos Online pelo link).
 
@@ -213,17 +240,20 @@ Rotina para enviar o resumo do expediente ao sócio. **Não** é caixa conciliad
 2. No chrome, abra **Relatórios** (`/admin/relatorios/fechamento`).
 3. Confira a **data operacional** e o período. Padrão: `17:00–01:00` em `America/Sao_Paulo` (fim no dia civil seguinte). Ajuste início/fim só em dias excepcionais.
 4. Use **Atualizar** após mudar data ou horários.
-5. Confira totais de pedidos **concluídos**, itens, taxas, pagamentos, modalidades e produtos.
+5. Confira o **resumo operacional** (total em destaque) e, se houver dados, o **detalhamento**. Janela sem concluídos mostra um único aviso — as seções vazias não aparecem.
 6. Se houver alerta de pedidos ainda abertos, feche ou cancele na fila antes de reportar — esses valores **não** entram no total.
-7. Toque em **Copiar resumo para WhatsApp**, cole na conversa com o sócio e envie.
-8. Cancelados aparecem separados e não entram no faturamento.
-9. O relatório é dinâmico: se um pedido for corrigido depois, o total pode mudar ao reabrir a tela.
+7. Em **Exportar e compartilhar**: **Copiar resumo** ou **Abrir no WhatsApp** (sem envio automático nem número fixo). A prévia da mensagem fica recolhida; abra só se quiser revisar.
+8. Se precisar da planilha, toque em **Baixar CSV** — o arquivo usa o mesmo filtro/data da tela (UTF-8, abre no Excel/Google Sheets). Não contém telefone, endereço nem nome do cliente.
+9. Cancelados aparecem separados e não entram no faturamento.
+10. O relatório é dinâmico: se um pedido for corrigido depois, o total pode mudar ao reabrir a tela (copy, link e CSV refletem o estado atual ao atualizar).
 
 ### Cardápio e disponibilidade
 
-1. `/admin/cardapio` — criar/editar produtos e categorias (dono/gerente).
-2. **Indisponível no momento:** `OPERATOR` ou dono/gerente marca `available=false` (produto visível, sem pedido).
-3. **Ocultar do público:** dono/gerente marca `active=false` (some do `/na-brasa`).
+1. `/admin/cardapio` — workspace de categorias recolhíveis e produtos em linha compacta (dono/gerente).
+2. Use a busca e os filtros do topo; abra uma categoria para ver os itens. **Editar** monta o formulário só daquele produto.
+3. **+ Novo produto** / **+ Nova categoria** abrem o formulário de criação sob demanda.
+4. **Indisponível no momento:** `OPERATOR` ou dono/gerente marca `available=false` (produto visível, sem pedido).
+5. **Ocultar do público:** dono/gerente marca `active=false` (some do `/na-brasa`).
 
 ### Adicionais
 

@@ -4,12 +4,27 @@ export type CounterCatalogAddon = {
   priceCents: number;
 };
 
+export type CounterCatalogAddonGroupOption = {
+  sortOrder: number;
+  addon: CounterCatalogAddon;
+};
+
+export type CounterCatalogAddonGroup = {
+  id: string;
+  name: string;
+  minSelection: number;
+  maxSelection: number;
+  sortOrder: number;
+  options: CounterCatalogAddonGroupOption[];
+};
+
 export type CounterCatalogProduct = {
   id: string;
   name: string;
   description: string | null;
   priceCents: number;
   addons: CounterCatalogAddon[];
+  addonGroups: CounterCatalogAddonGroup[];
 };
 
 export type CounterCatalogCategory = {

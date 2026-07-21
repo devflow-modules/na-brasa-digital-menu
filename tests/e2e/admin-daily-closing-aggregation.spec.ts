@@ -10,7 +10,10 @@ import {
   renameProductForSnapshotTest,
   uniqueDailyClosingCustomer,
 } from "./helpers/daily-closing-fixtures";
-import { openDefaultDailyClosingWindow } from "./helpers/daily-closing-ui";
+import {
+  openDefaultDailyClosingWindow,
+  readDailyClosingSummaryText,
+} from "./helpers/daily-closing-ui";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 
 test.describe("admin daily closing aggregation", () => {
@@ -93,7 +96,7 @@ test.describe("admin daily closing aggregation", () => {
       ],
     });
 
-    // COUNTER + CARD (must not count as retirada)
+    // COUNTER + legacy CARD (must not count as retirada; keep historical bucket)
     await createDailyClosingE2eOrder({
       storeId: store.id,
       createdAt: t2,
@@ -252,7 +255,7 @@ test.describe("admin daily closing aggregation", () => {
     await expect(payments).toContainText("R$ 36,00 — 1 pedidos");
     await expect(payments).toContainText("Dinheiro");
     await expect(payments).toContainText("R$ 20,00 — 1 pedidos");
-    await expect(payments).toContainText("Cartão");
+    await expect(payments).toContainText("Cartão — tipo não informado");
     await expect(payments).toContainText("R$ 15,00 — 1 pedidos");
     await expect(payments).toContainText("Não informado");
     await expect(payments).toContainText("R$ 66,00 — 1 pedidos");
@@ -288,17 +291,15 @@ test.describe("admin daily closing aggregation", () => {
       "131,00",
     );
 
-    const summary = (
-      await page.getByTestId("daily-closing-summary-text").innerText()
-    ).replace(/\u00a0/g, " ");
+    const summary = await readDailyClosingSummaryText(page);
     expect(summary).toContain("TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS");
     expect(summary).toContain("R$ 131,00");
     expect(summary).toContain("R$ 6,00");
     expect(summary).toContain("R$ 137,00");
-    expect(summary).toContain("Entrega: 1 pedidos — R$ 36,00");
+    expect(summary).toContain("Entrega: 1 pedido — R$ 36,00");
     expect(summary).toContain("Retirada: 2 pedidos — R$ 86,00");
-    expect(summary).toContain("Balcão: 1 pedidos — R$ 15,00");
-    expect(summary).toMatch(/Total vendido: R\$ 137,00/);
+    expect(summary).toContain("Balcão: 1 pedido — R$ 15,00");
+    expect(summary).toMatch(/\*Total vendido: R\$\s*137,00\*/);
 
     const paymentsBlock =
       summary.split("FORMAS DE PAGAMENTO")[1]?.split("MODALIDADES")[0] ?? "";
@@ -389,14 +390,14 @@ test.describe("admin daily closing aggregation", () => {
     await expect(page.getByTestId("daily-closing-cancelled")).toContainText(
       cancelled.code,
     );
+    await expect(page.getByTestId("daily-closing-payments")).toHaveCount(0);
+    await expect(page.getByTestId("daily-closing-fulfillment")).toHaveCount(0);
+    await expect(page.getByTestId("daily-closing-products")).toHaveCount(0);
     await expect(page.getByTestId("daily-closing-open-alert")).toContainText(
       "1 pedido ainda aberto",
     );
-    await expect(page.getByTestId("daily-closing-summary-text")).toContainText(
-      "TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS",
-    );
-    await expect(page.getByTestId("daily-closing-summary-text")).not.toContainText(
-      "40,00",
-    );
+    const summary = await readDailyClosingSummaryText(page);
+    expect(summary).toContain("TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS");
+    expect(summary).not.toContain("40,00");
   });
 });

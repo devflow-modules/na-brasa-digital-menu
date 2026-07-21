@@ -7,7 +7,7 @@ const NA_BRAZA_STORE_SETTINGS = {
   whatsapp: "5513981091971",
   address: "Barão de Ramalho, 155 — Macuco — Santos/SP",
   openingHours:
-    "Segunda a domingo, 17:30–00:00. Em dias de chuva forte não abrimos.",
+    "Segunda a domingo, das 17h30 às 00h. O funcionamento pode variar em dias de chuva forte.",
   deliveryFeeCents: 600,
   minimumOrderAmountCents: 3000,
   pickupEnabled: true,

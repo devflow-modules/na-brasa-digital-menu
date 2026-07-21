@@ -21,7 +21,8 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-role-permissions.spec.ts` | Permissões por role (OWNER/MANAGER/OPERATOR/KITCHEN) + MASTER sem contexto tenant |
 | `tests/e2e/admin-menu-management.spec.ts` | `/admin/cardapio`: CRUD simples, toggles, escopo por Store, publicação (`active`) |
 | `tests/e2e/product-availability.spec.ts` | `active` vs `available`: badge público, bloqueio carrinho/checkout, permissões OPERATOR |
-| `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: CRUD, vínculos, público, permissões, order validation |
+| `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: workspace (create/edit/links sob demanda), filtros, público, permissões, order validation |
+| `tests/e2e/addon-selection-groups.spec.ts` | Grupos min/max: radio no público, rejeição server-side cheddar+prato, painel admin no produto |
 | `tests/e2e/admin-store-settings.spec.ts` | `/admin/configuracoes`: permissões, público, loja fechada, entrega/retirada, pedido mínimo para entrega, bloqueio ambas modalidades off, escopo Store, WhatsApp; **restaura** settings da loja seed |
 | `tests/e2e/mobile-storefront.spec.ts` | Fluxo crítico do storefront em viewport mobile (Pixel 5) |
 | `tests/e2e/counter-order-flow.spec.ts` | Comanda COUNTER: criar (fica no Balcão) → READY → receber/finalizar; duas comandas consecutivas; KITCHEN, tenant, bypass, duplicidade, DIRECT |
@@ -29,8 +30,8 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-new-order-notifications.spec.ts` | Notificações admin: login lifecycle, bootstrap, DIRECT, som, Dispensar aviso, COUNTER, tenant, badge → fila `/admin` |
 | `tests/e2e/admin-orders-live-refresh.spec.ts` | Fila admin live refresh: novo DIRECT na lista sem reload; status no detalhe; COUNTER → Pedidos |
 | `tests/e2e/mobile-admin-new-order-notifications.spec.ts` | Banner/badge navegável/Dispensar aviso no viewport Pixel 5 |
-| `tests/e2e/admin-chrome-by-role.spec.ts` | Chrome por papel: links filtrados, active state, login sem chrome, KITCHEN só Pedidos |
-| `tests/e2e/mobile-admin-chrome.spec.ts` | Chrome admin utilizável no Pixel 5 |
+| `tests/e2e/admin-chrome-by-role.spec.ts` | AdminShell por papel: links filtrados, active state, menu do usuário/logout, KITCHEN só Pedidos |
+| `tests/e2e/mobile-admin-chrome.spec.ts` | AdminShell no Pixel 5: hamburger, navegação e menu do usuário |
 | `tests/e2e/admin-access-denied.spec.ts` | Acesso negado explícito (Balcão/KITCHEN), login redirect, 404 tenant, Cardápio read-only |
 
 Browsers / projetos Playwright:

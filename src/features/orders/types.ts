@@ -62,7 +62,7 @@ export type CreateOrderPersistenceInput = {
   customerPhone: string | null;
   deliveryType: CreateOrderDeliveryType;
   deliveryAddress: string | null;
-  paymentMethod: "PIX" | "CASH" | "CARD" | null;
+  paymentMethod: "PIX" | "CASH" | "DEBIT_CARD" | "CREDIT_CARD" | null;
   changeForCents: number | null;
   notes: string | null;
   subtotalCents: number;

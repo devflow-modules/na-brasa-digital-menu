@@ -3,7 +3,13 @@ export const DAILY_CLOSING_TIMEZONE = "America/Sao_Paulo" as const;
 export const DEFAULT_DAILY_CLOSING_START = "17:00" as const;
 export const DEFAULT_DAILY_CLOSING_END = "01:00" as const;
 
-export type DailyClosingPaymentMethod = "CASH" | "PIX" | "CARD" | "UNSET";
+export type DailyClosingPaymentMethod =
+  | "CASH"
+  | "PIX"
+  | "DEBIT_CARD"
+  | "CREDIT_CARD"
+  | "CARD"
+  | "UNSET";
 
 export type DailyClosingFulfillmentChannel =
   | "DELIVERY"
@@ -100,7 +106,13 @@ export type DailyClosingOrderInput = {
   status: string;
   source: string;
   deliveryType: string;
-  paymentMethod: "CASH" | "PIX" | "CARD" | null;
+  paymentMethod:
+    | "CASH"
+    | "PIX"
+    | "DEBIT_CARD"
+    | "CREDIT_CARD"
+    | "CARD"
+    | null;
   subtotalCents: number;
   deliveryFeeCents: number;
   totalCents: number;

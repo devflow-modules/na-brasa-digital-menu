@@ -62,7 +62,7 @@ Status geral:
 | Opening days | Monday to Sunday | received |
 | Opening hours | 17:30–00:00 | received |
 | Holiday operation | Works normally | received |
-| Weather note | Does not open on heavy rain days | received |
+| Weather note | Operation may vary on heavy rain days (status “Loja aberta” is the real control) | received |
 | Pickup | enabled | confirmed |
 | Delivery | enabled | confirmed |
 | Delivery areas | Santos; São Vicente depending on order | received |
@@ -111,18 +111,21 @@ Pilot categories:
 
 | Addon | Price | Status |
 | --- | ---: | --- |
-| Bacon extra | R$ 5,00 | confirmed |
-| Salada | R$ 5,00 | confirmed |
-| Queijo extra | R$ 3,00 | confirmed |
-| Hambúrguer extra | R$ 15,00 | confirmed |
+| Bacon extra | R$ 5,00 | confirmed — independent |
+| Salada | R$ 5,00 | confirmed — independent |
+| Cheddar extra | R$ 3,00 | confirmed — cheese group |
+| Queijo prato extra | R$ 3,00 | confirmed — cheese group |
+| Hambúrguer extra | R$ 15,00 | confirmed — independent |
+| Queijo extra (legado) | R$ 3,00 | inactive — historical snapshots only |
 
 Addon linkage:
 
-- Link all addons only to `Pão Carne Queijo`.
+- Independent addons linked to `Pão Carne Queijo` via `ProductAddon`.
+- Cheese group `Escolha o queijo extra` (min 0, max 1) on the same product via `AddonGroup`.
 
 Operational note:
 
-The base product is Pão Carne Queijo. The customer adds optional extras; the product should not be modeled as multiple fixed variations in this pilot.
+The base product is Pão Carne Queijo. The customer adds optional extras; the product should not be modeled as multiple fixed variations in this pilot. Cheese exclusivity is enforced by selection groups (server + UI). Detalhe: [../product/addon-selection-groups.md](../product/addon-selection-groups.md).
 
 ### Espetinhos na Brasa
 

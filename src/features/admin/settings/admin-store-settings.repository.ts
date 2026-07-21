@@ -34,7 +34,6 @@ export async function updateAdminStoreSettings(
     minimumOrderAmountCents: number;
     pickupEnabled: boolean;
     deliveryEnabled: boolean;
-    isOpen: boolean;
   },
 ): Promise<boolean> {
   const result = await prisma.store.updateMany({
@@ -47,7 +46,6 @@ export async function updateAdminStoreSettings(
       minimumOrderAmountCents: input.minimumOrderAmountCents,
       pickupEnabled: input.pickupEnabled,
       deliveryEnabled: input.deliveryEnabled,
-      isOpen: input.isOpen,
     },
   });
   return result.count === 1;

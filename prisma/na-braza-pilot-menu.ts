@@ -3,12 +3,21 @@ import type { PrismaClient } from "@prisma/client";
 export const NA_BRAZA_STORE_SLUG = "na-brasa";
 export const PILOT_BURGER_PRODUCT_NAME = "Pão Carne Queijo";
 
+/** Independent ProductAddon links for the pilot burger (not in selection groups). */
 export const PILOT_BURGER_ADDON_NAMES = [
   "Bacon extra",
   "Salada",
-  "Queijo extra",
   "Hambúrguer extra",
 ] as const;
+
+export const PILOT_CHEESE_GROUP_NAME = "Escolha o queijo extra";
+export const PILOT_CHEESE_GROUP_OPTION_NAMES = [
+  "Cheddar extra",
+  "Queijo prato extra",
+] as const;
+
+/** Legacy generic cheese addon kept inactive for historical snapshots. */
+export const PILOT_LEGACY_INACTIVE_ADDON_NAMES = ["Queijo extra"] as const;
 
 const BEER_AGE_DESCRIPTION =
   "Produto permitido apenas para maiores de 18 anos.";
@@ -72,16 +81,22 @@ export const PILOT_ADDONS: PilotAddonSeed[] = [
     sortOrder: 2,
   },
   {
-    name: "Queijo extra",
-    description: "Fatia extra de queijo.",
+    name: "Cheddar extra",
+    description: "Fatia extra de cheddar.",
     priceCents: 300,
     sortOrder: 3,
+  },
+  {
+    name: "Queijo prato extra",
+    description: "Fatia extra de queijo prato.",
+    priceCents: 300,
+    sortOrder: 4,
   },
   {
     name: "Hambúrguer extra",
     description: "Hambúrguer artesanal adicional 160g.",
     priceCents: 1500,
-    sortOrder: 4,
+    sortOrder: 5,
   },
 ];
 
@@ -320,6 +335,7 @@ export type ApplyNaBrazaPilotMenuSummary = {
   productsDeactivated: number;
   burgerAddonLinksEnsured: number;
   burgerAddonLinksRemoved: number;
+  cheeseGroupsEnsured: number;
 };
 
 export async function applyNaBrazaPilotMenu(
@@ -339,6 +355,7 @@ export async function applyNaBrazaPilotMenu(
     productsDeactivated: 0,
     burgerAddonLinksEnsured: 0,
     burgerAddonLinksRemoved: 0,
+    cheeseGroupsEnsured: 0,
   };
 
   const categoryIdsByName = new Map<string, string>();
@@ -425,6 +442,9 @@ export async function applyNaBrazaPilotMenu(
   }
 
   const pilotAddonNames = pilotAddonNameSet();
+  const legacyInactiveAddonNames = new Set<string>(
+    PILOT_LEGACY_INACTIVE_ADDON_NAMES,
+  );
   const staleAddons = await prisma.addon.findMany({
     where: { storeId, active: true },
     select: { id: true, name: true },
@@ -433,6 +453,21 @@ export async function applyNaBrazaPilotMenu(
     if (!pilotAddonNames.has(row.name)) {
       await prisma.addon.update({
         where: { id: row.id },
+        data: { active: false },
+      });
+      summary.addonsDeactivated += 1;
+    }
+  }
+
+  // Keep known legacy addons inactive without renaming (preserves order snapshots).
+  for (const legacyName of legacyInactiveAddonNames) {
+    const legacy = await prisma.addon.findFirst({
+      where: { storeId, name: legacyName },
+      select: { id: true, active: true },
+    });
+    if (legacy?.active) {
+      await prisma.addon.update({
+        where: { id: legacy.id },
         data: { active: false },
       });
       summary.addonsDeactivated += 1;
@@ -545,6 +580,69 @@ export async function applyNaBrazaPilotMenu(
       summary.burgerAddonLinksRemoved += 1;
     }
   }
+
+  const cheeseOptionIds = PILOT_CHEESE_GROUP_OPTION_NAMES.map((name) => {
+    const id = addonIdsByName.get(name);
+    if (!id) {
+      throw new Error(`Pilot cheese addon not resolved: ${name}`);
+    }
+    return id;
+  });
+
+  const existingCheeseGroup = await prisma.addonGroup.findFirst({
+    where: {
+      storeId,
+      productId: burger.id,
+      name: PILOT_CHEESE_GROUP_NAME,
+    },
+    select: { id: true },
+  });
+
+  const cheeseGroupId = existingCheeseGroup
+    ? (
+        await prisma.addonGroup.update({
+          where: { id: existingCheeseGroup.id },
+          data: {
+            description: null,
+            minSelection: 0,
+            maxSelection: 1,
+            active: true,
+            sortOrder: 0,
+          },
+          select: { id: true },
+        })
+      ).id
+    : (
+        await prisma.addonGroup.create({
+          data: {
+            storeId,
+            productId: burger.id,
+            name: PILOT_CHEESE_GROUP_NAME,
+            description: null,
+            minSelection: 0,
+            maxSelection: 1,
+            active: true,
+            sortOrder: 0,
+          },
+          select: { id: true },
+        })
+      ).id;
+
+  await prisma.addonGroupOption.deleteMany({ where: { groupId: cheeseGroupId } });
+  await prisma.addonGroupOption.createMany({
+    data: cheeseOptionIds.map((addonId, index) => ({
+      groupId: cheeseGroupId,
+      addonId,
+      sortOrder: index,
+    })),
+  });
+  await prisma.productAddon.deleteMany({
+    where: {
+      productId: burger.id,
+      addonId: { in: cheeseOptionIds },
+    },
+  });
+  summary.cheeseGroupsEnsured += 1;
 
   return summary;
 }
