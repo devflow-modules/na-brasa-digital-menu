@@ -26,9 +26,10 @@ export function DailyClosingPage({ report }: DailyClosingPageProps) {
   const generatedAt = new Date(report.generatedAtIso).toLocaleString("pt-BR", {
     timeZone: report.period.timezone,
   });
+  const hasCompleted = report.summary.completedOrders > 0;
 
   return (
-    <div data-testid="daily-closing-page" className="space-y-6">
+    <div data-testid="daily-closing-page" className="mx-auto max-w-5xl space-y-6">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold text-stone-50">
           Fechamento operacional
@@ -53,31 +54,37 @@ export function DailyClosingPage({ report }: DailyClosingPageProps) {
 
       <DailyClosingSummaryCards summary={report.summary} />
 
-      {report.summary.completedOrders === 0 ? (
-        <p
-          data-testid="daily-closing-empty"
-          className="rounded-2xl border border-stone-800 bg-stone-900/50 px-4 py-6 text-center text-sm text-stone-400"
-        >
-          Nenhum pedido concluído nesta janela operacional.
+      {hasCompleted ? (
+        <p className="text-sm text-stone-400">
+          Subtotal de produtos:{" "}
+          {formatMoney(report.summary.productsSubtotalCents)}
         </p>
       ) : (
-        <p className="text-sm text-stone-400">
-          Subtotal de produtos: {formatMoney(report.summary.productsSubtotalCents)}
+        <p
+          data-testid="daily-closing-empty"
+          className="rounded-2xl border border-stone-800 bg-stone-900/50 px-4 py-5 text-center text-sm text-stone-300"
+        >
+          Nenhuma movimentação encontrada nesta janela operacional.
         </p>
       )}
 
-      <div
-        data-testid="daily-closing-actions"
-        className="flex flex-wrap items-start gap-4"
-      >
-        <CopyDailyClosingButton text={summaryText} />
-        <OpenDailyClosingWhatsappLink href={whatsappUrl} />
-        <DownloadDailyClosingCsvButton
-          content={csvExport.content}
-          filename={csvExport.filename}
-          mimeType={csvExport.mimeType}
-        />
-      </div>
+      <section className="space-y-3" aria-label="Exportar e compartilhar">
+        <h2 className="text-base font-semibold tracking-wide text-stone-200">
+          Exportar e compartilhar
+        </h2>
+        <div
+          data-testid="daily-closing-actions"
+          className="flex flex-wrap items-center gap-3"
+        >
+          <CopyDailyClosingButton text={summaryText} />
+          <OpenDailyClosingWhatsappLink href={whatsappUrl} />
+          <DownloadDailyClosingCsvButton
+            content={csvExport.content}
+            filename={csvExport.filename}
+            mimeType={csvExport.mimeType}
+          />
+        </div>
+      </section>
 
       <DailyClosingSections report={report} />
 
