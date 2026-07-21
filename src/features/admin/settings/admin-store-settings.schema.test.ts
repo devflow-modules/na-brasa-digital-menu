@@ -15,7 +15,6 @@ function validInput(overrides: Record<string, unknown> = {}) {
     minimumOrderAmountCents: "30,00",
     pickupEnabled: true,
     deliveryEnabled: true,
-    isOpen: true,
     ...overrides,
   };
 }
@@ -103,5 +102,23 @@ describe("updateStoreSettingsSchema", () => {
       false,
     );
     assert.equal(result.data.minimumOrderAmountCents, 1_000);
+  });
+
+  it("does not accept isOpen on permanent settings update payload", () => {
+    const result = updateStoreSettingsSchema.safeParse(
+      validInput({ isOpen: false }),
+    );
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    assert.equal("isOpen" in result.data, false);
+  });
+
+  it("accepts formatted WhatsApp and persists digits only", () => {
+    const result = updateStoreSettingsSchema.safeParse(
+      validInput({ whatsapp: "+55 (13) 98109-1971" }),
+    );
+    assert.equal(result.success, true);
+    if (!result.success) return;
+    assert.equal(result.data.whatsapp, "5513981091971");
   });
 });
