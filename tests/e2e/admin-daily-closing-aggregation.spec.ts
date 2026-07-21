@@ -96,7 +96,7 @@ test.describe("admin daily closing aggregation", () => {
       ],
     });
 
-    // COUNTER + CARD (must not count as retirada)
+    // COUNTER + legacy CARD (must not count as retirada; keep historical bucket)
     await createDailyClosingE2eOrder({
       storeId: store.id,
       createdAt: t2,
@@ -255,7 +255,7 @@ test.describe("admin daily closing aggregation", () => {
     await expect(payments).toContainText("R$ 36,00 — 1 pedidos");
     await expect(payments).toContainText("Dinheiro");
     await expect(payments).toContainText("R$ 20,00 — 1 pedidos");
-    await expect(payments).toContainText("Cartão");
+    await expect(payments).toContainText("Cartão — tipo não informado");
     await expect(payments).toContainText("R$ 15,00 — 1 pedidos");
     await expect(payments).toContainText("Não informado");
     await expect(payments).toContainText("R$ 66,00 — 1 pedidos");

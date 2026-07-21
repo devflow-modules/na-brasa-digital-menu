@@ -163,6 +163,7 @@ describe("formatDailyClosingWhatsapp", () => {
     assert.match(text, /\*Total vendido: R\$\s*162,00\*/);
     assert.match(text, /💳 \*FORMAS DE PAGAMENTO\*/);
     assert.match(text, /• Pix: R\$\s*102,00 — 2 pedidos — /);
+    assert.match(text, /• Cartão — tipo não informado: R\$\s*30,00 — 1 pedido — /);
     assert.match(text, /%/);
     assert.match(text, /🛵 \*MODALIDADES\*/);
     assert.match(text, /• Entrega: 2 pedidos — R\$\s*102,00/);

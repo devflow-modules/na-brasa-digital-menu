@@ -26,6 +26,8 @@ enum PaymentMethod {
   CASH
   PIX
   CARD
+  DEBIT_CARD
+  CREDIT_CARD
 }
 
 enum OrderSource {

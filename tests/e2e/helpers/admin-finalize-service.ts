@@ -9,7 +9,7 @@ export async function attemptFinalizeCounterOrder(options: {
   orderId: string;
   storeId: string;
   role: UserRole;
-  paymentMethod: "CASH" | "PIX" | "CARD";
+  paymentMethod: "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD";
   changeForCents?: number;
 }) {
   return finalizeCounterOrder(

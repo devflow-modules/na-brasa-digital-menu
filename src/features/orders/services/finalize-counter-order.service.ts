@@ -20,7 +20,7 @@ export type FinalizeCounterOrderResult =
       ok: true;
       orderId: string;
       status: "COMPLETED";
-      paymentMethod: "CASH" | "PIX" | "CARD";
+      paymentMethod: "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD";
       paidAt: string;
       changeForCents: number | null;
     }

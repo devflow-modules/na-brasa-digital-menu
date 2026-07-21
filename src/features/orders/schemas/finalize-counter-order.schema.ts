@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { creatablePaymentMethods } from "@/features/orders/payment-method";
 
-export const counterPaymentMethodValues = ["CASH", "PIX", "CARD"] as const;
+export const counterPaymentMethodValues = creatablePaymentMethods;
 
 export const finalizeCounterOrderSchema = z
   .object({

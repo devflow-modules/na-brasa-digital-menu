@@ -254,6 +254,7 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 - [product/daily-closing-whatsapp-share.md](product/daily-closing-whatsapp-share.md)
 - [product/menu-management-workspace.md](product/menu-management-workspace.md)
 - [product/addon-management-workspace.md](product/addon-management-workspace.md)
+- [product/payment-methods-debit-credit.md](product/payment-methods-debit-credit.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)

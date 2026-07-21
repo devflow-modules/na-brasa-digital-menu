@@ -36,11 +36,11 @@ export function computeCashChangeCents(
 
 export function buildFinalizeCounterOrderPayload(input: {
   orderId: string;
-  paymentMethod: "CASH" | "PIX" | "CARD";
+  paymentMethod: "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD";
   tenderedCents?: number | null;
 }): {
   orderId: string;
-  paymentMethod: "CASH" | "PIX" | "CARD";
+  paymentMethod: "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD";
   changeForCents?: number;
 } {
   if (input.paymentMethod !== "CASH") {

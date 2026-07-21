@@ -5,6 +5,7 @@ import type {
   AdminOrderStatus,
   AdminPaymentMethod,
 } from "@/features/admin/orders/admin-orders.types";
+import { formatPaymentMethodLabel } from "@/features/orders/payment-method";
 
 export { formatMoney };
 
@@ -38,14 +39,7 @@ export function formatPaymentMethod(
     return "Pagamento pendente";
   }
 
-  switch (method) {
-    case "PIX":
-      return "Pix";
-    case "CASH":
-      return "Dinheiro";
-    case "CARD":
-      return "Cartão";
-  }
+  return formatPaymentMethodLabel(method);
 }
 
 export function formatOrderSource(source: AdminOrderSource): string {
