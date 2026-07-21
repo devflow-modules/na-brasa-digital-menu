@@ -3,6 +3,8 @@ import { DailyClosingFilters } from "@/features/admin/reports/components/daily-c
 import { DailyClosingSections } from "@/features/admin/reports/components/daily-closing-sections";
 import { DailyClosingSummaryCards } from "@/features/admin/reports/components/daily-closing-summary-cards";
 import { DownloadDailyClosingCsvButton } from "@/features/admin/reports/components/download-daily-closing-csv-button";
+import { OpenDailyClosingWhatsappLink } from "@/features/admin/reports/components/open-daily-closing-whatsapp-link";
+import { buildDailyClosingWhatsappUrl } from "@/features/admin/reports/build-daily-closing-whatsapp-url";
 import { formatDailyClosingCsv } from "@/features/admin/reports/format-daily-closing-csv";
 import { formatDailyClosingWhatsapp } from "@/features/admin/reports/format-daily-closing-whatsapp";
 import type { DailyClosingReport } from "@/features/admin/reports/daily-closing.types";
@@ -19,6 +21,7 @@ function formatOperationalDate(date: string): string {
 
 export function DailyClosingPage({ report }: DailyClosingPageProps) {
   const summaryText = formatDailyClosingWhatsapp(report);
+  const whatsappUrl = buildDailyClosingWhatsappUrl(summaryText);
   const csvExport = formatDailyClosingCsv(report);
   const generatedAt = new Date(report.generatedAtIso).toLocaleString("pt-BR", {
     timeZone: report.period.timezone,
@@ -68,6 +71,7 @@ export function DailyClosingPage({ report }: DailyClosingPageProps) {
         className="flex flex-wrap items-start gap-4"
       >
         <CopyDailyClosingButton text={summaryText} />
+        <OpenDailyClosingWhatsappLink href={whatsappUrl} />
         <DownloadDailyClosingCsvButton
           content={csvExport.content}
           filename={csvExport.filename}

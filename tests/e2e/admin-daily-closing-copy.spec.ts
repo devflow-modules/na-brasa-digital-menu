@@ -166,8 +166,8 @@ test.describe("admin daily closing copy", () => {
     await page.getByTestId("daily-closing-copy").click();
     await expect(page.getByTestId("daily-closing-copy-success")).toBeVisible();
     const clipboardA = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardA).toContain("Data operacional: 21/07/2026");
-    expect(clipboardA).toContain("Período: 17:00–01:00");
+    expect(clipboardA).toContain("*Data operacional:* 21/07/2026");
+    expect(clipboardA).toContain("*Período:* 17:00–01:00");
     expect(clipboardA).toContain("Copy Filter Product A");
     expect(clipboardA).not.toContain("Copy Filter Product B");
 
@@ -187,8 +187,8 @@ test.describe("admin daily closing copy", () => {
     await page.getByTestId("daily-closing-copy").click();
     await expect(page.getByTestId("daily-closing-copy-success")).toBeVisible();
     const clipboardB = await page.evaluate(() => navigator.clipboard.readText());
-    expect(clipboardB).toContain("Data operacional: 22/07/2026");
-    expect(clipboardB).toContain("Período: 17:00–01:00");
+    expect(clipboardB).toContain("*Data operacional:* 22/07/2026");
+    expect(clipboardB).toContain("*Período:* 17:00–01:00");
     expect(clipboardB).toContain("Copy Filter Product B");
     expect(clipboardB).not.toContain("Copy Filter Product A");
     expect(clipboardB).not.toContain("21,00");

@@ -172,10 +172,10 @@ test.describe("admin daily closing period", () => {
       "Period Overnight Depois MeiaNoite",
     );
     await expect(page.getByTestId("daily-closing-summary-text")).toContainText(
-      "Data operacional: 21/07/2026",
+      "Data operacional:* 21/07/2026",
     );
     await expect(page.getByTestId("daily-closing-summary-text")).toContainText(
-      "Período: 17:00–01:00",
+      "Período:* 17:00–01:00",
     );
   });
 });

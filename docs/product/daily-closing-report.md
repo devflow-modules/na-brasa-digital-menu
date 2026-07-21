@@ -11,8 +11,8 @@ BUILD
 Classification: TENANT
 MVP: dynamic operational closing report
 Default window: 17:00–01:00 America/Sao_Paulo
-Sharing: WhatsApp copy + CSV download (same DTO)
-No PDF / Sheets / immutable close / cash reconciliation
+Sharing: WhatsApp copy + wa.me link + CSV download (same DTO)
+No WhatsApp API / PDF / Sheets / immutable close / cash reconciliation
 ```
 
 ## Product Decision

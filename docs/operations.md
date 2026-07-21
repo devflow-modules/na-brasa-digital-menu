@@ -215,10 +215,10 @@ Rotina para enviar o resumo do expediente ao sócio. **Não** é caixa conciliad
 4. Use **Atualizar** após mudar data ou horários.
 5. Confira totais de pedidos **concluídos**, itens, taxas, pagamentos, modalidades e produtos.
 6. Se houver alerta de pedidos ainda abertos, feche ou cancele na fila antes de reportar — esses valores **não** entram no total.
-7. Toque em **Copiar resumo para WhatsApp**, cole na conversa com o sócio e envie.
+7. Para enviar ao sócio: **Copiar resumo** (cola na conversa) ou **Abrir no WhatsApp** (abre o app/Web com o texto pronto; escolha a conversa — não há envio automático nem número fixo).
 8. Se precisar da planilha, toque em **Baixar CSV** — o arquivo usa o mesmo filtro/data da tela (UTF-8, abre no Excel/Google Sheets). Não contém telefone, endereço nem nome do cliente.
 9. Cancelados aparecem separados e não entram no faturamento.
-10. O relatório é dinâmico: se um pedido for corrigido depois, o total pode mudar ao reabrir a tela (o CSV também reflete o estado atual ao baixar de novo).
+10. O relatório é dinâmico: se um pedido for corrigido depois, o total pode mudar ao reabrir a tela (copy, link e CSV refletem o estado atual ao atualizar).
 
 ### Cardápio e disponibilidade
 

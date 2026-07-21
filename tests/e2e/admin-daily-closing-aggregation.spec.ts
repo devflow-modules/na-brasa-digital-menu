@@ -295,10 +295,10 @@ test.describe("admin daily closing aggregation", () => {
     expect(summary).toContain("R$ 131,00");
     expect(summary).toContain("R$ 6,00");
     expect(summary).toContain("R$ 137,00");
-    expect(summary).toContain("Entrega: 1 pedidos — R$ 36,00");
+    expect(summary).toContain("Entrega: 1 pedido — R$ 36,00");
     expect(summary).toContain("Retirada: 2 pedidos — R$ 86,00");
-    expect(summary).toContain("Balcão: 1 pedidos — R$ 15,00");
-    expect(summary).toMatch(/Total vendido: R\$ 137,00/);
+    expect(summary).toContain("Balcão: 1 pedido — R$ 15,00");
+    expect(summary).toMatch(/\*Total vendido: R\$\s*137,00\*/);
 
     const paymentsBlock =
       summary.split("FORMAS DE PAGAMENTO")[1]?.split("MODALIDADES")[0] ?? "";
