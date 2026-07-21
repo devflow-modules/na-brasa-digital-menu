@@ -11,9 +11,15 @@ type AddonFormProps = {
   mode: "create" | "edit";
   addon?: AdminAddon;
   canSubmit: boolean;
+  onCancel?: () => void;
 };
 
-export function AddonForm({ mode, addon, canSubmit }: AddonFormProps) {
+export function AddonForm({
+  mode,
+  addon,
+  canSubmit,
+  onCancel,
+}: AddonFormProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -52,6 +58,7 @@ export function AddonForm({ mode, addon, canSubmit }: AddonFormProps) {
 
       if (mode === "create") {
         form.reset();
+        onCancel?.();
       }
       router.refresh();
     });
@@ -121,13 +128,34 @@ export function AddonForm({ mode, addon, canSubmit }: AddonFormProps) {
         />
         Ativo no cardápio
       </label>
-      <button
-        type="submit"
-        disabled={isPending}
-        className="h-10 rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
-      >
-        {isPending ? "Salvando..." : mode === "create" ? "Criar adicional" : "Salvar adicional"}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="h-10 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-stone-950 disabled:opacity-60"
+        >
+          {isPending
+            ? "Salvando..."
+            : mode === "create"
+              ? "Criar adicional"
+              : "Salvar adicional"}
+        </button>
+        {onCancel ? (
+          <button
+            type="button"
+            data-testid={
+              mode === "edit" && addon
+                ? `admin-addons-cancel-edit-${addon.id}`
+                : "admin-addons-cancel-create"
+            }
+            disabled={isPending}
+            onClick={onCancel}
+            className="h-10 rounded-xl border border-stone-600 px-4 text-sm font-semibold text-stone-200 disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+        ) : null}
+      </div>
       {errorMessage ? (
         <p role="alert" className="text-sm text-red-300">
           {errorMessage}

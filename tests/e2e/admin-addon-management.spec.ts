@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import { attemptLinkAddonToProduct } from "./helpers/admin-addon-service";
 import { loginAsUser } from "./helpers/auth";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
@@ -18,6 +18,25 @@ import { loadLocalEnvFile } from "./helpers/load-env";
 import { clearCartStorage } from "./helpers/menu";
 import { e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
 import { createOrder } from "@/features/orders/services/create-order.service";
+
+async function openAddonCreateForm(page: Page) {
+  await page.getByTestId("admin-addons-show-create").click();
+  await expect(page.getByTestId("admin-addons-create-form")).toBeVisible();
+}
+
+async function openAddonEditor(page: Page, addonId: string) {
+  await expect(page.getByTestId(`admin-addons-edit-form-${addonId}`)).toHaveCount(
+    0,
+  );
+  await page.getByTestId(`admin-addon-edit-${addonId}`).click();
+  await expect(page.getByTestId(`admin-addons-edit-form-${addonId}`)).toBeVisible();
+}
+
+async function openAddonLinks(page: Page, addonId: string) {
+  await expect(page.getByTestId(`admin-addons-links-${addonId}`)).toHaveCount(0);
+  await page.getByTestId(`admin-addon-toggle-links-${addonId}`).click();
+  await expect(page.getByTestId(`admin-addons-links-${addonId}`)).toBeVisible();
+}
 
 test.describe("admin addon management", () => {
   test.beforeAll(() => {
@@ -44,7 +63,11 @@ test.describe("admin addon management", () => {
     await page.goto("/admin/cardapio/adicionais");
 
     await expect(page.getByTestId("admin-addons-page")).toBeVisible();
-    await expect(page.getByTestId("admin-addons-create-form")).toBeVisible();
+    await expect(page.getByTestId("admin-addons-create-form")).toHaveCount(0);
+    await expect(page.getByTestId("admin-addons-counters")).toBeVisible();
+    await expect(page.getByTestId("admin-addons-filters")).toBeVisible();
+
+    await openAddonCreateForm(page);
 
     const addonName = `E2E Addon Create ${Date.now()}`;
     await page.getByTestId("admin-addons-create-form").locator('[name="name"]').fill(addonName);
@@ -54,6 +77,7 @@ test.describe("admin addon management", () => {
     await expect(
       page.getByTestId("admin-addons-list").locator("p.font-medium", { hasText: addonName }),
     ).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId("admin-addons-create-form")).toHaveCount(0);
   });
 
   test("MANAGER edits addon and links to product — public menu shows addon", async ({
@@ -78,12 +102,14 @@ test.describe("admin addon management", () => {
     await loginAsUser(page, manager);
     await page.goto("/admin/cardapio/adicionais");
 
+    await openAddonEditor(page, addon.id);
     const form = page.getByTestId(`admin-addons-edit-form-${addon.id}`);
     await form.locator('[name="name"]').fill(`${addon.name} Updated`);
     await form.locator('[name="priceCents"]').fill("6,00");
     await form.locator('button[type="submit"]').click();
     await expect(page.getByText("R$ 6,00")).toBeVisible({ timeout: 15_000 });
 
+    await openAddonLinks(page, addon.id);
     await page
       .getByTestId(`admin-addons-link-select-${addon.id}`)
       .selectOption(product.id);
@@ -126,6 +152,50 @@ test.describe("admin addon management", () => {
     await expect(page.getByTestId(`menu-addon-option-${addon.id}`)).toHaveCount(0);
   });
 
+  test("workspace keeps one editor and one links panel at a time", async ({
+    page,
+  }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-store-manager-addon-workspace@example.com",
+    });
+    const addonA = await createE2eAddon({
+      name: `E2E Addon Workspace A ${Date.now()}`,
+    });
+    const addonB = await createE2eAddon({
+      name: `E2E Addon Workspace B ${Date.now()}`,
+    });
+
+    await loginAsUser(page, manager);
+    await page.goto("/admin/cardapio/adicionais");
+
+    await expect(page.getByTestId(`admin-addons-edit-form-${addonA.id}`)).toHaveCount(
+      0,
+    );
+    await expect(page.getByTestId(`admin-addons-links-${addonA.id}`)).toHaveCount(0);
+
+    await openAddonEditor(page, addonA.id);
+    await openAddonLinks(page, addonA.id);
+    await expect(page.getByTestId(`admin-addons-edit-form-${addonA.id}`)).toHaveCount(
+      0,
+    );
+    await expect(page.getByTestId(`admin-addons-links-${addonA.id}`)).toBeVisible();
+
+    await openAddonEditor(page, addonB.id);
+    await expect(page.getByTestId(`admin-addons-edit-form-${addonB.id}`)).toBeVisible();
+    await expect(page.getByTestId(`admin-addons-edit-form-${addonA.id}`)).toHaveCount(
+      0,
+    );
+    await expect(page.getByTestId(`admin-addons-links-${addonA.id}`)).toHaveCount(0);
+
+    await page.getByTestId("admin-addons-search").fill(addonA.name);
+    await expect(page.getByTestId(`admin-addon-${addonA.id}`)).toBeVisible();
+    await expect(page.getByTestId(`admin-addon-${addonB.id}`)).toHaveCount(0);
+
+    await page.getByTestId("admin-addons-clear-filters").click();
+    await expect(page.getByTestId(`admin-addon-${addonB.id}`)).toBeVisible();
+  });
+
   test("OPERATOR read-only on addons page", async ({ page }) => {
     const operator = await ensureE2eStoreUser({
       role: "OPERATOR",
@@ -138,7 +208,9 @@ test.describe("admin addon management", () => {
 
     await expect(page.getByTestId("admin-addons-page")).toBeVisible();
     await expect(page.getByTestId(`admin-addon-${addon.id}`)).toBeVisible();
+    await expect(page.getByTestId("admin-addons-show-create")).toHaveCount(0);
     await expect(page.getByTestId("admin-addons-create-form")).toHaveCount(0);
+    await expect(page.getByTestId(`admin-addon-edit-${addon.id}`)).toHaveCount(0);
     await expect(page.getByTestId(`admin-addon-toggle-active-${addon.id}`)).toHaveCount(0);
     await expect(page.getByTestId(`admin-addons-link-submit-${addon.id}`)).toHaveCount(0);
   });
@@ -154,6 +226,7 @@ test.describe("admin addon management", () => {
     await page.goto("/admin/cardapio/adicionais");
 
     await expect(page.getByTestId(`admin-addon-${addon.id}`)).toBeVisible();
+    await expect(page.getByTestId("admin-addons-show-create")).toHaveCount(0);
     await expect(page.getByTestId("admin-addons-create-form")).toHaveCount(0);
     await expect(page.getByTestId(`admin-addon-toggle-active-${addon.id}`)).toHaveCount(0);
   });
