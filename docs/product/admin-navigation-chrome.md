@@ -39,13 +39,13 @@ AdminChrome
 
 ## Chrome visibility matrix (links)
 
-| Role | Pedidos | Balcão | Cardápio | Configurações |
-| --- | --- | --- | --- | --- |
-| `STORE_OWNER` / `MANAGER` | sim | sim | sim | sim |
-| `OPERATOR` | sim | sim | sim (`Ver cardápio`) | sim |
-| `KITCHEN` | sim | não | não | não |
+| Role | Pedidos | Balcão | Relatórios | Cardápio | Configurações |
+| --- | --- | --- | --- | --- | --- |
+| `STORE_OWNER` / `MANAGER` | sim | sim | sim | sim | sim |
+| `OPERATOR` | sim | sim | não | sim (`Ver cardápio`) | sim |
+| `KITCHEN` | sim | não | não | não | não |
 
-Derived from operational permissions (`orders.read`, `orders.create`, manage/toggle menu, manage settings).
+Derived from operational permissions (`orders.read`, `orders.create`, `reports.read`, manage/toggle menu, manage settings).
 
 ### KITCHEN
 

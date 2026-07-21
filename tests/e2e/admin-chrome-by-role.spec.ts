@@ -34,6 +34,7 @@ test.describe("role-aware admin chrome", () => {
     await expect(page.getByTestId("admin-primary-nav")).toBeVisible();
     await expect(page.getByTestId("admin-orders-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-counter-nav-link")).toBeVisible();
+    await expect(page.getByTestId("admin-reports-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-menu-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-settings-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-logout-button")).toBeVisible();
@@ -46,6 +47,10 @@ test.describe("role-aware admin chrome", () => {
       "aria-current",
       "page",
     );
+
+    await page.getByTestId("admin-reports-nav-link").click();
+    await expect(page).toHaveURL(/\/admin\/relatorios\/fechamento/);
+    await expectNavActive(page, "admin-reports-nav-link");
 
     await page.getByTestId("admin-menu-nav-link").click();
     await expect(page).toHaveURL(/\/admin\/cardapio/);
@@ -70,6 +75,7 @@ test.describe("role-aware admin chrome", () => {
 
     await expect(page.getByTestId("admin-orders-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-counter-nav-link")).toBeVisible();
+    await expect(page.getByTestId("admin-reports-nav-link")).toHaveCount(0);
     await expect(page.getByTestId("admin-menu-nav-link")).toHaveText(
       "Ver cardápio",
     );
@@ -115,6 +121,7 @@ test.describe("role-aware admin chrome", () => {
     await expect(page.getByTestId("admin-chrome")).toBeVisible();
     await expect(page.getByTestId("admin-orders-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-counter-nav-link")).toHaveCount(0);
+    await expect(page.getByTestId("admin-reports-nav-link")).toHaveCount(0);
     await expect(page.getByTestId("admin-menu-nav-link")).toHaveCount(0);
     await expect(page.getByTestId("admin-settings-nav-link")).toHaveCount(0);
     await expect(page.getByTestId("admin-logout-button")).toBeVisible();

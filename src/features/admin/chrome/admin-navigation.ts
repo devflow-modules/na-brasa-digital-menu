@@ -3,6 +3,7 @@ import {
   canCreateOrder,
   canManageMenu,
   canManageStoreSettings,
+  canReadReports,
   canToggleProductAvailability,
   getAdminMenuNavLabel,
   hasAdminPermission,
@@ -17,6 +18,7 @@ export type AdminNavigationMatch = "exact" | "prefix" | "orders";
 export type AdminNavigationItemId =
   | "orders"
   | "counter"
+  | "reports"
   | "menu"
   | "settings";
 
@@ -47,6 +49,13 @@ export const ADMIN_NAVIGATION_ITEMS: readonly AdminNavigationItem[] = [
     href: "/admin/balcao",
     match: "prefix",
     testId: "admin-counter-nav-link",
+  },
+  {
+    id: "reports",
+    label: "Relatórios",
+    href: "/admin/relatorios/fechamento",
+    match: "prefix",
+    testId: "admin-reports-nav-link",
   },
   {
     id: "menu",
@@ -80,6 +89,7 @@ export function normalizeAdminPathname(pathname: string): string {
  * Chrome visibility rules (operational utility).
  * - Pedidos: orders.read
  * - Balcão: orders.create
+ * - Relatórios: reports.read
  * - Cardápio: manage menu OR toggle availability (hides read-only KITCHEN)
  * - Configurações: manage settings (update or toggle open; hides read-only KITCHEN)
  *
@@ -94,6 +104,8 @@ export function isAdminNavigationItemVisible(
       return hasAdminPermission(role, "orders.read");
     case "counter":
       return canCreateOrder(role);
+    case "reports":
+      return canReadReports(role);
     case "menu":
       return canManageMenu(role) || canToggleProductAvailability(role);
     case "settings":
@@ -144,7 +156,9 @@ export function getAdminSafeDestination(role: UserRole): AdminSafeDestination {
       ? "Pedidos"
       : first.id === "menu"
         ? "Cardápio"
-        : first.label;
+        : first.id === "reports"
+          ? "Relatórios"
+          : first.label;
 
   return {
     href: first.href,

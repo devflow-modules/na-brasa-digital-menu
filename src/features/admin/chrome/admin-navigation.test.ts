@@ -14,6 +14,16 @@ import {
 const ALL_IDS: AdminNavigationItemId[] = [
   "orders",
   "counter",
+  "reports",
+  "menu",
+  "settings",
+];
+
+const OWNER_MANAGER_IDS: AdminNavigationItemId[] = ALL_IDS;
+
+const OPERATOR_IDS: AdminNavigationItemId[] = [
+  "orders",
+  "counter",
   "menu",
   "settings",
 ];
@@ -83,19 +93,21 @@ describe("admin navigation configuration integrity", () => {
 });
 
 describe("admin navigation visibility matrix", () => {
-  it("STORE_OWNER and MANAGER see full tenant chrome", () => {
+  it("STORE_OWNER and MANAGER see full tenant chrome including Relatórios", () => {
     for (const role of ["STORE_OWNER", "MANAGER"] as const) {
-      assert.deepEqual(visibleIds(role), ALL_IDS);
+      assert.deepEqual(visibleIds(role), OWNER_MANAGER_IDS);
+      assert.equal(isAdminNavigationItemVisible(role, "reports"), true);
     }
   });
 
-  it("MASTER permission set would show full chrome items if Store context existed", () => {
-    assert.deepEqual(visibleIds("MASTER"), ALL_IDS);
+  it("MASTER permission set shows chrome without Relatórios (no reports.read)", () => {
+    assert.deepEqual(visibleIds("MASTER"), OPERATOR_IDS);
+    assert.equal(isAdminNavigationItemVisible("MASTER", "reports"), false);
   });
 
-
-  it("OPERATOR sees Pedidos, Balcão, Cardápio and Configurações", () => {
-    assert.deepEqual(visibleIds("OPERATOR"), ALL_IDS);
+  it("OPERATOR sees Pedidos, Balcão, Cardápio and Configurações but not Relatórios", () => {
+    assert.deepEqual(visibleIds("OPERATOR"), OPERATOR_IDS);
+    assert.equal(isAdminNavigationItemVisible("OPERATOR", "reports"), false);
     const menu = getVisibleAdminNavigationItems("OPERATOR").find(
       (item) => item.id === "menu",
     );
@@ -105,6 +117,7 @@ describe("admin navigation visibility matrix", () => {
   it("KITCHEN sees only Pedidos in chrome", () => {
     assert.deepEqual(visibleIds("KITCHEN"), ["orders"]);
     assert.equal(isAdminNavigationItemVisible("KITCHEN", "counter"), false);
+    assert.equal(isAdminNavigationItemVisible("KITCHEN", "reports"), false);
     assert.equal(isAdminNavigationItemVisible("KITCHEN", "menu"), false);
     assert.equal(isAdminNavigationItemVisible("KITCHEN", "settings"), false);
   });
@@ -125,6 +138,10 @@ describe("normalizeAdminPathname", () => {
 describe("isAdminNavigationItemActive", () => {
   const orders = { href: "/admin", match: "orders" as const };
   const counter = { href: "/admin/balcao", match: "prefix" as const };
+  const reports = {
+    href: "/admin/relatorios/fechamento",
+    match: "prefix" as const,
+  };
   const menu = { href: "/admin/cardapio", match: "prefix" as const };
   const settings = { href: "/admin/configuracoes", match: "prefix" as const };
 
@@ -140,6 +157,10 @@ describe("isAdminNavigationItemActive", () => {
       true,
     );
     assert.equal(isAdminNavigationItemActive("/admin/balcao", orders), false);
+    assert.equal(
+      isAdminNavigationItemActive("/admin/relatorios/fechamento", orders),
+      false,
+    );
     assert.equal(isAdminNavigationItemActive("/admin/cardapio", orders), false);
     assert.equal(
       isAdminNavigationItemActive("/admin/configuracoes", orders),
@@ -147,9 +168,17 @@ describe("isAdminNavigationItemActive", () => {
     );
   });
 
-  it("marks Balcão, Cardápio and Configurações with trailing slash", () => {
+  it("marks Balcão, Relatórios, Cardápio and Configurações with trailing slash", () => {
     assert.equal(isAdminNavigationItemActive("/admin/balcao", counter), true);
     assert.equal(isAdminNavigationItemActive("/admin/balcao/", counter), true);
+    assert.equal(
+      isAdminNavigationItemActive("/admin/relatorios/fechamento", reports),
+      true,
+    );
+    assert.equal(
+      isAdminNavigationItemActive("/admin/relatorios/fechamento/", reports),
+      true,
+    );
     assert.equal(isAdminNavigationItemActive("/admin/cardapio", menu), true);
     assert.equal(isAdminNavigationItemActive("/admin/cardapio/", menu), true);
     assert.equal(
@@ -178,6 +207,7 @@ describe("isAdminNavigationItemActive", () => {
       "/admin/configuracoes-old",
       "/admin/pedidos-extra",
       "/admin/cardapios",
+      "/admin/relatorios-extra",
     ];
 
     for (const pathname of lookalikes) {
@@ -186,7 +216,6 @@ describe("isAdminNavigationItemActive", () => {
   });
 
   it("applies segment-boundary prefix rules for nested paths", () => {
-    // Controlled prefix: any segment under /admin/cardapio/ activates Cardápio.
     assert.deepEqual(
       activeItemsFor("/admin/cardapio/adicionais-extra").map((item) => item.id),
       ["menu"],
@@ -199,6 +228,10 @@ describe("isAdminNavigationItemActive", () => {
       activeItemsFor("/admin/pedidos/abc").map((item) => item.id),
       ["orders"],
     );
+    assert.deepEqual(
+      activeItemsFor("/admin/relatorios/fechamento").map((item) => item.id),
+      ["reports"],
+    );
   });
 
   it("keeps exactly one active item on valid routes", () => {
@@ -207,6 +240,7 @@ describe("isAdminNavigationItemActive", () => {
       "/admin/",
       "/admin/pedidos/123",
       "/admin/balcao",
+      "/admin/relatorios/fechamento",
       "/admin/cardapio",
       "/admin/cardapio/adicionais",
       "/admin/configuracoes",
