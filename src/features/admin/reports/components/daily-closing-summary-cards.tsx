@@ -8,58 +8,108 @@ type DailyClosingSummaryCardsProps = {
 export function DailyClosingSummaryCards({
   summary,
 }: DailyClosingSummaryCardsProps) {
-  const cards = [
-    {
-      label: "Total vendido (concluídos)",
-      value: formatMoney(summary.grossTotalCents),
-      testId: "daily-closing-card-total",
-    },
-    {
-      label: "Pedidos concluídos",
-      value: String(summary.completedOrders),
-      testId: "daily-closing-card-orders",
-    },
-    {
-      label: "Itens vendidos",
-      value: String(summary.itemsSold),
-      testId: "daily-closing-card-items",
-    },
-    {
-      label: "Ticket médio",
-      value: formatMoney(summary.averageTicketCents),
-      testId: "daily-closing-card-ticket",
-    },
-    {
-      label: "Taxas de entrega",
-      value: formatMoney(summary.deliveryFeesCents),
-      testId: "daily-closing-card-fees",
-    },
-    {
-      label: "Cancelados",
-      value: String(summary.cancelledOrders),
-      testId: "daily-closing-card-cancelled",
-    },
-  ];
+  const cancelledAlert = summary.cancelledOrders > 0;
 
   return (
     <section
       data-testid="daily-closing-summary-cards"
-      className="grid grid-cols-2 gap-3 lg:grid-cols-3"
+      className="space-y-3"
+      aria-label="Resumo operacional"
     >
-      {cards.map((card) => (
+      <h2 className="text-base font-semibold tracking-wide text-stone-200">
+        Resumo operacional
+      </h2>
+
+      <article
+        data-testid="daily-closing-card-total"
+        className="rounded-2xl border border-orange-500/40 bg-gradient-to-br from-stone-900 to-stone-950 px-5 py-5 sm:px-6"
+      >
+        <p className="text-xs uppercase tracking-wide text-orange-200/80">
+          Total vendido (concluídos)
+        </p>
+        <p className="mt-2 text-3xl font-semibold tracking-tight text-orange-50 sm:text-4xl">
+          {formatMoney(summary.grossTotalCents)}
+        </p>
+      </article>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <article
-          key={card.label}
-          data-testid={card.testId}
+          data-testid="daily-closing-card-orders"
           className="rounded-2xl border border-stone-800 bg-stone-900/80 px-4 py-4"
         >
           <p className="text-xs uppercase tracking-wide text-stone-400">
-            {card.label}
+            Pedidos concluídos
           </p>
-          <p className="mt-2 text-xl font-semibold text-orange-100">
-            {card.value}
+          <p className="mt-2 text-xl font-semibold text-stone-100">
+            {summary.completedOrders}
           </p>
         </article>
-      ))}
+
+        <article
+          data-testid="daily-closing-card-items"
+          className="rounded-2xl border border-stone-800 bg-stone-900/80 px-4 py-4"
+        >
+          <p className="text-xs uppercase tracking-wide text-stone-400">
+            Itens vendidos
+          </p>
+          <p className="mt-2 text-xl font-semibold text-stone-100">
+            {summary.itemsSold}
+          </p>
+        </article>
+
+        <article
+          data-testid="daily-closing-card-ticket"
+          className="rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3"
+        >
+          <p className="text-xs uppercase tracking-wide text-stone-500">
+            Ticket médio
+          </p>
+          <p className="mt-2 text-lg font-medium text-stone-200">
+            {formatMoney(summary.averageTicketCents)}
+          </p>
+        </article>
+
+        <article
+          data-testid="daily-closing-card-fees"
+          className="rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3"
+        >
+          <p className="text-xs uppercase tracking-wide text-stone-500">
+            Taxas de entrega
+          </p>
+          <p className="mt-2 text-lg font-medium text-stone-200">
+            {formatMoney(summary.deliveryFeesCents)}
+          </p>
+        </article>
+
+        <article
+          data-testid="daily-closing-card-cancelled"
+          data-alert={cancelledAlert ? "true" : "false"}
+          className={
+            cancelledAlert
+              ? "rounded-2xl border border-amber-700/70 bg-amber-950/35 px-4 py-3"
+              : "rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3"
+          }
+        >
+          <p
+            className={
+              cancelledAlert
+                ? "text-xs uppercase tracking-wide text-amber-200/80"
+                : "text-xs uppercase tracking-wide text-stone-500"
+            }
+          >
+            Cancelados
+          </p>
+          <p
+            className={
+              cancelledAlert
+                ? "mt-2 text-lg font-semibold text-amber-100"
+                : "mt-2 text-lg font-medium text-stone-200"
+            }
+          >
+            {summary.cancelledOrders}
+          </p>
+        </article>
+      </div>
     </section>
   );
 }

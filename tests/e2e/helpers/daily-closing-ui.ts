@@ -38,3 +38,20 @@ export async function openDefaultDailyClosingWindow(page: Page): Promise<void> {
     end: DAILY_CLOSING_E2E_END,
   });
 }
+
+/** Preview lives in a closed <details>; textContent works without expanding. */
+export async function readDailyClosingSummaryText(page: Page): Promise<string> {
+  return page
+    .getByTestId("daily-closing-summary-text")
+    .evaluate((el) => (el.textContent ?? "").replace(/\u00a0/g, " "));
+}
+
+export async function expandDailyClosingPreview(page: Page): Promise<void> {
+  await page
+    .getByTestId("daily-closing-preview")
+    .evaluate((el) => {
+      if (el instanceof HTMLDetailsElement) {
+        el.open = true;
+      }
+    });
+}
