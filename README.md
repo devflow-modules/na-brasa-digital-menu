@@ -20,12 +20,16 @@ Muitos negócios de alimentação ainda recebem pedidos por WhatsApp de forma ma
 | --- | --- |
 | **Versão** | v0.1.0-pilot |
 | **Status** | Cliente validou; produção ativa (Online + Balcão) |
+| **Prontidão operacional** | **GO COM CONDIÇÕES** — núcleo funcional completo; epic de confiabilidade em andamento |
 | **Produção** | https://na-brasa-cardapio.vercel.app/na-brasa |
+| **Admin** | https://na-brasa-cardapio.vercel.app/admin/login |
 | **Gate técnico histórico** | Smoke autenticado de Store Settings: **GO** (jul/2026) |
 
 Estágio atual e próximos passos: [docs/product.md](docs/product.md).
 
-Escopo do release piloto e limitações históricas: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).
+Epic de confiabilidade (CI, recuperação, observabilidade, PITR): [docs/product/pilot-production-readiness.md](docs/product/pilot-production-readiness.md).
+
+Escopo do release piloto: [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md).
 
 Observação contínua / funil / feedback (não é gate pré-produção): [docs/product/pilot-validation-plan.md](docs/product/pilot-validation-plan.md).
 
@@ -42,9 +46,11 @@ Observação contínua / funil / feedback (não é gate pré-produção): [docs/
 **Piloto Na Braza (tenant `na-brasa`, em produção):**
 
 - Storefront público em `/na-brasa` (cardápio, carrinho local, checkout)
-- Pedido persistido no PostgreSQL antes do WhatsApp
-- Admin: pedidos (filtros/busca + live refresh), notificações in-app, Balcão, status, cardápio, adicionais, configurações
-- CI (quality + E2E) e deploy documentado (Vercel + PostgreSQL)
+- Retirada e entrega; pedido mínimo **somente** para entrega; taxa só na entrega
+- Preços e totais recalculados no servidor; loja fechada bloqueia Online (`DIRECT`); Balcão (`COUNTER`) permanece operacional para usuários autorizados
+- Pedido persistido no PostgreSQL antes do WhatsApp (`wa.me`)
+- Admin: pedidos (filtros/busca + live refresh + tempo desde criação), notificações in-app, Balcão, status, cardápio, adicionais, configurações (incl. pedido mínimo e modalidades), fechamento operacional diário (dono/gerente)
+- CI (Quality com lint/typecheck/unit/build + E2E), `main` protegida, Dependabot (minor/patch agrupados; majors isolados)
 
 ## Estado atual e limitações
 
@@ -52,14 +58,16 @@ Observação contínua / funil / feedback (não é gate pré-produção): [docs/
 | --- | --- |
 | **Implementado** | Fluxos acima; ver [docs/product.md](docs/product.md) |
 | **Fundação** | Multi-tenant no schema e nas rotas admin/master; storefront do piloto ainda em rota fixa `/na-brasa` |
+| **Em andamento** | Pilot Production Readiness (observabilidade, PITR/restore, rate limiting, uptime) |
+| **VALIDATE / DEFER** | Idempotência do checkout Online; histórico de status; expansão do resumo Admin — ver `docs/product/*-validation.md` |
 | **Planejado** | Storefront público dinâmico por slug; CRUD completo de lojas no `/master`; onboarding self-service |
-| **Fora do piloto** | Pagamento online, WhatsApp API, reset de senha no painel, upload de imagens, relatórios avançados — ver [docs/product.md](docs/product.md) |
+| **Fora do piloto** | Pagamento online, WhatsApp API, reset de senha self-service no painel, upload de imagens, relatórios avançados — ver [docs/product.md](docs/product.md) |
 
 ## Stack
 
 - Next.js 15 (App Router)
 - TypeScript · Tailwind CSS · Prisma 6 · PostgreSQL
-- Zod · React Hook Form · jose (JWT) · pnpm
+- Zod · React Hook Form · jose (JWT) · pnpm 11 · Node.js 22+
 
 ## Rotas
 
@@ -76,8 +84,10 @@ Observação contínua / funil / feedback (não é gate pré-produção): [docs/
 | Rota | Descrição |
 | --- | --- |
 | `/admin/login` | Login (`User` no banco) |
-| `/admin` | Pedidos (store-scoped) |
+| `/admin` | Pedidos (store-scoped; filtros, busca, live refresh) |
 | `/admin/pedidos/[id]` | Detalhe e status |
+| `/admin/balcao` | Comanda de Balcão (`COUNTER`) |
+| `/admin/relatorios/fechamento` | Fechamento operacional diário (`STORE_OWNER` / `MANAGER`) |
 | `/admin/cardapio` | Categorias e produtos |
 | `/admin/cardapio/adicionais` | Adicionais e vínculos |
 | `/admin/configuracoes` | Settings da `Store` |
@@ -114,7 +124,7 @@ O seed cria o tenant piloto `na-brasa` (cardápio fictício, WhatsApp placeholde
 | `pnpm dev` | Servidor de desenvolvimento |
 | `pnpm build` / `pnpm start` | Build e produção local |
 | `pnpm lint` / `pnpm typecheck` | Qualidade estática |
-| `pnpm test` | Teste unitário (permissões admin) |
+| `pnpm test` | Testes unitários (auth, orders, checkout, admin) |
 | `pnpm test:e2e` | Playwright (Desktop Chrome + Mobile Chrome / Pixel 5) |
 | `pnpm prisma:generate` / `migrate` / `seed` / `studio` | Prisma |
 
@@ -126,12 +136,16 @@ Definidos em `package.json`; usam `DATABASE_URL` e afetam a loja **Na Braza** (`
 | --- | --- |
 | `pnpm store:apply-na-braza-settings` | Aplica settings operacionais do piloto |
 | `pnpm menu:apply-na-braza-pilot` | Aplica cardápio do piloto |
-| `pnpm store:create-na-braza-owner` | Cria usuário dono da loja piloto |
+| `pnpm store:create-na-braza-owner` | Cria/atualiza usuário dono da loja piloto |
 | `pnpm data:clean-na-braza-tests` / `data:purge-na-braza-tests` | Limpeza de dados de teste do piloto |
 
-## Testes
+## Testes e CI
 
-Guia: [docs/testing.md](docs/testing.md). CI: Quality Checks + E2E (Postgres efêmero). E2E exercita principalmente o tenant `na-brasa`.
+Guia: [docs/testing.md](docs/testing.md).
+
+- **Quality Checks:** lint, typecheck, `pnpm test`, build
+- **E2E Tests:** Playwright com Postgres efêmero (nunca produção)
+- **`main`:** protegida (PR obrigatória + required checks); Dependabot agrupa só minor/patch de npm; Actions isoladas; majors ficam em PRs individuais
 
 ## Deploy
 
@@ -160,13 +174,16 @@ Ver `.env.example`. Principais: `DATABASE_URL`, `ADMIN_JWT_SECRET`, `ADMIN_SESSI
 - Isolamento de pedidos e catálogo por **`storeId`** nas queries/mutações aplicáveis.
 - Pedidos: preços e totais **recalculados no servidor**; produtos/adicionais indisponíveis bloqueados no server.
 - **`MASTER`:** contexto de plataforma em `/master`; em `/admin` acesso transitório à Store de `NEXT_PUBLIC_STORE_SLUG` — distinto de usuários só da loja.
-- Segredos e `.env` reais **não** versionados; ver `.env.example` e [docs/deployment.md](docs/deployment.md). Decisão de auth multi-admin: [docs/adr/0002-database-backed-multi-admin-and-master-panel.md](docs/adr/0002-database-backed-multi-admin-and-master-panel.md).
+- Recuperação de acesso (senha, Owner, JWT): [docs/admin-access-recovery.md](docs/admin-access-recovery.md).
+- Segredos e `.env` reais **não** versionados; ver `.env.example` e [docs/deployment.md](docs/deployment.md). ADR de auth: [docs/adr/0002-database-backed-multi-admin-and-master-panel.md](docs/adr/0002-database-backed-multi-admin-and-master-panel.md).
 
 ## Documentação
 
 | Documento | Conteúdo |
 | --- | --- |
 | [docs/product.md](docs/product.md) | Produto da plataforma e piloto |
+| [docs/product/pilot-production-readiness.md](docs/product/pilot-production-readiness.md) | Epic de prontidão operacional |
+| [docs/admin-access-recovery.md](docs/admin-access-recovery.md) | Runbook de recuperação administrativa |
 | [docs/releases/v0.1.0-pilot.md](docs/releases/v0.1.0-pilot.md) | Escopo e smoke do piloto Na Braza |
 | [docs/production-checklist.md](docs/production-checklist.md) | GO/NO-GO de deploy/smoke e checklist operacional |
 | [docs/operations.md](docs/operations.md) | Operação diária em produção (piloto Na Braza) |
@@ -177,7 +194,7 @@ Ver `.env.example`. Principais: `DATABASE_URL`, `ADMIN_JWT_SECRET`, `ADMIN_SESSI
 | [CHANGELOG.md](CHANGELOG.md) | Histórico de mudanças do repositório |
 | [.cursor/README.md](.cursor/README.md) | Tooling operacional (desenvolvimento assistido no Cursor) |
 
-ADRs: [docs/adr/](docs/adr/).
+ADRs: [docs/adr/](docs/adr/). Experimentos VALIDATE/DEFER: [docs/product/](docs/product/).
 
 ## Estrutura do repositório
 
@@ -185,17 +202,19 @@ ADRs: [docs/adr/](docs/adr/).
 src/
   app/           # rotas App Router (público piloto, /admin, /master)
   components/    # UI compartilhada
-  features/      # domínios (orders, admin, master, menu, …)
+  features/      # domínios (orders, admin, master, menu, checkout, …)
   lib/           # prisma, env, utilitários
 prisma/          # schema e migrations
-docs/            # produto, deploy, operação
-.cursor/         # rules, agents, workflows (ver commit e259dc1)
+docs/            # produto, deploy, operação, runbooks
+.github/         # workflows CI e Dependabot
+.cursor/         # rules, agents, workflows
 ```
 
 Lógica de negócio e acesso a dados ficam em `src/features/<domínio>/` (`*.repository.ts`, `*.service.ts`, actions, components).
 
 ## Roadmap (resumo)
 
-1. Aceite do piloto Na Braza e dados reais finais
-2. Divulgação controlada do link / QR
-3. Evolução da plataforma (storefront por slug, CRUD de lojas, etc.) conforme [docs/product.md](docs/product.md)
+1. Fechar Pilot Production Readiness (observabilidade, PITR/restore, rate limiting, uptime)
+2. Evoluções só com evidência + `product-grill` (idempotência, histórico de status, etc.)
+3. Divulgação controlada do link / QR conforme operação da loja
+4. Evolução da plataforma (storefront por slug, CRUD de lojas, etc.) conforme [docs/product.md](docs/product.md)

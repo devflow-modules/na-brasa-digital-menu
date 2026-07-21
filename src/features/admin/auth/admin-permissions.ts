@@ -33,7 +33,8 @@ export type AdminPermission =
   | "menu.addon.unlinkProduct"
   | "store.settings.read"
   | "store.settings.update"
-  | "store.settings.toggleOpen";
+  | "store.settings.toggleOpen"
+  | "reports.read";
 
 const ORDER_PERMISSIONS = [
   "orders.read",
@@ -78,10 +79,15 @@ const ORDER_MENU_ADDON_AND_STORE_PERMISSIONS: readonly AdminPermission[] = [
   ...STORE_SETTINGS_PERMISSIONS,
 ];
 
+const STORE_OWNER_AND_MANAGER_PERMISSIONS: readonly AdminPermission[] = [
+  ...ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
+  "reports.read",
+];
+
 const ROLE_PERMISSIONS: Record<UserRole, readonly AdminPermission[]> = {
   MASTER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
-  STORE_OWNER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
-  MANAGER: ORDER_MENU_ADDON_AND_STORE_PERMISSIONS,
+  STORE_OWNER: STORE_OWNER_AND_MANAGER_PERMISSIONS,
+  MANAGER: STORE_OWNER_AND_MANAGER_PERMISSIONS,
   OPERATOR: [
     "orders.read",
     "orders.create",
@@ -217,6 +223,10 @@ export function canToggleStoreOpen(role: UserRole): boolean {
 
 export function canManageStoreSettings(role: UserRole): boolean {
   return canUpdateStoreSettings(role) || canToggleStoreOpen(role);
+}
+
+export function canReadReports(role: UserRole): boolean {
+  return hasAdminPermission(role, "reports.read");
 }
 
 export function getAdminMenuNavLabel(role: UserRole): string {

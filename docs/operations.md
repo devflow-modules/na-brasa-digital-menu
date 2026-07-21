@@ -196,7 +196,7 @@ Rotina recomendada para o Na Braza em **produção ativa**. Novas evoluções se
 backlog pós-validação + `product-grill`; esta seção descreve o uso operacional
 do que já está entregue.
 
-### Abertura e fechamento
+### Abertura e fechamento da loja (Online)
 
 1. Login como `MANAGER`, `STORE_OWNER` ou `OPERATOR` (conforme permissão).
 2. Abra `/admin/configuracoes`.
@@ -204,6 +204,20 @@ do que já está entregue.
 4. **Fechar loja:** mesmo fluxo — cardápio público continua visível; checkout Online e `createOrder` (`DIRECT`) ficam bloqueados no server. Pedidos de Balcão autorizados **não** são bloqueados por `isOpen`.
 5. Acesso direto a `/{slug}/checkout` com loja fechada também comunica indisponibilidade (banner + submit desabilitado); não depende só do CTA do cardápio.
 6. Ao fim do turno, confira que a loja está no estado desejado (geralmente **aberta** se ainda aceita pedidos Online pelo link).
+
+### Fechamento operacional diário (relatório)
+
+Rotina para enviar o resumo do expediente ao sócio. **Não** é caixa conciliado nem resultado fiscal. Detalhe de produto: [product/daily-closing-report.md](product/daily-closing-report.md).
+
+1. Login como `STORE_OWNER` ou `MANAGER` (operador e cozinha **não** acessam).
+2. No chrome, abra **Relatórios** (`/admin/relatorios/fechamento`).
+3. Confira a **data operacional** e o período. Padrão: `17:00–01:00` em `America/Sao_Paulo` (fim no dia civil seguinte). Ajuste início/fim só em dias excepcionais.
+4. Use **Atualizar** após mudar data ou horários.
+5. Confira totais de pedidos **concluídos**, itens, taxas, pagamentos, modalidades e produtos.
+6. Se houver alerta de pedidos ainda abertos, feche ou cancele na fila antes de reportar — esses valores **não** entram no total.
+7. Toque em **Copiar resumo para WhatsApp**, cole na conversa com o sócio e envie.
+8. Cancelados aparecem separados e não entram no faturamento.
+9. O relatório é dinâmico: se um pedido for corrigido depois, o total pode mudar ao reabrir a tela.
 
 ### Cardápio e disponibilidade
 

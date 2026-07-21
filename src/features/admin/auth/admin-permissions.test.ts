@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
   canCreateOrder,
+  canReadReports,
   canReadStoreSettings,
   canToggleStoreOpen,
   canTransitionOrderStatus,
@@ -82,8 +83,20 @@ describe("admin-permissions matrix", () => {
 
   it("getAdminPermissions returns expected sizes", () => {
     assert.equal(getAdminPermissions("MASTER").length, 24);
+    assert.equal(getAdminPermissions("STORE_OWNER").length, 25);
+    assert.equal(getAdminPermissions("MANAGER").length, 25);
     assert.equal(getAdminPermissions("OPERATOR").length, 12);
     assert.equal(getAdminPermissions("KITCHEN").length, 6);
+  });
+
+  it("reports.read is only for STORE_OWNER and MANAGER", () => {
+    assert.equal(canReadReports("STORE_OWNER"), true);
+    assert.equal(canReadReports("MANAGER"), true);
+    assert.equal(hasAdminPermission("STORE_OWNER", "reports.read"), true);
+    assert.equal(hasAdminPermission("MANAGER", "reports.read"), true);
+    assert.equal(canReadReports("MASTER"), false);
+    assert.equal(canReadReports("OPERATOR"), false);
+    assert.equal(canReadReports("KITCHEN"), false);
   });
 
   it("orders.create is allowed for storefront operators but not kitchen", () => {
