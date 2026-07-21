@@ -156,7 +156,7 @@ Resumo do schema: [database.md](database.md). Centavos no server; não confiar e
 
 **Resumo no topo de `/admin`:** cards store-wide (Pedidos hoje, Pendentes, Receita estimada hoje, Na lista). Expansão do resumo: **DEFER** — cards atuais validados como úteis pelo Store Owner; sem correção de copy nem novos cards neste ciclo ([product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)). Limitações técnicas permanecem: “Receita estimada hoje” **não** é caixa/conciliação/faturamento fiscal; DIRECT **não** comprova pagamento; “hoje” usa timezone do servidor (sem timezone persistido por Store); “concluídos/cancelados hoje” como evento de transição **não** são confiáveis sem histórico de status. O fechamento operacional diário é rota dedicada (abaixo) e **não** altera esses cards.
 
-**Fechamento operacional diário (`/admin/relatorios/fechamento`):** relatório dinâmico TENANT para o fim do expediente — totais de pedidos `COMPLETED`, itens, subtotal, taxas, ticket, pagamentos, canais (entrega/retirada/balcão), produtos (snapshots), cancelados separados e alerta de abertos; janela padrão `17:00–01:00` em `America/Sao_Paulo` (editável); pertencimento por `createdAt` na janela; copy de resumo para WhatsApp; permissão `reports.read` só `STORE_OWNER` / `MANAGER`. **Não** é caixa, conciliação nem fiscal. Sem PDF/imutabilidade nesta entrega. Detalhe e Product Decision: [product/daily-closing-report.md](product/daily-closing-report.md).
+**Fechamento operacional diário (`/admin/relatorios/fechamento`):** relatório dinâmico TENANT para o fim do expediente — totais de pedidos `COMPLETED`, itens, subtotal, taxas, ticket, pagamentos, canais (entrega/retirada/balcão), produtos (snapshots), cancelados separados e alerta de abertos; janela padrão `17:00–01:00` em `America/Sao_Paulo` (editável); pertencimento por `createdAt` na janela; copy de resumo para WhatsApp; download CSV (UTF-8 BOM, `;`) a partir do mesmo `DailyClosingReport`; permissão `reports.read` só `STORE_OWNER` / `MANAGER`. **Não** é caixa, conciliação nem fiscal. Sem PDF/imutabilidade/Sheets nesta entrega. Detalhe: [product/daily-closing-report.md](product/daily-closing-report.md) · CSV: [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md).
 
 **Navegação administrativa por papel:** chrome compartilhado com fonte única de links (Pedidos / Balcão / Relatórios / Cardápio / Configurações), estado ativo de rota (pathname com trailing slash normalizado), badge PENDING preservado no provider de notificações, logout no chrome. Visibilidade de links ≠ autorização (guards de página inalterados). `KITCHEN` não vê Cardápio/Configurações/Relatórios no chrome; `OPERATOR` não vê Relatórios; acesso direto read-only a outras áreas continua conforme guards. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md). **Role-aware admin chrome complete · Shared admin navigation complete · Local navigation duplication reduced · Backend authorization unchanged · Navigation audit backlog in progress.**
 
@@ -213,7 +213,7 @@ Validação no server: adicional ativo e vinculado ao produto; preço do banco.
 Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 
 - Pagamento online, WhatsApp Business API
-- Reset de senha, upload de imagens, relatórios avançados (PDF/CSV/histórico imutável/BI), Web Push / tempo real push
+- Reset de senha, upload de imagens, relatórios avançados (PDF/Sheets/histórico imutável/BI; CSV do fechamento já entregue), Web Push / tempo real push
 - Zonas de entrega, horário por dia da semana estruturado
 - CRUD de lojas no `/master`
 - Storefront dinâmico por slug para novos tenants
@@ -229,6 +229,7 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - Pilot Production Readiness → **IN PROGRESS** → **GO COM CONDIÇÕES** → reliability, recovery, security and operational controls — [product/pilot-production-readiness.md](product/pilot-production-readiness.md) · admin recovery runbook: [admin-access-recovery.md](admin-access-recovery.md)
 - Admin daily summary expansion → **DEFER** → current cards validated as operationally useful → no copy correction required → reopen only with a concrete operational gap — [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - Daily closing operational report → **BUILD** → dedicated `/admin/relatorios/fechamento` + WhatsApp copy; does not expand `/admin` summary cards — [product/daily-closing-report.md](product/daily-closing-report.md)
+- Daily closing CSV export → **BUILD** → download from the same `DailyClosingReport` DTO; no Sheets/XLSX — [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md)
 - Hipóteses pontuais de UX/notificações/Balcão sob observação — ver planos em `docs/product/`
 - Storefront por slug e onboarding de tenants (quando evidência e grill autorizarem)
 - CRUD de `Store` no master, billing, polish de marca white-label (fora do ciclo imediato do piloto)
@@ -248,6 +249,7 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 - [product/pilot-production-readiness.md](product/pilot-production-readiness.md)
 - [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - [product/daily-closing-report.md](product/daily-closing-report.md)
+- [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)
