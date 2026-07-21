@@ -146,10 +146,8 @@ test.describe("admin new-order notifications E2E", () => {
     await loginAsUser(page, fixture.operator);
     await waitForNotificationChrome(page);
 
-    const checkbox = page
-      .getByTestId("admin-new-order-sound-toggle")
-      .locator('input[type="checkbox"]');
-    await expect(checkbox).not.toBeChecked();
+    const soundToggle = page.getByTestId("admin-new-order-sound-toggle");
+    await expect(soundToggle).toHaveAttribute("aria-checked", "false");
     expect(await readSoundPlayCount(page)).toBe(0);
 
     const quietCustomer = uniqueCustomerName("Notify Quiet");
