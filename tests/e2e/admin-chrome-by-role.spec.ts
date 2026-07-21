@@ -5,6 +5,7 @@ import {
   ensureE2eAdminUser,
   ensureE2eStoreUser,
 } from "./helpers/e2e-admin-user";
+import { expectAdminLogoutVisible } from "./helpers/admin-shell";
 import { uniqueCustomerName } from "./helpers/test-data";
 
 async function expectNavActive(page: import("@playwright/test").Page, testId: string) {
@@ -17,6 +18,7 @@ test.describe("role-aware admin chrome", () => {
     await expect(page.getByTestId("admin-login-form")).toBeVisible();
     await expect(page.getByTestId("admin-chrome")).toHaveCount(0);
     await expect(page.getByTestId("admin-primary-nav")).toHaveCount(0);
+    await expect(page.getByTestId("admin-user-menu")).toHaveCount(0);
     await expect(page.getByTestId("admin-logout-button")).toHaveCount(0);
   });
 
@@ -32,12 +34,15 @@ test.describe("role-aware admin chrome", () => {
 
     await expect(page.getByTestId("admin-chrome")).toBeVisible();
     await expect(page.getByTestId("admin-primary-nav")).toBeVisible();
+    await expect(page.getByTestId("admin-chrome-store-name")).toContainText(
+      "Admin",
+    );
     await expect(page.getByTestId("admin-orders-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-counter-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-reports-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-menu-nav-link")).toBeVisible();
     await expect(page.getByTestId("admin-settings-nav-link")).toBeVisible();
-    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
+    await expectAdminLogoutVisible(page);
     await expectNavActive(page, "admin-orders-nav-link");
 
     await page.getByTestId("admin-counter-nav-link").click();
@@ -63,6 +68,9 @@ test.describe("role-aware admin chrome", () => {
     await page.getByTestId("admin-orders-nav-link").click();
     await expect(page).toHaveURL(/\/admin\/?$/);
     await expectNavActive(page, "admin-orders-nav-link");
+    await expect(page.getByTestId("admin-page-header")).toContainText(
+      "Pedidos pendentes",
+    );
   });
 
   test("OPERATOR chrome matches operational permissions", async ({ page }) => {
@@ -80,7 +88,7 @@ test.describe("role-aware admin chrome", () => {
       "Ver cardápio",
     );
     await expect(page.getByTestId("admin-settings-nav-link")).toBeVisible();
-    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
+    await expectAdminLogoutVisible(page);
   });
 
   test("MASTER lands on /master; direct /admin redirects without tenant chrome", async ({
@@ -124,12 +132,12 @@ test.describe("role-aware admin chrome", () => {
     await expect(page.getByTestId("admin-reports-nav-link")).toHaveCount(0);
     await expect(page.getByTestId("admin-menu-nav-link")).toHaveCount(0);
     await expect(page.getByTestId("admin-settings-nav-link")).toHaveCount(0);
-    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
+    await expectAdminLogoutVisible(page);
 
     await page.goto(`/admin/pedidos/${order.id}`);
     await expect(page.getByTestId("admin-order-detail")).toBeVisible();
     await expectNavActive(page, "admin-orders-nav-link");
-    await expect(page.getByTestId("admin-logout-button")).toBeVisible();
+    await expectAdminLogoutVisible(page);
 
     const balcao = await page.goto("/admin/balcao");
     expect(balcao?.status()).toBe(200);

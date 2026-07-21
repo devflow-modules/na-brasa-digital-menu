@@ -76,27 +76,27 @@ export async function readSoundPlayCount(page: Page): Promise<number> {
 }
 
 export async function expectNoNotificationChrome(page: Page): Promise<void> {
-  await expect(page.getByTestId("admin-new-order-chrome")).toHaveCount(0);
+  await expect(page.getByTestId("admin-chrome")).toHaveCount(0);
   await expect(page.getByTestId("admin-pending-count-badge")).toHaveCount(0);
   await expect(page.getByTestId("admin-new-order-sound-toggle")).toHaveCount(0);
 }
 
 export async function waitForNotificationChrome(page: Page): Promise<void> {
-  await expect(page.getByTestId("admin-new-order-chrome")).toBeVisible({
+  await expect(page.getByTestId("admin-chrome")).toBeVisible({
     timeout: NOTIFICATION_POLL_TIMEOUT_MS,
   });
-  await expect(page.getByTestId("admin-new-order-sound-toggle")).toBeVisible();
+  await expect(page.getByTestId("admin-new-order-sound-toggle")).toBeVisible({
+    timeout: NOTIFICATION_POLL_TIMEOUT_MS,
+  });
 }
 
 export async function enableNotificationSound(page: Page): Promise<number> {
-  const checkbox = page
-    .getByTestId("admin-new-order-sound-toggle")
-    .locator('input[type="checkbox"]');
-  await expect(checkbox).toBeVisible();
-  if (!(await checkbox.isChecked())) {
-    await checkbox.check();
+  const toggle = page.getByTestId("admin-new-order-sound-toggle");
+  await expect(toggle).toBeVisible();
+  if ((await toggle.getAttribute("aria-checked")) !== "true") {
+    await toggle.click();
   }
-  await expect(checkbox).toBeChecked();
+  await expect(toggle).toHaveAttribute("aria-checked", "true");
   await expect
     .poll(
       async () =>

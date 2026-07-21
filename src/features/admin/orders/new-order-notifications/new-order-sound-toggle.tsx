@@ -12,19 +12,32 @@ export function NewOrderSoundToggle({
   disabled = false,
 }: NewOrderSoundToggleProps) {
   return (
-    <label
-      className="inline-flex cursor-pointer items-center gap-2 text-xs text-stone-300"
+    <button
+      type="button"
+      role="switch"
+      aria-checked={enabled}
+      disabled={disabled}
       data-testid="admin-new-order-sound-toggle"
+      aria-label={enabled ? "Som ativado" : "Som desativado"}
+      title={
+        enabled
+          ? "Som de novos pedidos ativado"
+          : "Som de novos pedidos desativado — toque para ativar e ouvir uma prévia"
+      }
+      onClick={() => onChange(!enabled)}
+      className={[
+        "inline-flex h-9 items-center gap-1.5 rounded-[10px] border px-2.5 text-sm font-medium sm:px-3",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/70",
+        "disabled:cursor-not-allowed disabled:opacity-50",
+        enabled
+          ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100"
+          : "border-stone-700 bg-stone-900 text-stone-300 hover:bg-stone-800",
+      ].join(" ")}
     >
-      <input
-        type="checkbox"
-        className="h-4 w-4 rounded border-stone-600 bg-stone-900 text-amber-500 focus:ring-amber-400"
-        checked={enabled}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-        aria-label="Ativar som de novos pedidos"
-      />
-      <span>Ativar som de novos pedidos (toca uma prévia)</span>
-    </label>
+      <span aria-hidden>{enabled ? "🔔" : "🔕"}</span>
+      <span className="hidden md:inline">
+        {enabled ? "Som ativado" : "Som desativado"}
+      </span>
+    </button>
   );
 }

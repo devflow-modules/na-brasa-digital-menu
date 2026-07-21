@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
 import { formatAdminRoleLabel } from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
-import { AdminChrome } from "@/features/admin/chrome/admin-chrome";
 import { getVisibleAdminNavigationItems } from "@/features/admin/chrome/admin-navigation";
 import { AdminOrdersRefreshCoordinator } from "@/features/admin/orders/live-refresh/admin-orders-refresh-coordinator";
+import { AdminShell } from "@/features/admin-shell/admin-shell";
 
 type AdminStoreLayoutProps = {
   children: ReactNode;
@@ -20,7 +20,7 @@ export default async function AdminStoreLayout({
   const items = getVisibleAdminNavigationItems(context.role);
 
   return (
-    <AdminChrome
+    <AdminShell
       storeName={context.storeName}
       userName={context.session.name}
       userEmail={context.session.email}
@@ -28,6 +28,6 @@ export default async function AdminStoreLayout({
       items={items}
     >
       <AdminOrdersRefreshCoordinator>{children}</AdminOrdersRefreshCoordinator>
-    </AdminChrome>
+    </AdminShell>
   );
 }

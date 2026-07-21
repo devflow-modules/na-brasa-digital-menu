@@ -9,6 +9,8 @@ export const ADMIN_ORDERS_QUEUE_HREF = "/admin";
 type NewOrderPendingBadgeProps = {
   pendingCount: number;
   visible: boolean;
+  /** Icon/count-only presentation for the compact admin shell. */
+  compact?: boolean;
 };
 
 export function formatPendingBadgeCountLabel(pendingCount: number): string {
@@ -39,6 +41,7 @@ export function shouldMarkPendingBadgeCurrent(
 export function NewOrderPendingBadge({
   pendingCount,
   visible,
+  compact = false,
 }: NewOrderPendingBadgeProps) {
   const pathname = usePathname();
 
@@ -56,9 +59,12 @@ export function NewOrderPendingBadge({
       aria-label={formatPendingBadgeAriaLabel(pendingCount)}
       aria-current={onQueue ? "page" : undefined}
       title="Pedidos pendentes de todas as origens (online e balcão)"
-      className="inline-flex min-h-10 items-center gap-2 rounded-xl px-1 text-sm text-stone-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
+      className={[
+        "inline-flex h-9 items-center rounded-[10px] text-sm text-stone-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60",
+        compact ? "gap-1 px-0.5" : "gap-1.5 px-1",
+      ].join(" ")}
     >
-      <span className="font-medium">Pendentes</span>
+      {compact ? null : <span className="font-medium">Pendentes</span>}
       <span className="inline-flex min-h-6 min-w-6 items-center justify-center rounded-full bg-amber-500 px-2 text-xs font-bold text-stone-950">
         {countLabel}
       </span>
