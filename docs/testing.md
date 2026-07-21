@@ -22,6 +22,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-menu-management.spec.ts` | `/admin/cardapio`: CRUD simples, toggles, escopo por Store, publicação (`active`) |
 | `tests/e2e/product-availability.spec.ts` | `active` vs `available`: badge público, bloqueio carrinho/checkout, permissões OPERATOR |
 | `tests/e2e/admin-addon-management.spec.ts` | `/admin/cardapio/adicionais`: workspace (create/edit/links sob demanda), filtros, público, permissões, order validation |
+| `tests/e2e/addon-selection-groups.spec.ts` | Grupos min/max: radio no público, rejeição server-side cheddar+prato, painel admin no produto |
 | `tests/e2e/admin-store-settings.spec.ts` | `/admin/configuracoes`: permissões, público, loja fechada, entrega/retirada, pedido mínimo para entrega, bloqueio ambas modalidades off, escopo Store, WhatsApp; **restaura** settings da loja seed |
 | `tests/e2e/mobile-storefront.spec.ts` | Fluxo crítico do storefront em viewport mobile (Pixel 5) |
 | `tests/e2e/counter-order-flow.spec.ts` | Comanda COUNTER: criar (fica no Balcão) → READY → receber/finalizar; duas comandas consecutivas; KITCHEN, tenant, bypass, duplicidade, DIRECT |

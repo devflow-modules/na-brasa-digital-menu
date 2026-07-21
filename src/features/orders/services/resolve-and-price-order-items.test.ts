@@ -12,6 +12,7 @@ function product(
     active: true,
     available: true,
     productAddons: [],
+    addonGroups: [],
     ...overrides,
   };
 }
@@ -166,6 +167,60 @@ describe("priceOrderItemsFromCatalog", () => {
     assert.equal(result.items[0]?.addons.length, 1);
     assert.equal(result.items[0]?.unitPriceCents, 3200);
     assert.equal(result.subtotalCents, 3200);
+  });
+
+  it("rejects selecting two options when group maxSelection is 1", () => {
+    const result = priceOrderItemsFromCatalog(
+      [
+        product({
+          id: "p1",
+          name: "Pão Carne Queijo",
+          priceCents: 2500,
+          productAddons: [],
+          addonGroups: [
+            {
+              id: "g1",
+              name: "Escolha o queijo extra",
+              minSelection: 0,
+              maxSelection: 1,
+              active: true,
+              sortOrder: 0,
+              options: [
+                {
+                  sortOrder: 0,
+                  addon: {
+                    id: "cheddar",
+                    name: "Cheddar extra",
+                    priceCents: 300,
+                    active: true,
+                  },
+                },
+                {
+                  sortOrder: 1,
+                  addon: {
+                    id: "prato",
+                    name: "Queijo prato extra",
+                    priceCents: 300,
+                    active: true,
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+      ],
+      [
+        {
+          productId: "p1",
+          quantity: 1,
+          addonIds: ["cheddar", "prato"],
+        },
+      ],
+    );
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.match(result.message, /máximo 1/i);
   });
 
   it("keeps separate lines when the same product appears twice", () => {

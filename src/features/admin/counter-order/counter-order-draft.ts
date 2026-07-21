@@ -27,9 +27,13 @@ export function buildDraftLine(input: {
     Math.max(1, Math.trunc(input.quantity)),
   );
   const addonIds = dedupeAddonIds(input.addonIds);
-  const addons = input.product.addons.filter((addon) =>
-    addonIds.includes(addon.id),
-  );
+  const catalogAddons = [
+    ...input.product.addons,
+    ...input.product.addonGroups.flatMap((group) =>
+      group.options.map((option) => option.addon),
+    ),
+  ];
+  const addons = catalogAddons.filter((addon) => addonIds.includes(addon.id));
   const addonsTotal = addons.reduce((sum, addon) => sum + addon.priceCents, 0);
   const unitPriceCentsForDisplay = input.product.priceCents + addonsTotal;
   const notes = input.notes?.trim()

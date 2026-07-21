@@ -3,12 +3,17 @@ import type { PrismaClient } from "@prisma/client";
 export const NA_BRAZA_STORE_SLUG = "na-brasa";
 export const PILOT_BURGER_PRODUCT_NAME = "Pão Carne Queijo";
 
+/** Independent ProductAddon links for the pilot burger (not in selection groups). */
 export const PILOT_BURGER_ADDON_NAMES = [
   "Bacon extra",
   "Salada",
+  "Hambúrguer extra",
+] as const;
+
+export const PILOT_CHEESE_GROUP_NAME = "Escolha o queijo extra";
+export const PILOT_CHEESE_GROUP_OPTION_NAMES = [
   "Cheddar extra",
   "Queijo prato extra",
-  "Hambúrguer extra",
 ] as const;
 
 /** Legacy generic cheese addon kept inactive for historical snapshots. */
@@ -77,15 +82,13 @@ export const PILOT_ADDONS: PilotAddonSeed[] = [
   },
   {
     name: "Cheddar extra",
-    description:
-      "Fatia extra de cheddar. Escolha apenas uma opção de queijo extra.",
+    description: "Fatia extra de cheddar.",
     priceCents: 300,
     sortOrder: 3,
   },
   {
     name: "Queijo prato extra",
-    description:
-      "Fatia extra de queijo prato. Escolha apenas uma opção de queijo extra.",
+    description: "Fatia extra de queijo prato.",
     priceCents: 300,
     sortOrder: 4,
   },
@@ -102,7 +105,7 @@ export const PILOT_PRODUCTS: PilotProductSeed[] = [
     name: PILOT_BURGER_PRODUCT_NAME,
     categoryName: "Lanches artesanais",
     description:
-      "Hambúrguer artesanal 160g com pão, carne e queijo. Personalize com adicionais. Escolha apenas uma opção de queijo extra.",
+      "Hambúrguer artesanal 160g com pão, carne e queijo. Personalize com adicionais.",
     priceCents: 2500,
     featured: true,
     sortOrder: 1,
@@ -332,6 +335,7 @@ export type ApplyNaBrazaPilotMenuSummary = {
   productsDeactivated: number;
   burgerAddonLinksEnsured: number;
   burgerAddonLinksRemoved: number;
+  cheeseGroupsEnsured: number;
 };
 
 export async function applyNaBrazaPilotMenu(
@@ -351,6 +355,7 @@ export async function applyNaBrazaPilotMenu(
     productsDeactivated: 0,
     burgerAddonLinksEnsured: 0,
     burgerAddonLinksRemoved: 0,
+    cheeseGroupsEnsured: 0,
   };
 
   const categoryIdsByName = new Map<string, string>();
@@ -575,6 +580,69 @@ export async function applyNaBrazaPilotMenu(
       summary.burgerAddonLinksRemoved += 1;
     }
   }
+
+  const cheeseOptionIds = PILOT_CHEESE_GROUP_OPTION_NAMES.map((name) => {
+    const id = addonIdsByName.get(name);
+    if (!id) {
+      throw new Error(`Pilot cheese addon not resolved: ${name}`);
+    }
+    return id;
+  });
+
+  const existingCheeseGroup = await prisma.addonGroup.findFirst({
+    where: {
+      storeId,
+      productId: burger.id,
+      name: PILOT_CHEESE_GROUP_NAME,
+    },
+    select: { id: true },
+  });
+
+  const cheeseGroupId = existingCheeseGroup
+    ? (
+        await prisma.addonGroup.update({
+          where: { id: existingCheeseGroup.id },
+          data: {
+            description: null,
+            minSelection: 0,
+            maxSelection: 1,
+            active: true,
+            sortOrder: 0,
+          },
+          select: { id: true },
+        })
+      ).id
+    : (
+        await prisma.addonGroup.create({
+          data: {
+            storeId,
+            productId: burger.id,
+            name: PILOT_CHEESE_GROUP_NAME,
+            description: null,
+            minSelection: 0,
+            maxSelection: 1,
+            active: true,
+            sortOrder: 0,
+          },
+          select: { id: true },
+        })
+      ).id;
+
+  await prisma.addonGroupOption.deleteMany({ where: { groupId: cheeseGroupId } });
+  await prisma.addonGroupOption.createMany({
+    data: cheeseOptionIds.map((addonId, index) => ({
+      groupId: cheeseGroupId,
+      addonId,
+      sortOrder: index,
+    })),
+  });
+  await prisma.productAddon.deleteMany({
+    where: {
+      productId: burger.id,
+      addonId: { in: cheeseOptionIds },
+    },
+  });
+  summary.cheeseGroupsEnsured += 1;
 
   return summary;
 }

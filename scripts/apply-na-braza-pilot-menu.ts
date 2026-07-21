@@ -35,6 +35,7 @@ async function main(): Promise<void> {
     console.log(
       `Burger addon links: ensured ${summary.burgerAddonLinksEnsured}, removed ${summary.burgerAddonLinksRemoved}`,
     );
+    console.log(`Cheese selection groups ensured: ${summary.cheeseGroupsEnsured}`);
     console.log("Na Braza pilot menu applied.");
   } finally {
     await prisma.$disconnect();
