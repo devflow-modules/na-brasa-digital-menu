@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { formatMoney } from "@/features/menu/format-money";
 import { ProductMenuThumbnail } from "@/features/menu/components/product-menu-thumbnail";
 import type { PublicMenuProduct } from "@/features/menu/menu.types";
@@ -7,10 +8,27 @@ import type { PublicMenuProduct } from "@/features/menu/menu.types";
 type ProductCardProps = {
   product: PublicMenuProduct;
   onAdd?: (product: PublicMenuProduct) => void;
+  /** Total quantity already in the cart for this product (any addon combo). */
+  cartQuantity?: number;
 };
 
-export function ProductCard({ product, onAdd }: ProductCardProps) {
+export function ProductCard({
+  product,
+  onAdd,
+  cartQuantity = 0,
+}: ProductCardProps) {
   const canAdd = product.available && Boolean(onAdd);
+  const [justAdded, setJustAdded] = useState(false);
+
+  useEffect(() => {
+    if (cartQuantity <= 0) {
+      setJustAdded(false);
+      return;
+    }
+    setJustAdded(true);
+    const timer = window.setTimeout(() => setJustAdded(false), 1600);
+    return () => window.clearTimeout(timer);
+  }, [cartQuantity]);
 
   return (
     <article
@@ -73,19 +91,36 @@ export function ProductCard({ product, onAdd }: ProductCardProps) {
             {formatMoney(product.priceCents)}
           </p>
           {onAdd ? (
-            <button
-              type="button"
-              data-testid="open-add-to-cart-button"
-              disabled={!canAdd}
-              aria-disabled={!canAdd}
-              onClick={() => {
-                if (!product.available) return;
-                onAdd(product);
-              }}
-              className="min-h-10 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 shadow-sm shadow-orange-950/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:bg-stone-800 disabled:text-stone-500 disabled:shadow-none"
-            >
-              {product.available ? "Adicionar" : "Indisponível"}
-            </button>
+            <div className="flex flex-col items-end gap-1">
+              {justAdded || cartQuantity > 0 ? (
+                <span
+                  data-testid="menu-product-added-feedback"
+                  className="text-[11px] font-medium text-emerald-300"
+                  aria-live="polite"
+                >
+                  {justAdded
+                    ? "Adicionado ao pedido"
+                    : `${cartQuantity} no pedido`}
+                </span>
+              ) : null}
+              <button
+                type="button"
+                data-testid="open-add-to-cart-button"
+                disabled={!canAdd}
+                aria-disabled={!canAdd}
+                onClick={() => {
+                  if (!product.available) return;
+                  onAdd(product);
+                }}
+                className="min-h-10 rounded-xl bg-orange-500 px-4 py-2 text-sm font-semibold text-stone-950 shadow-sm shadow-orange-950/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-300 disabled:cursor-not-allowed disabled:bg-stone-800 disabled:text-stone-500 disabled:shadow-none"
+              >
+                {product.available
+                  ? cartQuantity > 0
+                    ? "Adicionar mais"
+                    : "Adicionar"
+                  : "Indisponível"}
+              </button>
+            </div>
           ) : null}
         </div>
       </div>

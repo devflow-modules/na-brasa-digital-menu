@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import Link from "next/link";
+import { useCallback, useMemo, useState } from "react";
 import { AddToCartPanel } from "@/features/cart/components/add-to-cart-panel";
 import { CartSummary } from "@/features/cart/components/cart-summary";
 import { useCart } from "@/features/cart/use-cart";
@@ -11,6 +12,7 @@ import type {
   PublicMenu,
   PublicMenuProduct,
 } from "@/features/menu/menu.types";
+import { selectFeaturedProductsForDisplay } from "@/features/menu/select-featured-products-for-display";
 
 type MenuOrderingExperienceProps = {
   menu: Pick<PublicMenu, "categories" | "featuredProducts">;
@@ -34,18 +36,50 @@ export function MenuOrderingExperience({
     setSelectedProduct(null);
   }, []);
 
-  // Presentation-only: keep featured products out of category lists (by id).
-  const featuredProductIds = new Set(
-    featuredProducts.map((product) => product.id),
+  const displayedFeatured = useMemo(
+    () => selectFeaturedProductsForDisplay(featuredProducts),
+    [featuredProducts],
   );
-  const catalogCategories = categories
-    .map((category) => ({
-      ...category,
-      products: category.products.filter(
-        (product) => !featuredProductIds.has(product.id),
-      ),
-    }))
-    .filter((category) => category.products.length > 0);
+
+  // Only strip products shown in the Destaques strip (not every DB featured flag).
+  const featuredProductIds = useMemo(
+    () => new Set(displayedFeatured.map((product) => product.id)),
+    [displayedFeatured],
+  );
+
+  const catalogCategories = useMemo(
+    () =>
+      categories
+        .map((category) => ({
+          ...category,
+          products: category.products.filter(
+            (product) => !featuredProductIds.has(product.id),
+          ),
+        }))
+        .filter((category) => category.products.length > 0),
+    [categories, featuredProductIds],
+  );
+
+  const jumpCategories = useMemo(() => {
+    const catalogIds = new Set(catalogCategories.map((category) => category.id));
+    return categories
+      .filter((category) => category.products.length > 0)
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        href: catalogIds.has(category.id)
+          ? `#category-${category.id}`
+          : "#menu-featured-section",
+      }));
+  }, [categories, catalogCategories]);
+
+  const cartQuantityByProductId = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of cart.items) {
+      counts[item.productId] = (counts[item.productId] ?? 0) + item.quantity;
+    }
+    return counts;
+  }, [cart.items]);
 
   const hasProducts = categories.length > 0;
   const hasCartItems = cart.items.length > 0;
@@ -53,8 +87,8 @@ export function MenuOrderingExperience({
   return (
     <>
       <div
-        className={`mx-auto flex w-full max-w-lg flex-col gap-10 px-4 py-8 sm:px-6 ${
-          hasCartItems ? "pb-80" : "pb-10"
+        className={`mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-6 sm:px-6 ${
+          hasCartItems ? "pb-36" : "pb-10"
         }`}
       >
         {!hasProducts ? (
@@ -72,17 +106,13 @@ export function MenuOrderingExperience({
           </div>
         ) : (
           <>
-            <CategoryJumpNavigation
-              categories={catalogCategories.map((category) => ({
-                id: category.id,
-                name: category.name,
-              }))}
-            />
+            <CategoryJumpNavigation categories={jumpCategories} />
 
-            {featuredProducts.length > 0 ? (
+            {displayedFeatured.length > 0 ? (
               <section
+                id="menu-featured-section"
                 data-testid="menu-featured-section"
-                className="flex flex-col gap-4"
+                className="flex scroll-mt-28 flex-col gap-4"
                 aria-labelledby="featured-heading"
               >
                 <div className="flex flex-col gap-1">
@@ -93,15 +123,16 @@ export function MenuOrderingExperience({
                     Destaques
                   </h2>
                   <p className="text-sm text-stone-400">
-                    Os favoritos da casa — prontos para adicionar ao pedido.
+                    Comece por estes — o restante está nas categorias abaixo.
                   </p>
                 </div>
-                <ul className="flex flex-col gap-3">
-                  {featuredProducts.map((product) => (
+                <ul className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {displayedFeatured.map((product) => (
                     <li key={`featured-${product.id}`}>
                       <ProductCard
                         product={product}
                         onAdd={setSelectedProduct}
+                        cartQuantity={cartQuantityByProductId[product.id] ?? 0}
                       />
                     </li>
                   ))}
@@ -122,7 +153,7 @@ export function MenuOrderingExperience({
                   Cardápio
                 </h2>
                 <p className="text-sm leading-relaxed text-stone-400">
-                  Navegue pelas categorias e monte seu pedido com calma.
+                  Navegue pelas categorias e monte seu pedido.
                 </p>
               </div>
 
@@ -131,20 +162,40 @@ export function MenuOrderingExperience({
                   key={category.id}
                   category={category}
                   onAddProduct={setSelectedProduct}
+                  cartQuantityByProductId={cartQuantityByProductId}
                 />
               ))}
             </section>
 
-            {!hasCartItems && storeIsOpen ? (
-              <p
-                data-testid="cart-empty-hint"
-                className="rounded-xl border border-stone-800 bg-stone-900/50 px-4 py-3 text-center text-sm text-stone-400"
-              >
-                Toque em <span className="font-medium text-stone-200">Adicionar</span>{" "}
-                para montar seu pedido. Você revisa tudo antes de enviar no
-                WhatsApp.
+            <section
+              data-testid="menu-closing-cta"
+              className="rounded-2xl border border-orange-500/25 bg-gradient-to-br from-stone-900 to-orange-950/40 px-5 py-6 text-center"
+            >
+              <h2 className="text-xl font-semibold text-orange-50">
+                Pronto para finalizar?
+              </h2>
+              <p className="mx-auto mt-2 max-w-md text-sm text-stone-300">
+                Revise seus itens e envie o pedido pelo WhatsApp.
               </p>
-            ) : null}
+              {hasCartItems && storeIsOpen ? (
+                <Link
+                  href="/na-brasa/checkout"
+                  data-testid="menu-closing-checkout-link"
+                  className="mt-4 inline-flex h-11 items-center justify-center rounded-xl bg-orange-500 px-5 text-sm font-bold text-stone-950"
+                >
+                  Ver meu pedido
+                </Link>
+              ) : (
+                <p
+                  data-testid="cart-empty-hint"
+                  className="mt-4 text-sm text-stone-400"
+                >
+                  Toque em{" "}
+                  <span className="font-medium text-stone-200">Adicionar</span>{" "}
+                  para montar seu pedido.
+                </p>
+              )}
+            </section>
           </>
         )}
       </div>

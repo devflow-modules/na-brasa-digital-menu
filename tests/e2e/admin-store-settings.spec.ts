@@ -74,6 +74,7 @@ test.describe("admin store settings", () => {
     });
 
     await page.goto("/na-brasa");
+    await page.getByTestId("store-details-toggle").click();
     await expect(page.getByTestId("store-address")).toContainText(
       E2E_ADDRESS_MARKER,
     );
@@ -280,6 +281,7 @@ test.describe("admin store settings", () => {
     });
 
     await page.goto("/na-brasa");
+    await page.getByTestId("store-details-toggle").click();
     await expect(page.getByTestId("store-minimum-order")).toContainText(
       "R$ 50,00",
     );
