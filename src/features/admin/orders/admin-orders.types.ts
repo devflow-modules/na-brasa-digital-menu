@@ -9,7 +9,12 @@ export type AdminOrderStatus =
 
 export type AdminDeliveryType = "PICKUP" | "DELIVERY";
 
-export type AdminPaymentMethod = "CASH" | "PIX" | "CARD";
+export type AdminPaymentMethod =
+  | "CASH"
+  | "PIX"
+  | "CARD"
+  | "DEBIT_CARD"
+  | "CREDIT_CARD";
 
 export type AdminOrderSource = "DIRECT" | "IFOOD" | "OTHER" | "COUNTER";
 
