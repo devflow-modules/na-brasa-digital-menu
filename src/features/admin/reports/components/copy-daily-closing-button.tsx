@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { dailyClosingActionClassName } from "@/features/admin/reports/components/daily-closing-action-styles";
 
 type CopyDailyClosingButtonProps = {
   text: string;
@@ -37,7 +38,7 @@ export function CopyDailyClosingButton({ text }: CopyDailyClosingButtonProps) {
         type="button"
         onClick={onCopy}
         data-testid="daily-closing-copy"
-        className="rounded-xl bg-orange-600 px-4 py-2 text-sm font-medium text-white hover:bg-orange-500"
+        className={dailyClosingActionClassName.primary}
       >
         Copiar resumo
       </button>

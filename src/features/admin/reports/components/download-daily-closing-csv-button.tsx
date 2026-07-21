@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { dailyClosingActionClassName } from "@/features/admin/reports/components/daily-closing-action-styles";
 
 type DownloadDailyClosingCsvButtonProps = {
   content: string;
@@ -40,7 +41,7 @@ export function DownloadDailyClosingCsvButton({
         type="button"
         onClick={onDownload}
         data-testid="daily-closing-download-csv"
-        className="rounded-xl border border-orange-500/70 bg-stone-950 px-4 py-2 text-sm font-medium text-orange-100 hover:bg-stone-900"
+        className={dailyClosingActionClassName.tertiary}
       >
         Baixar CSV
       </button>
