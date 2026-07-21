@@ -87,7 +87,7 @@ Detalhes do release: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md) · dad
 
 **Estado atual:** **`/admin`** (login em `/admin/login`), **store-scoped** via `requireAdminStoreContext`.
 
-- Pedidos, cardápio, adicionais, configurações — permissões por role no server.
+- Pedidos, cardápio (workspace com accordion/busca; edição sob demanda), adicionais, configurações — permissões por role no server. Detalhe: [product/menu-management-workspace.md](product/menu-management-workspace.md).
 - **Chrome compartilhado** nas rotas autenticadas (`app/admin/(store)`): navegação única filtrada por papel/permissão operacional, logout consistente, identidade da loja; login fora do chrome. Detalhe: [product/admin-navigation-chrome.md](product/admin-navigation-chrome.md).
 - Usuários de loja: contexto de `session.storeId`.
 - `MASTER` **não** recebe Store piloto implícita em `/admin`; login e acesso direto a `/admin` vão para `/master` até existir seleção explícita de Store.
@@ -252,6 +252,7 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 - [product/daily-closing-report.md](product/daily-closing-report.md)
 - [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md)
 - [product/daily-closing-whatsapp-share.md](product/daily-closing-whatsapp-share.md)
+- [product/menu-management-workspace.md](product/menu-management-workspace.md)
 - [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)

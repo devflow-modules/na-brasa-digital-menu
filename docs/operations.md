@@ -222,9 +222,11 @@ Rotina para enviar o resumo do expediente ao sócio. **Não** é caixa conciliad
 
 ### Cardápio e disponibilidade
 
-1. `/admin/cardapio` — criar/editar produtos e categorias (dono/gerente).
-2. **Indisponível no momento:** `OPERATOR` ou dono/gerente marca `available=false` (produto visível, sem pedido).
-3. **Ocultar do público:** dono/gerente marca `active=false` (some do `/na-brasa`).
+1. `/admin/cardapio` — workspace de categorias recolhíveis e produtos em linha compacta (dono/gerente).
+2. Use a busca e os filtros do topo; abra uma categoria para ver os itens. **Editar** monta o formulário só daquele produto.
+3. **+ Novo produto** / **+ Nova categoria** abrem o formulário de criação sob demanda.
+4. **Indisponível no momento:** `OPERATOR` ou dono/gerente marca `available=false` (produto visível, sem pedido).
+5. **Ocultar do público:** dono/gerente marca `active=false` (some do `/na-brasa`).
 
 ### Adicionais
 
