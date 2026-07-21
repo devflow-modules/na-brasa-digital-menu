@@ -5,6 +5,21 @@ export type PublicMenuAddon = {
   sortOrder: number;
 };
 
+export type PublicMenuAddonGroupOption = {
+  addon: PublicMenuAddon;
+  sortOrder: number;
+};
+
+export type PublicMenuAddonGroup = {
+  id: string;
+  name: string;
+  description: string | null;
+  minSelection: number;
+  maxSelection: number;
+  sortOrder: number;
+  options: PublicMenuAddonGroupOption[];
+};
+
 export type PublicMenuProduct = {
   id: string;
   name: string;
@@ -14,7 +29,9 @@ export type PublicMenuProduct = {
   featured: boolean;
   sortOrder: number;
   available: boolean;
+  /** Independent addons (checkboxes). Grouped options are excluded. */
   addons: PublicMenuAddon[];
+  addonGroups: PublicMenuAddonGroup[];
 };
 
 export type PublicMenuCategory = {
