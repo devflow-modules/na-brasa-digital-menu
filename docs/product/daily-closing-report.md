@@ -12,8 +12,24 @@ Classification: TENANT
 MVP: dynamic operational closing report
 Default window: 17:00–01:00 America/Sao_Paulo
 Sharing: WhatsApp copy + wa.me link + CSV download (same DTO)
+UI polish: compact empty state, conditional detail sections, unified actions, collapsed preview
 No WhatsApp API / PDF / Sheets / immutable close / cash reconciliation
 ```
+
+## UI polish (presentation only)
+
+```text
+Decision: BUILD
+Classification: TENANT
+Scope: layout/density only — no DTO, aggregation, WhatsApp/CSV contracts or permissions
+```
+
+- Zero concluded orders → single empty message; hide empty detail sections; keep export actions.
+- Detail sections render only when their data is present (cancelled still shows when count > 0).
+- Export actions share primary / secondary / tertiary visual language.
+- WhatsApp message preview starts collapsed (`<details>`).
+- Filters denser on desktop; total KPI emphasized; cancelled KPI alerts only when > 0.
+
 
 ## Product Decision
 
