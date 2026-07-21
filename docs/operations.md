@@ -173,10 +173,11 @@ Se um perfil autenticado abrir por URL uma área operacional bloqueada (exemplo:
 ## Adicionais (`/admin/cardapio/adicionais`)
 
 1. Acesse pelo link **Gerenciar adicionais** em `/admin/cardapio` (ou URL direta).
-2. Dono/gerente podem criar, editar, ativar/desativar e vincular adicionais a produtos da mesma Store.
-3. Operador e cozinha só visualizam a lista e vínculos.
-4. Adicional inativo não aparece no modal público; desvinculado também não.
-5. Checkout rejeita adicional inválido com mensagem amigável no server.
+2. Use a lista compacta com busca e filtros (status / com ou sem vínculos). Abra **Editar** ou **Vínculos** sob demanda — um painel por vez.
+3. Dono/gerente podem criar (+ Novo adicional), editar, ativar/desativar e vincular adicionais a produtos da mesma Store.
+4. Operador e cozinha só visualizam a lista e vínculos.
+5. Adicional inativo não aparece no modal público; desvinculado também não.
+6. Checkout rejeita adicional inválido com mensagem amigável no server.
 
 ## Configurações da loja (`/admin/configuracoes`)
 
