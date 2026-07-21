@@ -10,7 +10,10 @@ import {
   renameProductForSnapshotTest,
   uniqueDailyClosingCustomer,
 } from "./helpers/daily-closing-fixtures";
-import { openDefaultDailyClosingWindow } from "./helpers/daily-closing-ui";
+import {
+  openDefaultDailyClosingWindow,
+  readDailyClosingSummaryText,
+} from "./helpers/daily-closing-ui";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 
 test.describe("admin daily closing aggregation", () => {
@@ -288,9 +291,7 @@ test.describe("admin daily closing aggregation", () => {
       "131,00",
     );
 
-    const summary = (
-      await page.getByTestId("daily-closing-summary-text").innerText()
-    ).replace(/\u00a0/g, " ");
+    const summary = await readDailyClosingSummaryText(page);
     expect(summary).toContain("TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS");
     expect(summary).toContain("R$ 131,00");
     expect(summary).toContain("R$ 6,00");
@@ -389,14 +390,14 @@ test.describe("admin daily closing aggregation", () => {
     await expect(page.getByTestId("daily-closing-cancelled")).toContainText(
       cancelled.code,
     );
+    await expect(page.getByTestId("daily-closing-payments")).toHaveCount(0);
+    await expect(page.getByTestId("daily-closing-fulfillment")).toHaveCount(0);
+    await expect(page.getByTestId("daily-closing-products")).toHaveCount(0);
     await expect(page.getByTestId("daily-closing-open-alert")).toContainText(
       "1 pedido ainda aberto",
     );
-    await expect(page.getByTestId("daily-closing-summary-text")).toContainText(
-      "TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS",
-    );
-    await expect(page.getByTestId("daily-closing-summary-text")).not.toContainText(
-      "40,00",
-    );
+    const summary = await readDailyClosingSummaryText(page);
+    expect(summary).toContain("TOTAL VENDIDO EM PEDIDOS CONCLUÍDOS");
+    expect(summary).not.toContain("40,00");
   });
 });
