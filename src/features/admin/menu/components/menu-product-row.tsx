@@ -17,6 +17,9 @@ type MenuProductRowProps = {
   canUpdateProduct: boolean;
   canToggleAvailability: boolean;
   canToggleActive: boolean;
+  isEditing: boolean;
+  onEdit: () => void;
+  onCancelEdit: () => void;
 };
 
 export function MenuProductRow({
@@ -25,6 +28,9 @@ export function MenuProductRow({
   canUpdateProduct,
   canToggleAvailability,
   canToggleActive,
+  isEditing,
+  onEdit,
+  onCancelEdit,
 }: MenuProductRowProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -89,6 +95,17 @@ export function MenuProductRow({
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {canUpdateProduct ? (
+            <button
+              type="button"
+              data-testid={`admin-menu-edit-product-${product.id}`}
+              disabled={isEditing}
+              onClick={onEdit}
+              className="h-9 rounded-lg border border-orange-500/50 px-3 text-xs font-medium text-orange-100 disabled:opacity-60"
+            >
+              Editar
+            </button>
+          ) : null}
           {canToggleAvailability ? (
             <button
               type="button"
@@ -114,13 +131,14 @@ export function MenuProductRow({
         </div>
       </div>
 
-      {canUpdateProduct ? (
+      {isEditing && canUpdateProduct ? (
         <div className="mt-4 border-t border-stone-800 pt-4">
           <ProductForm
             mode="edit"
             categories={categories}
             product={product}
             canSubmit={canUpdateProduct}
+            onCancel={onCancelEdit}
           />
         </div>
       ) : null}

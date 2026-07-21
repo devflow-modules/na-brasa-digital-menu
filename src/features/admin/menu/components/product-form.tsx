@@ -13,6 +13,7 @@ type ProductFormProps = {
   product?: AdminMenuProduct;
   defaultCategoryId?: string;
   canSubmit: boolean;
+  onCancel?: () => void;
 };
 
 export function ProductForm({
@@ -21,6 +22,7 @@ export function ProductForm({
   product,
   defaultCategoryId,
   canSubmit,
+  onCancel,
 }: ProductFormProps) {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -150,13 +152,34 @@ export function ProductForm({
         />
         Publicado no cardápio (oculto se desmarcado)
       </label>
-      <button
-        type="submit"
-        disabled={isPending}
-        className="h-10 rounded-xl bg-orange-500 text-sm font-semibold text-stone-950 disabled:opacity-60"
-      >
-        {isPending ? "Salvando..." : mode === "create" ? "Criar produto" : "Salvar produto"}
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="submit"
+          disabled={isPending}
+          className="h-10 rounded-xl bg-orange-500 px-4 text-sm font-semibold text-stone-950 disabled:opacity-60"
+        >
+          {isPending
+            ? "Salvando..."
+            : mode === "create"
+              ? "Criar produto"
+              : "Salvar produto"}
+        </button>
+        {onCancel ? (
+          <button
+            type="button"
+            data-testid={
+              mode === "edit" && product
+                ? `admin-menu-cancel-edit-product-${product.id}`
+                : "admin-menu-cancel-create-product"
+            }
+            disabled={isPending}
+            onClick={onCancel}
+            className="h-10 rounded-xl border border-stone-600 px-4 text-sm font-semibold text-stone-200 disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+        ) : null}
+      </div>
       {errorMessage ? (
         <p role="alert" className="text-sm text-red-300">
           {errorMessage}

@@ -47,6 +47,12 @@ export function MenuManagementWorkspace({
   const [statusFilter, setStatusFilter] = useState<MenuStatusFilter>("all");
   const [categoryFilter, setCategoryFilter] = useState("");
   const [openCategoryIds, setOpenCategoryIds] = useState<string[]>([]);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
+    null,
+  );
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
 
   const filteredCategories = useMemo(
     () =>
@@ -62,12 +68,26 @@ export function MenuManagementWorkspace({
     search.trim().length > 0 ||
     statusFilter !== "all" ||
     categoryFilter.length > 0;
+
   const searchActive = search.trim().length > 0;
 
   useEffect(() => {
     if (catalog.categories.length === 0) {
       setOpenCategoryIds([]);
       return;
+    }
+
+    if (editingProductId) {
+      const host = catalog.categories.find((category) =>
+        category.products.some((product) => product.id === editingProductId),
+      );
+      if (host) {
+        setOpenCategoryIds((current) =>
+          current.includes(host.id) ? current : [host.id],
+        );
+        return;
+      }
+      setEditingProductId(null);
     }
 
     if (searchActive || statusFilter !== "all") {
@@ -92,6 +112,7 @@ export function MenuManagementWorkspace({
   }, [
     catalog.categories,
     categoryFilter,
+    editingProductId,
     filteredCategories,
     searchActive,
     statusFilter,
@@ -145,22 +166,50 @@ export function MenuManagementWorkspace({
               ativos · {counters.unavailableProducts} indisponíveis
             </p>
           </div>
-          {showAddonsLink ? (
-            <Link
-              href="/admin/cardapio/adicionais"
-              data-testid="admin-menu-addons-link"
-              className="text-sm font-medium text-orange-300 underline-offset-2 hover:underline"
-            >
-              Gerenciar adicionais
-            </Link>
-          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            {showAddonsLink ? (
+              <Link
+                href="/admin/cardapio/adicionais"
+                data-testid="admin-menu-addons-link"
+                className="text-sm font-medium text-orange-300 underline-offset-2 hover:underline"
+              >
+                Gerenciar adicionais
+              </Link>
+            ) : null}
+            {canManageCategories ? (
+              <button
+                type="button"
+                data-testid="admin-menu-show-create-category"
+                onClick={() => {
+                  setShowCreateCategory((value) => !value);
+                  setShowCreateProduct(false);
+                }}
+                className="h-10 rounded-xl border border-stone-600 px-3 text-sm font-semibold text-stone-100"
+              >
+                + Nova categoria
+              </button>
+            ) : null}
+            {canCreateProduct ? (
+              <button
+                type="button"
+                data-testid="admin-menu-show-create-product"
+                onClick={() => {
+                  setShowCreateProduct((value) => !value);
+                  setShowCreateCategory(false);
+                }}
+                className="h-10 rounded-xl bg-orange-500 px-3 text-sm font-semibold text-stone-950"
+              >
+                + Novo produto
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <div
           data-testid="admin-menu-filters"
           className="grid gap-2 sm:grid-cols-3"
         >
-          <label className="block text-xs text-stone-400">
+          <label className="block text-xs text-stone-400 sm:col-span-1">
             Buscar produto
             <input
               type="search"
@@ -217,16 +266,20 @@ export function MenuManagementWorkspace({
         ) : null}
       </header>
 
-      {canManageCategories ? (
-        <CategoryForm mode="create" canManage={canManageCategories} />
+      {showCreateCategory && canManageCategories ? (
+        <CategoryForm
+          mode="create"
+          canManage={canManageCategories}
+        />
       ) : null}
 
-      {canCreateProduct ? (
+      {showCreateProduct && canCreateProduct ? (
         <ProductForm
           mode="create"
           categories={catalog.categories}
           defaultCategoryId={defaultCategoryId}
           canSubmit={canCreateProduct}
+          onCancel={() => setShowCreateProduct(false)}
         />
       ) : null}
 
@@ -292,11 +345,34 @@ export function MenuManagementWorkspace({
                 {isOpen ? (
                   <div className="space-y-3 border-t border-stone-800 px-4 py-4">
                     {canManageCategories ? (
-                      <CategoryForm
-                        mode="edit"
-                        category={category}
-                        canManage={canManageCategories}
-                      />
+                      <div>
+                        {editingCategoryId === category.id ? (
+                          <div className="space-y-2">
+                            <CategoryForm
+                              mode="edit"
+                              category={category}
+                              canManage={canManageCategories}
+                            />
+                            <button
+                              type="button"
+                              data-testid={`admin-menu-cancel-edit-category-${category.id}`}
+                              onClick={() => setEditingCategoryId(null)}
+                              className="text-sm text-stone-400 underline-offset-2 hover:underline"
+                            >
+                              Fechar edição da categoria
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            data-testid={`admin-menu-edit-category-${category.id}`}
+                            onClick={() => setEditingCategoryId(category.id)}
+                            className="text-sm font-medium text-stone-300 underline-offset-2 hover:underline"
+                          >
+                            Editar categoria
+                          </button>
+                        )}
+                      </div>
                     ) : null}
 
                     {productCount === 0 ? (
@@ -313,6 +389,12 @@ export function MenuManagementWorkspace({
                             canUpdateProduct={canUpdateProduct}
                             canToggleAvailability={canToggleAvailability}
                             canToggleActive={canToggleActive}
+                            isEditing={editingProductId === product.id}
+                            onEdit={() => {
+                              setEditingProductId(product.id);
+                              setOpenCategoryIds([category.id]);
+                            }}
+                            onCancelEdit={() => setEditingProductId(null)}
                           />
                         ))}
                       </ul>
