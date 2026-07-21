@@ -218,6 +218,7 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - CRUD de lojas no `/master`
 - Storefront dinâmico por slug para novos tenants
 - PDV completo, caixa, fiscal, impressão, conciliação
+- Grupos de complementos com `minSelection` / `maxSelection` (ex.: queijo extra exclusivo)
 
 ## Roadmap (pós-validação)
 
@@ -231,6 +232,7 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - Daily closing operational report → **BUILD** → dedicated `/admin/relatorios/fechamento` + WhatsApp copy; does not expand `/admin` summary cards — [product/daily-closing-report.md](product/daily-closing-report.md)
 - Daily closing CSV export → **BUILD** → download from the same `DailyClosingReport` DTO; no Sheets/XLSX — [product/daily-closing-csv-export.md](product/daily-closing-csv-export.md)
 - Daily closing WhatsApp share → **BUILD** → improved message + `wa.me` link without destination/API — [product/daily-closing-whatsapp-share.md](product/daily-closing-whatsapp-share.md)
+- Grupos de complementos (`maxSelection = 1`) → **dívida de produto** — catálogo Na Braza usa Cheddar/Prato com aviso textual; exclusividade técnica ainda não existe — [product/addon-selection-groups-debt.md](product/addon-selection-groups-debt.md)
 - Hipóteses pontuais de UX/notificações/Balcão sob observação — ver planos em `docs/product/`
 - Storefront por slug e onboarding de tenants (quando evidência e grill autorizarem)
 - CRUD de `Store` no master, billing, polish de marca white-label (fora do ciclo imediato do piloto)

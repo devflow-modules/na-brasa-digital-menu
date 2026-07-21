@@ -163,7 +163,7 @@ Rodar após merge do cardápio piloto e com `DATABASE_URL` de produção. Confer
 
 - [ ] Categorias na ordem: Lanches artesanais → Espetinhos na Brasa → Bebidas → Cervejas
 - [ ] **Pão Carne Queijo** exibe **R$ 25,00**
-- [ ] Adicionais do burger: Bacon extra, Salada, Queijo extra, Hambúrguer extra
+- [ ] Adicionais do burger: Bacon extra, Salada, Cheddar extra, Queijo prato extra, Hambúrguer extra (Queijo extra legado inativo)
 - [ ] Espetinhos (carne, linguiça, coração, misto) visíveis
 - [ ] Bebidas listadas conforme piloto
 - [ ] Cervejas com texto **Produto permitido apenas para maiores de 18 anos.**

@@ -105,7 +105,7 @@ Pilot categories:
 
 | Product | Description | Price | Status |
 | --- | --- | ---: | --- |
-| Pão Carne Queijo | Hambúrguer artesanal 160g com pão, carne e queijo. Personalize com adicionais. | R$ 25,00 | confirmed |
+| Pão Carne Queijo | Hambúrguer artesanal 160g com pão, carne e queijo. Personalize com adicionais. Escolha apenas uma opção de queijo extra. | R$ 25,00 | confirmed |
 
 ### Burger addons
 
@@ -113,16 +113,24 @@ Pilot categories:
 | --- | ---: | --- |
 | Bacon extra | R$ 5,00 | confirmed |
 | Salada | R$ 5,00 | confirmed |
-| Queijo extra | R$ 3,00 | confirmed |
+| Cheddar extra | R$ 3,00 | confirmed |
+| Queijo prato extra | R$ 3,00 | confirmed |
 | Hambúrguer extra | R$ 15,00 | confirmed |
+| Queijo extra (legado) | R$ 3,00 | inactive — kept for historical snapshots; not offered on new orders |
 
 Addon linkage:
 
-- Link all addons only to `Pão Carne Queijo`.
+- Link active burger addons only to `Pão Carne Queijo`.
 
 Operational note:
 
 The base product is Pão Carne Queijo. The customer adds optional extras; the product should not be modeled as multiple fixed variations in this pilot.
+
+Cheese exclusivity (temporary):
+
+- Catalog copy asks the customer to choose only one cheese extra.
+- The platform cannot yet enforce `maxSelection = 1` (no addon groups). Selecting both cheddar and prato remains technically possible until that feature exists.
+- Product debt: addon complement groups with `minSelection` / `maxSelection` (cheese group: min 0, max 1).
 
 ### Espetinhos na Brasa
 
