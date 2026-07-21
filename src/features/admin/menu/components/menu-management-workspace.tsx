@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import type { UserRole } from "@prisma/client";
 import {
   canCreateMenuProduct,
@@ -13,11 +12,9 @@ import {
   canUpdateMenuProduct,
   formatAdminRoleLabel,
 } from "@/features/admin/auth/admin-permissions";
-import { toggleProductActiveAction } from "@/features/admin/menu/actions/toggle-product-active-action";
-import { toggleProductAvailabilityAction } from "@/features/admin/menu/actions/toggle-product-availability-action";
-import { formatAdminPriceCents } from "@/features/admin/menu/admin-menu-formatters";
 import type { AdminMenuCatalog } from "@/features/admin/menu/admin-menu.types";
 import { CategoryForm } from "@/features/admin/menu/components/category-form";
+import { MenuProductRow } from "@/features/admin/menu/components/menu-product-row";
 import { ProductForm } from "@/features/admin/menu/components/product-form";
 
 type MenuManagementWorkspaceProps = {
@@ -29,8 +26,6 @@ export function MenuManagementWorkspace({
   role,
   catalog,
 }: MenuManagementWorkspaceProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const canManageCategories = canManageMenuCategories(role);
   const canCreateProduct = canCreateMenuProduct(role);
   const canUpdateProduct = canUpdateMenuProduct(role);
@@ -47,27 +42,6 @@ export function MenuManagementWorkspace({
     setOpenCategoryId((current) =>
       current === categoryId ? current : categoryId,
     );
-  }
-
-  function toggleAvailability(productId: string, available: boolean) {
-    startTransition(async () => {
-      const result = await toggleProductAvailabilityAction({
-        productId,
-        available,
-      });
-      if (result.ok) {
-        router.refresh();
-      }
-    });
-  }
-
-  function toggleActive(productId: string, active: boolean) {
-    startTransition(async () => {
-      const result = await toggleProductActiveAction({ productId, active });
-      if (result.ok) {
-        router.refresh();
-      }
-    });
   }
 
   return (
@@ -164,93 +138,24 @@ export function MenuManagementWorkspace({
                       />
                     ) : null}
 
-                    <ul className="flex flex-col gap-3">
-                      {category.products.length === 0 ? (
-                        <li className="text-sm text-stone-500">
-                          Sem produtos nesta categoria.
-                        </li>
-                      ) : (
-                        category.products.map((product) => (
-                          <li
+                    {category.products.length === 0 ? (
+                      <p className="text-sm text-stone-500">
+                        Sem produtos nesta categoria.
+                      </p>
+                    ) : (
+                      <ul className="flex flex-col gap-3">
+                        {category.products.map((product) => (
+                          <MenuProductRow
                             key={product.id}
-                            data-testid={`admin-menu-product-${product.id}`}
-                            className="rounded-xl border border-stone-800 bg-stone-950/60 p-3"
-                          >
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                              <div>
-                                <p className="font-medium text-stone-100">
-                                  {product.name}
-                                </p>
-                                <p className="mt-2 text-sm font-semibold text-orange-200">
-                                  {formatAdminPriceCents(product.priceCents)}
-                                </p>
-                                <p
-                                  data-testid={`admin-menu-product-publication-${product.id}`}
-                                  className="mt-2 text-xs text-stone-500"
-                                >
-                                  {product.active
-                                    ? "Publicado"
-                                    : "Oculto / inativo"}
-                                </p>
-                                <p
-                                  data-testid={`admin-menu-product-availability-${product.id}`}
-                                  className="mt-1 text-xs text-stone-500"
-                                >
-                                  {product.available
-                                    ? "Disponível"
-                                    : "Indisponível"}
-                                </p>
-                              </div>
-                              <div className="flex flex-col gap-2">
-                                {canToggleAvailability ? (
-                                  <button
-                                    type="button"
-                                    data-testid={`admin-menu-toggle-availability-${product.id}`}
-                                    disabled={isPending}
-                                    onClick={() =>
-                                      toggleAvailability(
-                                        product.id,
-                                        !product.available,
-                                      )
-                                    }
-                                    className="h-9 rounded-lg border border-stone-700 px-3 text-xs font-medium text-stone-200 disabled:opacity-60"
-                                  >
-                                    {product.available
-                                      ? "Marcar indisponível"
-                                      : "Marcar disponível"}
-                                  </button>
-                                ) : null}
-                                {canToggleActive ? (
-                                  <button
-                                    type="button"
-                                    data-testid={`admin-menu-toggle-active-${product.id}`}
-                                    disabled={isPending}
-                                    onClick={() =>
-                                      toggleActive(product.id, !product.active)
-                                    }
-                                    className="h-9 rounded-lg border border-amber-500/40 px-3 text-xs font-medium text-amber-100 disabled:opacity-60"
-                                  >
-                                    {product.active
-                                      ? "Ocultar do cardápio"
-                                      : "Publicar no cardápio"}
-                                  </button>
-                                ) : null}
-                              </div>
-                            </div>
-                            {canUpdateProduct ? (
-                              <div className="mt-4 border-t border-stone-800 pt-4">
-                                <ProductForm
-                                  mode="edit"
-                                  categories={catalog.categories}
-                                  product={product}
-                                  canSubmit={canUpdateProduct}
-                                />
-                              </div>
-                            ) : null}
-                          </li>
-                        ))
-                      )}
-                    </ul>
+                            product={product}
+                            categories={catalog.categories}
+                            canUpdateProduct={canUpdateProduct}
+                            canToggleAvailability={canToggleAvailability}
+                            canToggleActive={canToggleActive}
+                          />
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 ) : null}
               </section>
