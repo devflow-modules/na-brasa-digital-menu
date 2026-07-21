@@ -108,6 +108,32 @@ $env:CONFIRM_PURGE_NA_BRAZA_TEST_RECORDS="true"; pnpm data:purge-na-braza-tests
 - Não usa `Teste` genérico em nomes de cliente para delete automático (apenas aviso no dry-run).
 - Idempotente: após purga bem-sucedida, novo dry-run deve listar **0** candidatos.
 
+## Remoção de resíduos do seed antigo (catálogo)
+
+Quando o cardápio piloto publicado já é o catálogo real e ainda restam produtos/categorias **inativos** do seed inicial, use:
+
+```powershell
+pnpm data:remove-na-braza-legacy-seed
+$env:CONFIRM_REMOVE_NA_BRAZA_LEGACY_SEED="true"; pnpm data:remove-na-braza-legacy-seed
+```
+
+- Escopo: loja `na-brasa` apenas.
+- Seleção por **allowlist auditada** de nomes (não por `active=false` genérico).
+- Bloqueia se qualquer candidato estiver ativo/disponível ou colidir com o piloto.
+- Remove vínculos `ProductAddon` exclusivos; `OrderItem.productId` usa `SetNull` (snapshots preservados).
+- Remove categorias legadas só se ficarem vazias e não forem do piloto.
+- Idempotente: reexecutar dry-run após apply deve listar 0 candidatos.
+
+### Registro — limpeza aplicada (2026-07-21)
+
+| Item | Resultado |
+| --- | --- |
+| Produtos inativos do seed removidos | 8 |
+| Vínculos `ProductAddon` removidos | 15 |
+| Categorias vazias antigas removidas | 5 |
+| Produtos ativos do piloto preservados | 17 |
+| Produtos fora do piloto no público | 0 |
+
 ## Como o dono opera o painel
 
 1. Abra a URL do app em produção (ex.: `https://seu-dominio/admin/login`)
