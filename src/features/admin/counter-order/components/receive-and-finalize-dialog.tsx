@@ -11,7 +11,7 @@ import { formatMoney } from "@/features/menu/format-money";
 import { finalizeCounterOrderAction } from "@/features/orders/actions/finalize-counter-order-action";
 import { parseCurrencyToCents } from "@/features/orders/utils/parse-currency-to-cents";
 
-type PaymentMethod = "CASH" | "PIX" | "CARD";
+type PaymentMethod = "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD";
 
 type ReceiveAndFinalizeDialogProps = {
   orderId: string;
@@ -23,7 +23,8 @@ type ReceiveAndFinalizeDialogProps = {
 const METHODS: Array<{ value: PaymentMethod; label: string }> = [
   { value: "CASH", label: "Dinheiro" },
   { value: "PIX", label: "Pix" },
-  { value: "CARD", label: "Cartão" },
+  { value: "DEBIT_CARD", label: "Cartão de débito" },
+  { value: "CREDIT_CARD", label: "Cartão de crédito" },
 ];
 
 export function ReceiveAndFinalizeDialog({

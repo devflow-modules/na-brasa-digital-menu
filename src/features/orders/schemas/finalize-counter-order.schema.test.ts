@@ -29,7 +29,7 @@ describe("finalizeCounterOrderSchema", () => {
     assert.equal(greater.success, true);
   });
 
-  it("accepts pix and card without changeForCents", () => {
+  it("accepts pix, debit and credit without changeForCents", () => {
     assert.equal(
       finalizeCounterOrderSchema.safeParse({
         orderId: "order_1",
@@ -40,9 +40,26 @@ describe("finalizeCounterOrderSchema", () => {
     assert.equal(
       finalizeCounterOrderSchema.safeParse({
         orderId: "order_1",
-        paymentMethod: "CARD",
+        paymentMethod: "DEBIT_CARD",
       }).success,
       true,
+    );
+    assert.equal(
+      finalizeCounterOrderSchema.safeParse({
+        orderId: "order_1",
+        paymentMethod: "CREDIT_CARD",
+      }).success,
+      true,
+    );
+  });
+
+  it("rejects legacy CARD on new finalize", () => {
+    assert.equal(
+      finalizeCounterOrderSchema.safeParse({
+        orderId: "order_1",
+        paymentMethod: "CARD",
+      }).success,
+      false,
     );
   });
 
@@ -82,7 +99,7 @@ describe("finalizeCounterOrderSchema", () => {
     );
   });
 
-  it("rejects changeForCents for pix and card", () => {
+  it("rejects changeForCents for pix and card methods", () => {
     assert.equal(
       finalizeCounterOrderSchema.safeParse({
         orderId: "order_1",
@@ -94,7 +111,15 @@ describe("finalizeCounterOrderSchema", () => {
     assert.equal(
       finalizeCounterOrderSchema.safeParse({
         orderId: "order_1",
-        paymentMethod: "CARD",
+        paymentMethod: "DEBIT_CARD",
+        changeForCents: 5000,
+      }).success,
+      false,
+    );
+    assert.equal(
+      finalizeCounterOrderSchema.safeParse({
+        orderId: "order_1",
+        paymentMethod: "CREDIT_CARD",
         changeForCents: 5000,
       }).success,
       false,
