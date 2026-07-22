@@ -13,7 +13,8 @@ BUILD (after REDUCE SCOPE)
 Classification: PLATFORM
 Issue: #103
 PR A (schema + recorder): merged
-PR B (lifecycle server): shipping
+PR B (lifecycle server): merged
+PR C (client Online): shipping
 Analytics SaaS / dashboard UI: not authorized
 InfiniteTap payment capture: vocabulary only (implement in #110)
 ```
@@ -22,8 +23,8 @@ InfiniteTap payment capture: vocabulary only (implement in #110)
 | --- | --- |
 | Product-grill | **BUILD** (após REDUCE SCOPE) |
 | PR A — schema + recorder + purge dry-run | **Feita** |
-| PR B — lifecycle server | **Autorizada / em curso** |
-| PR C — client Online | **Depois de B** |
+| PR B — lifecycle server | **Feita** |
+| PR C — client Online | **Autorizada / em curso** |
 | Dashboard / PostHog / Mixpanel | **Fora** |
 | Eventos InfiniteTap em runtime | **Fora** (#110) |
 
@@ -200,9 +201,14 @@ password, token, e qualquer chave fora da allowlist.
 * falha de telemetria não altera o fluxo operacional
 * sem client, sem WhatsApp handoff, sem consultas, sem InfiniteTap
 
-### PR C
+### PR C — client Online
 
-* `menu_viewed`, `product_added`, `checkout_started`, `whatsapp_handoff_started` no client
+* sessão anônima (`sessionId` UUID em `localStorage`)
+* `menu_viewed`, `product_added`, `checkout_started`, `whatsapp_handoff_started`
+* `POST /api/funnel-events` estrito e rate-limited
+* `storeId` + `dedupeKey` resolvidos só no servidor
+* falha de telemetria não bloqueia carrinho, checkout nem WhatsApp
+* sem PII; sem dashboard; sem InfiniteTap
 
 ---
 
@@ -231,6 +237,19 @@ password, token, e qualquer chave fora da allowlist.
 - [x] testes de serviços/transições
 - [x] sem client / WhatsApp / consultas / InfiniteTap
 
+## Critérios de aceite (PR C)
+
+- [x] sessão anônima em `localStorage` (UUID)
+- [x] `menu_viewed` / `product_added` / `checkout_started` / `whatsapp_handoff_started`
+- [x] endpoint público estrito; rejeita `storeId`, `dedupeKey` e PII
+- [x] `storeId` e `dedupeKey` resolvidos no servidor
+- [x] rate limit no ingest
+- [x] `product_added` dedupe por `occurrenceId`
+- [x] `whatsapp_handoff_started` prova acionamento do link, não entrega WhatsApp
+- [x] falha de telemetria não afeta checkout/WhatsApp
+- [x] testes unitários + E2E
+- [x] sem dashboard / InfiniteTap / consultas semanais
+
 ---
 
 ## Arquivos (PR A)
@@ -252,8 +271,23 @@ password, token, e qualquer chave fora da allowlist.
 * `package.json` (test entry)
 * este documento
 
+## Arquivos (PR C)
+
+* `src/app/api/funnel-events/route.ts`
+* `src/features/analytics/client-funnel-event.schema.ts` (+ test)
+* `src/features/analytics/ingest-client-funnel-event.ts` (+ test)
+* `src/features/analytics/funnel-rate-limit.ts` (+ test)
+* `src/features/analytics/funnel-session.ts`
+* `src/features/analytics/track-client-funnel-event.ts`
+* `src/features/analytics/components/funnel-*-tracker.tsx`
+* `src/features/menu/public-menu-page.tsx` / `menu-ordering-experience.tsx`
+* `src/features/checkout/checkout-form.tsx`
+* `tests/e2e/funnel-client-events.spec.ts`
+* `package.json` (test entry)
+* este documento
+
 ## Explicitamente fora
 
 PostHog/GA/dashboard · session replay · UTM · InfiniteTap runtime ·
 mudança de checkout/preço · ranking via eventos · job automático de purge ·
-eventos client · `whatsapp_handoff_started` · consultas semanais
+consultas semanais (#111 após merge da PR C)

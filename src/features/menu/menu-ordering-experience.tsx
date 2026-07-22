@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
+import {
+  createFunnelOccurrenceId,
+  trackClientFunnelEvent,
+} from "@/features/analytics/track-client-funnel-event";
 import { AddToCartPanel } from "@/features/cart/components/add-to-cart-panel";
 import { CartSummary } from "@/features/cart/components/cart-summary";
 import { useCart } from "@/features/cart/use-cart";
@@ -16,6 +20,7 @@ import { selectFeaturedProductsForDisplay } from "@/features/menu/select-feature
 
 type MenuOrderingExperienceProps = {
   menu: Pick<PublicMenu, "categories" | "featuredProducts">;
+  storeSlug: string;
   storeIsOpen: boolean;
   minimumOrderAmountCents?: number;
   deliveryEnabled?: boolean;
@@ -23,6 +28,7 @@ type MenuOrderingExperienceProps = {
 
 export function MenuOrderingExperience({
   menu,
+  storeSlug,
   storeIsOpen,
   minimumOrderAmountCents = 0,
   deliveryEnabled = false,
@@ -230,6 +236,13 @@ export function MenuOrderingExperience({
               productPriceCents: selectedProduct.priceCents,
               selectedAddons,
               quantity,
+            });
+            trackClientFunnelEvent({
+              storeSlug,
+              name: "product_added",
+              productId: selectedProduct.id,
+              quantity,
+              occurrenceId: createFunnelOccurrenceId(),
             });
             handleCloseAddToCart();
           }}

@@ -15,6 +15,16 @@ export const FUNNEL_EVENT_NAMES = [
 
 export type FunnelEventName = (typeof FUNNEL_EVENT_NAMES)[number];
 
+/** Events accepted from the public client ingest endpoint (PR C). */
+export const CLIENT_FUNNEL_EVENT_NAMES = [
+  "menu_viewed",
+  "product_added",
+  "checkout_started",
+  "whatsapp_handoff_started",
+] as const;
+
+export type ClientFunnelEventName = (typeof CLIENT_FUNNEL_EVENT_NAMES)[number];
+
 export const RESERVED_PAYMENT_EVENT_NAMES = [
   "payment_started",
   "payment_approved",
@@ -59,3 +69,5 @@ export const FUNNEL_EVENT_FORBIDDEN_PROPERTY_KEYS = [
   "password",
   "token",
 ] as const;
+
+export const FUNNEL_SESSION_STORAGE_KEY = "na-brasa:funnel-session";
