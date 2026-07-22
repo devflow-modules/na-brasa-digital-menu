@@ -11,20 +11,20 @@ skills `.cursor/skills/product-grill` e `.cursor/skills/revenue-centric-design`.
 ```text
 BUILD (after REDUCE SCOPE)
 Classification: PLATFORM
-Issue: #103
-PR A (schema + recorder): merged
-PR B (lifecycle server): merged
-PR C (client Online): shipping
+Issue: #103 (DONE) · #104 (weekly report)
+PR A/B/C (instrumentation): merged
+PR D (weekly report / #104): shipping
 Analytics SaaS / dashboard UI: not authorized
 InfiniteTap payment capture: vocabulary only (implement in #110)
+Observation window: #111 (after prod smoke)
 ```
 
 | Item | Classificação |
 | --- | --- |
-| Product-grill | **BUILD** (após REDUCE SCOPE) |
-| PR A — schema + recorder + purge dry-run | **Feita** |
-| PR B — lifecycle server | **Feita** |
-| PR C — client Online | **Autorizada / em curso** |
+| Product-grill (#103) | **BUILD** (após REDUCE SCOPE) · **DONE** |
+| PR A/B/C — instrumentação | **Feitas** |
+| Product-grill (#104) | **REDUCE SCOPE → BUILD** · PLATFORM |
+| PR D — consulta semanal | **Autorizada / em curso** |
 | Dashboard / PostHog / Mixpanel | **Fora** |
 | Eventos InfiniteTap em runtime | **Fora** (#110) |
 
@@ -210,6 +210,40 @@ password, token, e qualquer chave fora da allowlist.
 * falha de telemetria não bloqueia carrinho, checkout nem WhatsApp
 * sem PII; sem dashboard; sem InfiniteTap
 
+### PR D — consulta semanal (#104)
+
+* `pnpm report:weekly-funnel` + SQL Neon editável (`WITH params AS (...)`)
+* janela half-open `FROM <= t < TO` em `America/Sao_Paulo` → UTC
+* coorte de criação (`Order.createdAt` + status atual) separada de eventos lifecycle ocorridos
+* todos os `OrderStatus` + grupos open/completed/cancelled
+* receita/ticket só coorte criada no período e atualmente `COMPLETED`
+* top produtos: qty operacional (≠ CANCELLED) vs receita só `COMPLETED`
+* sem dashboard; sem PII no output
+
+#### Como rodar
+
+```bash
+# Semana calendário anterior (seg–dom America/Sao_Paulo)
+pnpm report:weekly-funnel
+
+# Janela explícita (TO exclusivo)
+FROM=2026-07-14 TO=2026-07-21 pnpm report:weekly-funnel
+
+STORE_SLUG=na-brasa REPORT_FORMAT=json pnpm report:weekly-funnel
+```
+
+SQL manual: [`scripts/sql/weekly-funnel-report.sql`](../../scripts/sql/weekly-funnel-report.sql).
+
+#### Smoke produção (8 eventos)
+
+Um pedido não cobre concluir e cancelar. Usar **dois pedidos** e sessão anônima nova
+(limpar `localStorage`, inclusive `na-brasa:funnel-session`):
+
+1. Pedido A: criar → handoff WhatsApp → confirmar → concluir
+2. Pedido B: criar → cancelar
+
+Depois validar os oito nomes, dedupe e ausência de PII; registrar início em #111.
+
 ---
 
 ## Critérios de aceite (PR A)
@@ -250,6 +284,16 @@ password, token, e qualquer chave fora da allowlist.
 - [x] testes unitários + E2E
 - [x] sem dashboard / InfiniteTap / consultas semanais
 
+## Critérios de aceite (PR D / #104)
+
+- [x] script reproduzível + SQL Neon com CTE `params`
+- [x] half-open `FROM <= t < TO`; semana em `America/Sao_Paulo`
+- [x] coorte de criação ≠ eventos lifecycle ocorridos
+- [x] todos os status + grupos derivados
+- [x] receita/ticket só COMPLETED da coorte de criação
+- [x] top produtos: qty operacional vs receita COMPLETED
+- [x] testes unitários; sem PII; sem dashboard
+
 ---
 
 ## Arquivos (PR A)
@@ -286,8 +330,17 @@ password, token, e qualquer chave fora da allowlist.
 * `package.json` (test entry)
 * este documento
 
+## Arquivos (PR D / #104)
+
+* `src/features/analytics/weekly-funnel-report-period.ts` (+ test)
+* `src/features/analytics/weekly-funnel-report.ts` (+ test)
+* `scripts/weekly-funnel-report.ts`
+* `scripts/sql/weekly-funnel-report.sql`
+* `package.json` (`report:weekly-funnel` + test entries)
+* este documento
+
 ## Explicitamente fora
 
 PostHog/GA/dashboard · session replay · UTM · InfiniteTap runtime ·
 mudança de checkout/preço · ranking via eventos · job automático de purge ·
-consultas semanais (#111 após merge da PR C)
+abandono perfeito por sessão · export Sheets
