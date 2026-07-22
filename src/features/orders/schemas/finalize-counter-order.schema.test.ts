@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { finalizeCounterOrderSchema } from "@/features/orders/schemas/finalize-counter-order.schema";
+import {
+  finalizeCounterOrderSchema,
+  isLegacyFinalizeCounterOrderInput,
+} from "@/features/orders/schemas/finalize-counter-order.schema";
 
 describe("finalizeCounterOrderSchema", () => {
   it("accepts cash without tendered amount (exact payment)", () => {
@@ -10,6 +13,8 @@ describe("finalizeCounterOrderSchema", () => {
     });
     assert.equal(parsed.success, true);
     if (!parsed.success) return;
+    assert.equal(isLegacyFinalizeCounterOrderInput(parsed.data), true);
+    if (!isLegacyFinalizeCounterOrderInput(parsed.data)) return;
     assert.equal(parsed.data.changeForCents, undefined);
   });
 
@@ -27,6 +32,17 @@ describe("finalizeCounterOrderSchema", () => {
       changeForCents: 5000,
     });
     assert.equal(greater.success, true);
+  });
+
+  it("accepts payments[] canonical shape", () => {
+    const parsed = finalizeCounterOrderSchema.safeParse({
+      orderId: "order_1",
+      payments: [
+        { method: "CASH", amountCents: 2000, tenderedCents: 5000 },
+        { method: "PIX", amountCents: 2200 },
+      ],
+    });
+    assert.equal(parsed.success, true);
   });
 
   it("accepts pix, debit and credit without changeForCents", () => {
@@ -63,7 +79,7 @@ describe("finalizeCounterOrderSchema", () => {
     );
   });
 
-  it("requires orderId and paymentMethod", () => {
+  it("requires orderId and paymentMethod or payments", () => {
     assert.equal(finalizeCounterOrderSchema.safeParse({}).success, false);
     assert.equal(
       finalizeCounterOrderSchema.safeParse({
@@ -126,7 +142,7 @@ describe("finalizeCounterOrderSchema", () => {
     );
   });
 
-  it("strips unknown server-controlled fields from output", () => {
+  it("rejects unknown server-controlled fields (strict)", () => {
     const parsed = finalizeCounterOrderSchema.safeParse({
       orderId: "order_1",
       paymentMethod: "PIX",
@@ -135,11 +151,17 @@ describe("finalizeCounterOrderSchema", () => {
       status: "COMPLETED",
       totalCents: 1,
     });
-    assert.equal(parsed.success, true);
-    if (!parsed.success) return;
-    assert.deepEqual(Object.keys(parsed.data).sort(), [
-      "orderId",
-      "paymentMethod",
-    ]);
+    assert.equal(parsed.success, false);
+  });
+
+  it("rejects mixing payments[] with legacy paymentMethod", () => {
+    assert.equal(
+      finalizeCounterOrderSchema.safeParse({
+        orderId: "order_1",
+        paymentMethod: "PIX",
+        payments: [{ method: "PIX", amountCents: 100 }],
+      }).success,
+      false,
+    );
   });
 });

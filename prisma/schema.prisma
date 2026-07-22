@@ -78,13 +78,14 @@ model Store {
   createdAt                DateTime   @default(now())
   updatedAt                DateTime   @updatedAt
 
-  categories   Category[]
-  products     Product[]
-  addons       Addon[]
-  addonGroups  AddonGroup[]
-  orders       Order[]
-  users        User[]
-  funnelEvents FunnelEvent[]
+  categories    Category[]
+  products      Product[]
+  addons        Addon[]
+  addonGroups   AddonGroup[]
+  orders        Order[]
+  orderPayments OrderPayment[]
+  users         User[]
+  funnelEvents  FunnelEvent[]
 }
 
 model User {
@@ -98,8 +99,9 @@ model User {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  store             Store?  @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  createdOrders     Order[] @relation("OrderCreatedByUser")
+  store             Store?         @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdOrders     Order[]        @relation("OrderCreatedByUser")
+  createdPayments   OrderPayment[] @relation("OrderPaymentCreatedByUser")
 
   @@index([storeId])
   @@index([role])
@@ -242,14 +244,38 @@ model Order {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
-  store         Store         @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  createdByUser User?         @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  store         Store          @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdByUser User?          @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
   items         OrderItem[]
+  payments      OrderPayment[]
   funnelEvents  FunnelEvent[]
 
+  @@unique([id, storeId])
   @@index([storeId, createdAt])
   @@index([storeId, status])
   @@index([source])
+}
+
+/// COUNTER tender lines. One row per method per order.
+/// amountCents applies to total; tenderedCents/changeCents only for CASH.
+model OrderPayment {
+  id              String        @id @default(cuid())
+  storeId         String
+  orderId         String
+  method          PaymentMethod
+  amountCents     Int
+  tenderedCents   Int?
+  changeCents     Int?
+  createdByUserId String?
+  createdAt       DateTime      @default(now())
+
+  store         Store  @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  order         Order  @relation(fields: [orderId, storeId], references: [id, storeId], onDelete: Cascade)
+  createdByUser User?  @relation("OrderPaymentCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([orderId, method])
+  @@index([storeId, createdAt])
+  @@index([orderId])
 }
 
 /// Append-only funnel telemetry. No PII. Server sets occurredAt.

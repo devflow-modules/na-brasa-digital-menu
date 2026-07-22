@@ -479,6 +479,10 @@ export async function cleanupE2eStores(): Promise<number> {
   await prisma.funnelEvent.deleteMany({
     where: { storeId: { in: storeIds } },
   });
+  // OrderPayment cascades from Order, but clear explicitly for leftover rows.
+  await prisma.orderPayment.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
   await prisma.order.deleteMany({
     where: {
       storeId: { in: storeIds },

@@ -34,9 +34,10 @@ export function formatDeliveryType(type: AdminDeliveryType): string {
 
 export function formatPaymentMethod(
   method: AdminPaymentMethod | null,
+  options?: { paid?: boolean },
 ): string {
   if (method == null) {
-    return "Pagamento pendente";
+    return options?.paid ? "Pagamento misto" : "Pagamento pendente";
   }
 
   return formatPaymentMethodLabel(method);

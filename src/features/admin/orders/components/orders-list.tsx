@@ -133,7 +133,9 @@ export function OrdersList({
                   {formatDeliveryType(order.deliveryType)}
                 </td>
                 <td className="px-4 py-3">
-                  {formatPaymentMethod(order.paymentMethod)}
+                  {formatPaymentMethod(order.paymentMethod, {
+                    paid: order.status === "COMPLETED",
+                  })}
                 </td>
                 <td className="px-4 py-3">{formatMoney(order.totalCents)}</td>
                 <td className="px-4 py-3">
@@ -189,7 +191,9 @@ export function OrdersList({
               <div>
                 <dt className="text-stone-500">Pagamento</dt>
                 <dd className="text-stone-200">
-                  {formatPaymentMethod(order.paymentMethod)}
+                  {formatPaymentMethod(order.paymentMethod, {
+                    paid: order.status === "COMPLETED",
+                  })}
                 </dd>
               </div>
               <div>

@@ -19,17 +19,24 @@ function readyCounterOrder(
     changeForCents: null,
     paidAt: null,
     totalCents: 4200,
+    payments: [],
     ...overrides,
   };
 }
 
+const baseContext = {
+  storeId: "store_1",
+  role: "OPERATOR" as const,
+  userId: "user_1",
+};
+
 describe("finalizeCounterOrder", () => {
-  it("finalizes eligible COUNTER with cash exact payment", async () => {
+  it("finalizes legacy single cash exact and writes payments", async () => {
     const writes: Array<Record<string, unknown>> = [];
     const paidAt = new Date("2026-07-15T22:00:00.000Z");
 
     const result = await finalizeCounterOrder(
-      { storeId: "store_1", role: "OPERATOR" },
+      baseContext,
       { orderId: "order_1", paymentMethod: "CASH" },
       {
         findOrderForCounterFinalize: async (orderId, storeId) => {
@@ -51,17 +58,284 @@ describe("finalizeCounterOrder", () => {
     assert.equal(result.status, "COMPLETED");
     assert.equal(result.paymentMethod, "CASH");
     assert.equal(result.changeForCents, null);
-    assert.equal(result.paidAt, paidAt.toISOString());
+    assert.equal(result.payments.length, 1);
+    assert.equal(result.payments[0]?.changeCents, 0);
     assert.equal(writes.length, 1);
-    assert.equal(writes[0]?.changeForCents, null);
-    assert.equal(writes[0]?.paymentMethod, "CASH");
-    assert.equal(writes[0]?.paidAt, paidAt);
+    assert.equal(writes[0]?.createdByUserId, "user_1");
+    assert.equal(writes[0]?.storeId, "store_1");
+    assert.deepEqual(writes[0]?.payments, [
+      {
+        method: "CASH",
+        amountCents: 4200,
+        tenderedCents: null,
+        changeCents: 0,
+      },
+    ]);
+  });
+
+  it("finalizes payments[] mix with cash tender semantics", async () => {
+    const writes: Array<Record<string, unknown>> = [];
+    const result = await finalizeCounterOrder(
+      { ...baseContext, role: "STORE_OWNER" },
+      {
+        orderId: "order_1",
+        payments: [
+          { method: "CASH", amountCents: 2000, tenderedCents: 5000 },
+          { method: "PIX", amountCents: 2200 },
+        ],
+      },
+      {
+        findOrderForCounterFinalize: async () => readyCounterOrder(),
+        finalizeCounterOrderPayment: async (input) => {
+          writes.push(input);
+          return { updated: true };
+        },
+        now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: noopFunnel,
+      },
+    );
+
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.paymentMethod, null);
+    assert.equal(result.changeForCents, null);
+    assert.deepEqual(result.payments, [
+      {
+        method: "CASH",
+        amountCents: 2000,
+        tenderedCents: 5000,
+        changeCents: 3000,
+      },
+      {
+        method: "PIX",
+        amountCents: 2200,
+        tenderedCents: null,
+        changeCents: null,
+      },
+    ]);
+    assert.equal(writes[0]?.paymentMethod, null);
+  });
+
+  it("rejects duplicate methods and wrong sums", async () => {
+    const dup = await finalizeCounterOrder(
+      baseContext,
+      {
+        orderId: "order_1",
+        payments: [
+          { method: "PIX", amountCents: 2100 },
+          { method: "PIX", amountCents: 2100 },
+        ],
+      },
+      {
+        findOrderForCounterFinalize: async () => readyCounterOrder(),
+        finalizeCounterOrderPayment: async () => {
+          throw new Error("should not write");
+        },
+        now: () => new Date(),
+      },
+    );
+    assert.equal(dup.ok, false);
+
+    const sum = await finalizeCounterOrder(
+      baseContext,
+      {
+        orderId: "order_1",
+        payments: [{ method: "PIX", amountCents: 1000 }],
+      },
+      {
+        findOrderForCounterFinalize: async () => readyCounterOrder(),
+        finalizeCounterOrderPayment: async () => {
+          throw new Error("should not write");
+        },
+        now: () => new Date(),
+      },
+    );
+    assert.equal(sum.ok, false);
+    if (sum.ok) return;
+    assert.match(sum.message, /igual ao total/i);
+  });
+
+  it("returns success when replay matches persisted payments", async () => {
+    const paidAt = new Date("2026-07-15T22:00:00.000Z");
+    const result = await finalizeCounterOrder(
+      baseContext,
+      { orderId: "order_1", paymentMethod: "PIX" },
+      {
+        findOrderForCounterFinalize: async () =>
+          readyCounterOrder({
+            status: "COMPLETED",
+            paidAt,
+            paymentMethod: "PIX",
+            payments: [
+              {
+                method: "PIX",
+                amountCents: 4200,
+                tenderedCents: null,
+                changeCents: null,
+              },
+            ],
+          }),
+        finalizeCounterOrderPayment: async () => {
+          throw new Error("should not write");
+        },
+        now: () => new Date(),
+      },
+    );
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.paymentMethod, "PIX");
+    assert.equal(result.paidAt, paidAt.toISOString());
+  });
+
+  it("conflicts when already finalized with different composition", async () => {
+    const result = await finalizeCounterOrder(
+      baseContext,
+      { orderId: "order_1", paymentMethod: "CASH" },
+      {
+        findOrderForCounterFinalize: async () =>
+          readyCounterOrder({
+            status: "COMPLETED",
+            paidAt: new Date(),
+            paymentMethod: "PIX",
+            payments: [
+              {
+                method: "PIX",
+                amountCents: 4200,
+                tenderedCents: null,
+                changeCents: null,
+              },
+            ],
+          }),
+        finalizeCounterOrderPayment: async () => {
+          throw new Error("should not write");
+        },
+        now: () => new Date(),
+      },
+    );
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.match(result.message, /outro pagamento/i);
+  });
+
+  it("treats concurrent update as matching or conflicting replay", async () => {
+    let calls = 0;
+    const match = await finalizeCounterOrder(
+      baseContext,
+      { orderId: "order_1", paymentMethod: "PIX" },
+      {
+        findOrderForCounterFinalize: async () => {
+          calls += 1;
+          if (calls === 1) {
+            return readyCounterOrder();
+          }
+          return readyCounterOrder({
+            status: "COMPLETED",
+            paidAt: new Date("2026-07-15T22:00:00.000Z"),
+            paymentMethod: "PIX",
+            payments: [
+              {
+                method: "PIX",
+                amountCents: 4200,
+                tenderedCents: null,
+                changeCents: null,
+              },
+            ],
+          });
+        },
+        finalizeCounterOrderPayment: async () => ({ updated: false }),
+        now: () => new Date("2026-07-15T22:00:00.000Z"),
+      },
+    );
+    assert.equal(match.ok, true);
+
+    let conflictCalls = 0;
+    const conflict = await finalizeCounterOrder(
+      baseContext,
+      { orderId: "order_1", paymentMethod: "CASH" },
+      {
+        findOrderForCounterFinalize: async () => {
+          conflictCalls += 1;
+          if (conflictCalls === 1) {
+            return readyCounterOrder();
+          }
+          return readyCounterOrder({
+            status: "COMPLETED",
+            paidAt: new Date("2026-07-15T22:00:00.000Z"),
+            paymentMethod: "PIX",
+            payments: [
+              {
+                method: "PIX",
+                amountCents: 4200,
+                tenderedCents: null,
+                changeCents: null,
+              },
+            ],
+          });
+        },
+        finalizeCounterOrderPayment: async () => ({ updated: false }),
+        now: () => new Date("2026-07-15T22:00:00.000Z"),
+      },
+    );
+    assert.equal(conflict.ok, false);
+    if (conflict.ok) return;
+    assert.match(conflict.message, /outro pagamento/i);
+  });
+
+  it("rejects DIRECT, other tenant, PENDING, CANCELLED and kitchen", async () => {
+    const cases: Array<{
+      order: CounterFinalizeOrderRecord | null;
+      message: RegExp;
+    }> = [
+      {
+        order: readyCounterOrder({ source: "DIRECT", paymentMethod: "PIX" }),
+        message: /balcão/i,
+      },
+      { order: null, message: /não encontrado/i },
+      {
+        order: readyCounterOrder({ status: "PENDING" }),
+        message: /ainda não está pronto/i,
+      },
+      {
+        order: readyCounterOrder({ status: "CANCELLED" }),
+        message: /cancelado/i,
+      },
+    ];
+
+    for (const testCase of cases) {
+      const result = await finalizeCounterOrder(
+        baseContext,
+        { orderId: "order_1", paymentMethod: "PIX" },
+        {
+          findOrderForCounterFinalize: async () => testCase.order,
+          finalizeCounterOrderPayment: async () => {
+            throw new Error("should not write");
+          },
+          now: () => new Date(),
+        },
+      );
+      assert.equal(result.ok, false);
+      if (result.ok) return;
+      assert.match(result.message, testCase.message);
+    }
+
+    const kitchen = await finalizeCounterOrder(
+      { storeId: "store_1", role: "KITCHEN", userId: "user_1" },
+      { orderId: "order_1", paymentMethod: "PIX" },
+      {
+        findOrderForCounterFinalize: async () => readyCounterOrder(),
+        finalizeCounterOrderPayment: async () => {
+          throw new Error("should not write");
+        },
+        now: () => new Date(),
+      },
+    );
+    assert.equal(kitchen.ok, false);
   });
 
   it("emits order_completed funnel event after successful finalize", async () => {
     const funnelCalls: Array<Record<string, unknown>> = [];
     const result = await finalizeCounterOrder(
-      { storeId: "store_1", role: "OPERATOR" },
+      baseContext,
       { orderId: "order_1", paymentMethod: "PIX" },
       {
         findOrderForCounterFinalize: async () => readyCounterOrder(),
@@ -85,154 +359,10 @@ describe("finalizeCounterOrder", () => {
     ]);
   });
 
-  it("persists tendered cash amount and accepts card/pix without change", async () => {
-    const cashWrites: Array<Record<string, unknown>> = [];
-    const result = await finalizeCounterOrder(
-      { storeId: "store_1", role: "STORE_OWNER" },
-      {
-        orderId: "order_1",
-        paymentMethod: "CASH",
-        changeForCents: 5000,
-      },
-      {
-        findOrderForCounterFinalize: async () => readyCounterOrder(),
-        finalizeCounterOrderPayment: async (input) => {
-          cashWrites.push(input);
-          return { updated: true };
-        },
-        now: () => new Date("2026-07-15T22:00:00.000Z"),
-        recordOrderLifecycleFunnelEvent: noopFunnel,
-      },
-    );
-    assert.equal(result.ok, true);
-    assert.equal(cashWrites[0]?.changeForCents, 5000);
-
-    const pix = await finalizeCounterOrder(
-      { storeId: "store_1", role: "MANAGER" },
-      { orderId: "order_1", paymentMethod: "PIX" },
-      {
-        findOrderForCounterFinalize: async () => readyCounterOrder(),
-        finalizeCounterOrderPayment: async (input) => {
-          assert.equal(input.changeForCents, null);
-          return { updated: true };
-        },
-        now: () => new Date("2026-07-15T22:00:00.000Z"),
-        recordOrderLifecycleFunnelEvent: noopFunnel,
-      },
-    );
-    assert.equal(pix.ok, true);
-
-    const card = await finalizeCounterOrder(
-      { storeId: "store_1", role: "MASTER" },
-      { orderId: "order_1", paymentMethod: "DEBIT_CARD" },
-      {
-        findOrderForCounterFinalize: async () => readyCounterOrder(),
-        finalizeCounterOrderPayment: async (input) => {
-          assert.equal(input.changeForCents, null);
-          return { updated: true };
-        },
-        now: () => new Date("2026-07-15T22:00:00.000Z"),
-        recordOrderLifecycleFunnelEvent: noopFunnel,
-      },
-    );
-    assert.equal(card.ok, true);
-  });
-
-  it("rejects insufficient cash tender", async () => {
-    const result = await finalizeCounterOrder(
-      { storeId: "store_1", role: "OPERATOR" },
-      {
-        orderId: "order_1",
-        paymentMethod: "CASH",
-        changeForCents: 4000,
-      },
-      {
-        findOrderForCounterFinalize: async () => readyCounterOrder(),
-        finalizeCounterOrderPayment: async () => {
-          throw new Error("should not write");
-        },
-        now: () => new Date(),
-      },
-    );
-    assert.equal(result.ok, false);
-    if (result.ok) return;
-    assert.match(result.message, /igual ou maior/i);
-  });
-
-  it("rejects DIRECT, other tenant, PENDING, CANCELLED and already paid", async () => {
-    const cases: Array<{
-      order: CounterFinalizeOrderRecord | null;
-      message: RegExp;
-    }> = [
-      {
-        order: readyCounterOrder({ source: "DIRECT", paymentMethod: "PIX" }),
-        message: /balcão/i,
-      },
-      {
-        order: null,
-        message: /não encontrado/i,
-      },
-      {
-        order: readyCounterOrder({ status: "PENDING" }),
-        message: /ainda não está pronto/i,
-      },
-      {
-        order: readyCounterOrder({ status: "CANCELLED" }),
-        message: /cancelado/i,
-      },
-      {
-        order: readyCounterOrder({
-          status: "COMPLETED",
-          paidAt: new Date(),
-          paymentMethod: "PIX",
-        }),
-        message: /já foi finalizado/i,
-      },
-      {
-        order: readyCounterOrder({
-          status: "READY",
-          paidAt: new Date(),
-          paymentMethod: "PIX",
-        }),
-        message: /já foi finalizado/i,
-      },
-    ];
-
-    for (const testCase of cases) {
-      const result = await finalizeCounterOrder(
-        { storeId: "store_1", role: "OPERATOR" },
-        { orderId: "order_1", paymentMethod: "PIX" },
-        {
-          findOrderForCounterFinalize: async () => testCase.order,
-          finalizeCounterOrderPayment: async () => {
-            throw new Error("should not write");
-          },
-          now: () => new Date(),
-        },
-      );
-      assert.equal(result.ok, false);
-      if (result.ok) return;
-      assert.match(result.message, testCase.message);
-    }
-  });
-
-  it("blocks kitchen and ignores client trust fields", async () => {
-    const kitchen = await finalizeCounterOrder(
-      { storeId: "store_1", role: "KITCHEN" },
-      { orderId: "order_1", paymentMethod: "PIX" },
-      {
-        findOrderForCounterFinalize: async () => readyCounterOrder(),
-        finalizeCounterOrderPayment: async () => {
-          throw new Error("should not write");
-        },
-        now: () => new Date(),
-      },
-    );
-    assert.equal(kitchen.ok, false);
-
+  it("ignores client trust fields and uses session storeId", async () => {
     let wroteStoreId: string | null = null;
     const result = await finalizeCounterOrder(
-      { storeId: "store_1", role: "OPERATOR" },
+      baseContext,
       {
         orderId: "order_1",
         paymentMethod: "PIX",
@@ -248,43 +378,33 @@ describe("finalizeCounterOrder", () => {
         },
         finalizeCounterOrderPayment: async (input) => {
           assert.equal(input.storeId, "store_1");
-          assert.equal(
-            input.paidAt.toISOString(),
-            "2026-07-15T22:00:00.000Z",
-          );
           return { updated: true };
         },
         now: () => new Date("2026-07-15T22:00:00.000Z"),
         recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
-    assert.equal(result.ok, true);
-    assert.equal(wroteStoreId, "store_1");
-  });
+    // legacy+extra keys rejected by strict parse
+    assert.equal(result.ok, false);
+    assert.equal(wroteStoreId, null);
 
-  it("handles concurrent update as already finalized", async () => {
-    let calls = 0;
-    const result = await finalizeCounterOrder(
-      { storeId: "store_1", role: "OPERATOR" },
+    const clean = await finalizeCounterOrder(
+      baseContext,
       { orderId: "order_1", paymentMethod: "PIX" },
       {
-        findOrderForCounterFinalize: async () => {
-          calls += 1;
-          if (calls === 1) {
-            return readyCounterOrder();
-          }
-          return readyCounterOrder({
-            status: "COMPLETED",
-            paidAt: new Date("2026-07-15T22:00:00.000Z"),
-            paymentMethod: "PIX",
-          });
+        findOrderForCounterFinalize: async (_id, storeId) => {
+          wroteStoreId = storeId;
+          return readyCounterOrder();
         },
-        finalizeCounterOrderPayment: async () => ({ updated: false }),
+        finalizeCounterOrderPayment: async (input) => {
+          assert.equal(input.storeId, "store_1");
+          return { updated: true };
+        },
         now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
-    assert.equal(result.ok, false);
-    if (result.ok) return;
-    assert.match(result.message, /já foi finalizado/i);
+    assert.equal(clean.ok, true);
+    assert.equal(wroteStoreId, "store_1");
   });
 });

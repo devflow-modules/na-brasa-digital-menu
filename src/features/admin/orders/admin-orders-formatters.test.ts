@@ -28,6 +28,10 @@ describe("admin-orders-formatters domain compatibility", () => {
 
   it("formats null paymentMethod as Pagamento pendente", () => {
     assert.equal(formatPaymentMethod(null), "Pagamento pendente");
+    assert.equal(
+      formatPaymentMethod(null, { paid: true }),
+      "Pagamento misto",
+    );
   });
 
   it("keeps known payment method labels", () => {

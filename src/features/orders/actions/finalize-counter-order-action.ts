@@ -29,6 +29,7 @@ export async function finalizeCounterOrderAction(
       {
         storeId: context.storeId,
         role: context.role,
+        userId: context.session.userId,
       },
       input,
     );

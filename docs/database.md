@@ -58,7 +58,8 @@ Login **runtime** em `/admin/login` usa `User` + bcrypt. Sessão JWT inclui `use
 - **`customerPhone` / `paymentMethod`** — opcionais no modelo persistido compartilhado; o checkout público `DIRECT` continua exigindo ambos; COUNTER preenche `paymentMethod` só no recebimento
 - **`createdByUserId`** — operador que abriu a comanda (`onDelete: SetNull`); preenchido pelo service autenticado de criação; nunca do payload livre do client
 - **`paidAt`** — preenchido no servidor ao confirmar recebimento COUNTER (`finalizeCounterOrder`); pedidos existentes / DIRECT sem esse fluxo permanecem `null` (não reinterpretar `DIRECT` como “não pago” só por isso)
-- **`changeForCents`** — valor entregue pelo cliente em `CASH` (pagamento exato = `null`); troco de apresentação = `changeForCents - totalCents`; Pix/cartão (débito/crédito) persistem `null`
+- **`changeForCents`** — espelho legado: valor **entregue** pelo cliente em `CASH` no finalize single-tender (pagamento exato = `null`); troco de apresentação legado = `changeForCents - totalCents`. Em pagamento misto fica `null` (ver `OrderPayment`)
+- **`OrderPayment`** — parcelas de recebimento (Balcão); uma linha por `method` por pedido (`@@unique([orderId, method])`); FK composta `(orderId, storeId)` → `Order`; `amountCents` = valor aplicado ao total; `tenderedCents`/`changeCents` só em `CASH` (`changeCents` calculado no servidor). Sem `provider`/InfiniteTap nesta fatia
 - **`PaymentMethod`** — novos pedidos usam `CASH` / `PIX` / `DEBIT_CARD` / `CREDIT_CARD`; `CARD` permanece no enum só para histórico sem tipo de cartão documentado (não disponível na UI de criação)
 
 Regra multi-tenant futura (service, não schema): `storeId` e `createdByUserId` vêm do contexto autenticado; o service valida vínculo do usuário com a Store; o catálogo resolve pelo mesmo `storeId`.
