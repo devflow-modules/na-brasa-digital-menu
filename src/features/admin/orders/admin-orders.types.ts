@@ -47,6 +47,14 @@ export type AdminOrderItemDetail = {
   addons: AdminOrderAddonDetail[];
 };
 
+export type AdminOrderPaymentDetail = {
+  id: string;
+  method: AdminPaymentMethod;
+  amountCents: number;
+  tenderedCents: number | null;
+  changeCents: number | null;
+};
+
 export type AdminOrderDetail = {
   id: string;
   code: string;
@@ -65,6 +73,7 @@ export type AdminOrderDetail = {
   totalCents: number;
   whatsappMessage: string | null;
   createdAt: Date;
+  payments: AdminOrderPaymentDetail[];
   items: AdminOrderItemDetail[];
 };
 

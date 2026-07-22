@@ -21,6 +21,7 @@ function baseOrder(
     source: "DIRECT",
     deliveryType: "PICKUP",
     paymentMethod: "PIX",
+    payments: [],
     subtotalCents: 2000,
     deliveryFeeCents: 0,
     totalCents: 2000,
@@ -242,5 +243,46 @@ describe("aggregateDailyClosingReport", () => {
     assert.ok(
       report.notes.some((note) => note.includes("1 pedido ainda aberto")),
     );
+  });
+
+  it("uses OrderPayment exclusively and never mixes with legacy paymentMethod", () => {
+    const report = aggregateDailyClosingReport({
+      storeName: "Na Braza",
+      period: period(),
+      orders: [
+        baseOrder({
+          code: "MIX1",
+          source: "COUNTER",
+          paymentMethod: "PIX",
+          totalCents: 5000,
+          subtotalCents: 5000,
+          payments: [
+            { method: "CASH", amountCents: 2000 },
+            { method: "PIX", amountCents: 3000 },
+          ],
+        }),
+        baseOrder({
+          code: "LEG1",
+          paymentMethod: "DEBIT_CARD",
+          totalCents: 1500,
+          subtotalCents: 1500,
+          payments: [],
+        }),
+      ],
+    });
+
+    assert.equal(report.summary.splitTenderCompletedOrders, 1);
+    const byPay = Object.fromEntries(
+      report.payments.map((row) => [row.method, row]),
+    );
+    assert.equal(byPay.CASH?.amountCents, 2000);
+    assert.equal(byPay.PIX?.amountCents, 3000);
+    assert.equal(byPay.DEBIT_CARD?.amountCents, 1500);
+    // Must not double-count MIX1's legacy PIX mirror.
+    assert.equal(
+      byPay.CASH!.amountCents + byPay.PIX!.amountCents + byPay.DEBIT_CARD!.amountCents,
+      6500,
+    );
+    assert.ok(report.notes.some((note) => note.includes("pagamento misto")));
   });
 });

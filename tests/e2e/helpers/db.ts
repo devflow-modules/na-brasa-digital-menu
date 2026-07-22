@@ -541,6 +541,13 @@ export async function getOrderStatus(orderId: string): Promise<OrderStatus> {
   return order.status;
 }
 
+export type E2eOrderPaymentLineSnapshot = {
+  method: PaymentMethod;
+  amountCents: number;
+  tenderedCents: number | null;
+  changeCents: number | null;
+};
+
 export type E2eOrderPaymentSnapshot = {
   id: string;
   storeId: string;
@@ -553,6 +560,7 @@ export type E2eOrderPaymentSnapshot = {
   totalCents: number;
   createdByUserId: string | null;
   customerName: string;
+  payments: E2eOrderPaymentLineSnapshot[];
 };
 
 export async function getOrderPaymentSnapshot(
@@ -573,6 +581,15 @@ export async function getOrderPaymentSnapshot(
       totalCents: true,
       createdByUserId: true,
       customerName: true,
+      payments: {
+        select: {
+          method: true,
+          amountCents: true,
+          tenderedCents: true,
+          changeCents: true,
+        },
+        orderBy: { method: "asc" },
+      },
     },
   });
 }

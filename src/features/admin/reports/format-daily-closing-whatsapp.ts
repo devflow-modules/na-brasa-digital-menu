@@ -69,6 +69,7 @@ export function formatDailyClosingWhatsapp(report: DailyClosingReport): string {
     `Taxas de entrega: ${formatMoney(report.summary.deliveryFeesCents)}`,
     `*Total vendido: ${formatMoney(report.summary.grossTotalCents)}*`,
     `Ticket médio: ${formatMoney(report.summary.averageTicketCents)}`,
+    `Pagamento misto: ${report.summary.splitTenderCompletedOrders}`,
   );
 
   if (report.payments.length > 0) {

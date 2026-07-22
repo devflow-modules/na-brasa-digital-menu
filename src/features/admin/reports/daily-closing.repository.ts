@@ -25,6 +25,12 @@ export async function listOrdersForDailyClosing(options: {
       source: true,
       deliveryType: true,
       paymentMethod: true,
+      payments: {
+        select: {
+          method: true,
+          amountCents: true,
+        },
+      },
       subtotalCents: true,
       deliveryFeeCents: true,
       totalCents: true,

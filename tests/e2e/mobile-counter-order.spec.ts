@@ -110,5 +110,13 @@ test.describe("mobile counter order", () => {
     const paid = await getOrderPaymentSnapshot(created.id);
     expect(paid.paymentMethod).toBe("PIX");
     expect(paid.paidAt).not.toBeNull();
+    expect(paid.payments).toEqual([
+      {
+        method: "PIX",
+        amountCents: paid.totalCents,
+        tenderedCents: null,
+        changeCents: null,
+      },
+    ]);
   });
 });

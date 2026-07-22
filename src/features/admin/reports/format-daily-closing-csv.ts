@@ -183,6 +183,11 @@ export function formatDailyClosingCsv(
         formatCsvMoney(report.summary.grossTotalCents),
       ],
       ["Ticket médio", "", formatCsvMoney(report.summary.averageTicketCents)],
+      [
+        "Comandas com pagamento misto",
+        report.summary.splitTenderCompletedOrders,
+        "",
+      ],
     ]),
   );
   lines.push("");

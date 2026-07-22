@@ -14,6 +14,7 @@ import type { AdminOrderDetail } from "@/features/admin/orders/admin-orders.type
 import { OrderSourceBadge } from "@/features/admin/orders/components/order-source-badge";
 import { OrderStatusBadge } from "@/features/admin/orders/components/order-status-badge";
 import { OrderStatusActions } from "@/features/admin/orders/components/order-status-actions";
+import { formatPaymentMethodLabel } from "@/features/orders/payment-method";
 
 type OrderDetailCardProps = {
   order: AdminOrderDetail;
@@ -27,8 +28,11 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
     order.paidAt == null &&
     hasAdminPermission(role, "orders.status.complete");
 
-  const cashChangeCents =
-    order.paymentMethod === "CASH" && typeof order.changeForCents === "number"
+  const hasPaymentLines = order.payments.length > 0;
+  const legacyCashChangeCents =
+    !hasPaymentLines &&
+    order.paymentMethod === "CASH" &&
+    typeof order.changeForCents === "number"
       ? computeCashChangeCents(order.totalCents, order.changeForCents)
       : null;
 
@@ -93,7 +97,8 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
               {formatPaymentMethod(order.paymentMethod, {
                 paid: order.paidAt != null,
               })}
-              {order.source !== "COUNTER" &&
+              {!hasPaymentLines &&
+              order.source !== "COUNTER" &&
               typeof order.changeForCents === "number" ? (
                 <span className="text-stone-400">
                   {" "}
@@ -113,7 +118,37 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
               </dd>
             </div>
           ) : null}
-          {order.source === "COUNTER" &&
+          {hasPaymentLines ? (
+            <div className="sm:col-span-2">
+              <dt className="text-xs text-stone-500">Parcelas</dt>
+              <dd className="mt-1">
+                <ul
+                  data-testid="order-payment-lines"
+                  className="flex flex-col gap-1 text-stone-100"
+                >
+                  {order.payments.map((payment) => (
+                    <li
+                      key={payment.id}
+                      data-testid={`order-payment-line-${payment.method}`}
+                    >
+                      {formatPaymentMethodLabel(payment.method)}:{" "}
+                      {formatMoney(payment.amountCents)}
+                      {payment.method === "CASH" &&
+                      payment.tenderedCents != null
+                        ? ` · entregue ${formatMoney(payment.tenderedCents)}`
+                        : null}
+                      {payment.method === "CASH" &&
+                      payment.changeCents != null
+                        ? ` · troco ${formatMoney(payment.changeCents)}`
+                        : null}
+                    </li>
+                  ))}
+                </ul>
+              </dd>
+            </div>
+          ) : null}
+          {!hasPaymentLines &&
+          order.source === "COUNTER" &&
           order.paymentMethod === "CASH" &&
           typeof order.changeForCents === "number" ? (
             <div className="sm:col-span-2">
@@ -123,8 +158,8 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
                 className="mt-1 text-stone-100"
               >
                 Recebido {formatMoney(order.changeForCents)}
-                {cashChangeCents != null
-                  ? ` · troco ${formatMoney(cashChangeCents)}`
+                {legacyCashChangeCents != null
+                  ? ` · troco ${formatMoney(legacyCashChangeCents)}`
                   : null}
               </dd>
             </div>

@@ -134,9 +134,12 @@ test.describe("admin daily closing CSV export", () => {
 
     const path = await download.path();
     expect(path).toBeTruthy();
-    const raw = readFileSync(path!, "utf8");
-    expect(raw.startsWith("\uFEFF")).toBeTruthy();
-    const csv = normalizeCsv(raw);
+    const rawBytes = readFileSync(path!);
+    // Assert UTF-8 BOM as bytes (more reliable than decoding then checking U+FEFF).
+    expect(rawBytes.subarray(0, 3)).toEqual(
+      Buffer.from([0xef, 0xbb, 0xbf]),
+    );
+    const csv = normalizeCsv(rawBytes.toString("utf8"));
 
     expect(csv).toContain("FECHAMENTO OPERACIONAL");
     expect(csv).toContain("RESUMO");

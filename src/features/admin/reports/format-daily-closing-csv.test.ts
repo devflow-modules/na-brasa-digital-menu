@@ -32,6 +32,7 @@ function baseReport(
         source: "DIRECT",
         deliveryType: "DELIVERY",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 1999,
         deliveryFeeCents: 600,
         totalCents: 2599,
@@ -59,6 +60,7 @@ function baseReport(
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "CASH",
+        payments: [],
         subtotalCents: 3500,
         deliveryFeeCents: 0,
         totalCents: 3500,
@@ -80,6 +82,7 @@ function baseReport(
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 5000,
         deliveryFeeCents: 0,
         totalCents: 5000,
@@ -151,6 +154,7 @@ describe("formatDailyClosingCsv", () => {
     assert.ok(body.includes("Subtotal de produtos;;19,99"));
     assert.ok(body.includes("Taxas de entrega;;6,00"));
     assert.ok(body.includes("Total vendido em pedidos concluídos;;25,99"));
+    assert.ok(body.includes("Comandas com pagamento misto;0;"));
     assert.ok(body.includes("Pix;1;25,99;"));
     assert.ok(body.includes("X-Burger;1;19,99"));
     assert.ok(body.includes("Bacon;1;2,00"));
