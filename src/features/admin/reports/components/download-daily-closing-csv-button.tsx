@@ -9,6 +9,15 @@ type DownloadDailyClosingCsvButtonProps = {
   mimeType?: string;
 };
 
+/** Explicit UTF-8 BOM bytes — string U+FEFF can be lost across the RSC→client boundary. */
+const UTF8_BOM_BYTES = new Uint8Array([0xef, 0xbb, 0xbf]);
+
+function buildCsvBlob(content: string, mimeType: string): Blob {
+  const withoutBom = content.startsWith("\uFEFF") ? content.slice(1) : content;
+  const body = new TextEncoder().encode(withoutBom);
+  return new Blob([UTF8_BOM_BYTES, body], { type: mimeType });
+}
+
 export function DownloadDailyClosingCsvButton({
   content,
   filename,
@@ -18,7 +27,7 @@ export function DownloadDailyClosingCsvButton({
 
   function onDownload() {
     try {
-      const blob = new Blob([content], { type: mimeType });
+      const blob = buildCsvBlob(content, mimeType);
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
