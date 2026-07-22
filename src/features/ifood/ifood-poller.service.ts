@@ -240,6 +240,7 @@ export async function runIfoodPollCycle(options: {
             externalEventId: event.id,
             fullCode,
             eventAt,
+            receivedAt: now,
           });
         }
 

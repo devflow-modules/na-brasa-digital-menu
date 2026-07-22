@@ -135,12 +135,13 @@ export async function catchUpIfoodCommandFromInbox(input: {
   });
 
   for (const event of events) {
-    const eventAt =
-      ifoodEventCreatedAtFromPayload(event.payload) ?? event.receivedAt;
-    // Reject confirming events from a prior cycle (before this logical command).
-    if (eventAt.getTime() < input.command.createdAt.getTime()) {
+    // Local barrier only — do not compare iFood clocks to app clocks (#124).
+    if (event.receivedAt.getTime() < input.command.createdAt.getTime()) {
       continue;
     }
+
+    const eventAt =
+      ifoodEventCreatedAtFromPayload(event.payload) ?? event.receivedAt;
 
     await correlateIfoodCommandFromEvent({
       prisma: input.prisma,
@@ -149,6 +150,7 @@ export async function catchUpIfoodCommandFromInbox(input: {
       externalEventId: event.externalEventId,
       fullCode: event.fullCode,
       eventAt,
+      receivedAt: event.receivedAt,
       commandId: input.command.id,
     });
     break;
@@ -339,12 +341,20 @@ export async function correlateIfoodCommandFromEvent(input: {
   externalOrderId: string;
   externalEventId: string;
   fullCode: string | null;
+  /** External iFood event time — stored on confirmedAt / lifecycle only. */
   eventAt: Date;
+  /**
+   * Local receive time for the age barrier (`receivedAt >= command.createdAt`).
+   * Defaults to `eventAt` only when callers omit it (tests).
+   */
+  receivedAt?: Date;
   /** Optional: restrict to one logical command row (catch-up). */
   commandId?: string;
 }): Promise<number> {
   const type = commandConfirmedByFullCode(input.fullCode);
   if (!type) return 0;
+
+  const receivedAt = input.receivedAt ?? input.eventAt;
 
   const result = await input.prisma.ifoodOrderCommand.updateMany({
     where: {
@@ -352,8 +362,8 @@ export async function correlateIfoodCommandFromEvent(input: {
       connectionId: input.connectionId,
       type,
       status: { in: ["PENDING", "ACCEPTED"] },
-      // event.createdAt >= command.createdAt
-      createdAt: { lte: input.eventAt },
+      // IfoodEvent.receivedAt >= command.createdAt (same clock domain)
+      createdAt: { lte: receivedAt },
       order: { externalOrderId: input.externalOrderId },
     },
     data: {

@@ -286,6 +286,7 @@ describe("executeIfoodOrderCommand", () => {
       externalEventId: "evt-confirmed",
       fullCode: "CONFIRMED",
       eventAt: new Date("2026-07-22T19:00:05.000Z"),
+      receivedAt: new Date("2026-07-22T19:00:06.000Z"),
     });
 
     const command = [...prisma._commands.values()][0];
@@ -304,7 +305,8 @@ describe("catch-up correlation (#124)", () => {
         {
           externalEventId: "evt-confirmed",
           fullCode: "CONFIRMED",
-          payload: { createdAt: "2026-07-22T19:07:47.350Z" },
+          // External clock skew: iFood createdAt before local command.createdAt
+          payload: { createdAt: "2026-07-22T19:07:46.500Z" },
           receivedAt: new Date("2026-07-22T19:07:50.000Z"),
           externalOrderId: "external-1",
           connectionId: "conn-1",
@@ -325,6 +327,11 @@ describe("catch-up correlation (#124)", () => {
     assert.equal(result.httpStatus, 202);
     assert.equal(result.replay, false);
     assert.equal(prisma._attempts.size, 1);
+    const command = [...prisma._commands.values()][0];
+    assert.equal(
+      (command?.confirmedAt as Date).toISOString(),
+      "2026-07-22T19:07:46.500Z",
+    );
   });
 
   it("leaves ACCEPTED when no confirming event exists yet (poller path)", async () => {
@@ -451,14 +458,15 @@ describe("catch-up correlation (#124)", () => {
     assert.equal(result.status, "ACCEPTED");
   });
 
-  it("rejects a confirming event older than the command createdAt", async () => {
+  it("rejects a confirming event received before the command was reserved", async () => {
     const commandAt = new Date("2026-07-22T19:00:00.000Z");
     const prisma = fakePrisma({
       inboxEvents: [
         {
           externalEventId: "evt-stale",
           fullCode: "CONFIRMED",
-          payload: { createdAt: "2026-07-22T18:59:00.000Z" },
+          // Fresh external timestamp must not bypass a stale local receivedAt.
+          payload: { createdAt: "2026-07-22T19:00:30.000Z" },
           receivedAt: new Date("2026-07-22T18:59:01.000Z"),
           externalOrderId: "external-1",
           connectionId: "conn-1",
@@ -482,7 +490,8 @@ describe("catch-up correlation (#124)", () => {
       externalOrderId: "external-1",
       externalEventId: "evt-stale",
       fullCode: "CONFIRMED",
-      eventAt: new Date("2026-07-22T18:59:00.000Z"),
+      eventAt: new Date("2026-07-22T19:00:30.000Z"),
+      receivedAt: new Date("2026-07-22T18:59:01.000Z"),
     });
     assert.equal(count, 0);
   });
