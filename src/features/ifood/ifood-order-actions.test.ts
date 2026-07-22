@@ -3,7 +3,9 @@ import { describe, it } from "node:test";
 import {
   assertIfoodCommandAllowed,
   commandConfirmedByFullCode,
+  confirmingFullCodesForCommand,
   IfoodOrderActionBlockedError,
+  ifoodEventCreatedAtFromPayload,
   resolveIfoodTerminalCommand,
 } from "@/features/ifood/ifood-order-actions";
 
@@ -94,5 +96,12 @@ describe("iFood order action state machine", () => {
     assert.equal(commandConfirmedByFullCode("READY_TO_PICKUP"), "READY_TO_PICKUP");
     assert.equal(commandConfirmedByFullCode("DISPATCHED"), "DISPATCH");
     assert.equal(commandConfirmedByFullCode("PLACED"), null);
+    assert.deepEqual(confirmingFullCodesForCommand("DISPATCH"), ["DISPATCHED"]);
+    assert.equal(
+      ifoodEventCreatedAtFromPayload({
+        createdAt: "2026-07-22T19:07:47.350Z",
+      })?.toISOString(),
+      "2026-07-22T19:07:47.350Z",
+    );
   });
 });

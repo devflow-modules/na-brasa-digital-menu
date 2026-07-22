@@ -129,3 +129,32 @@ export function commandConfirmedByFullCode(
   if (fullCode === "DISPATCHED") return "DISPATCH";
   return null;
 }
+
+/** Inbox fullCodes that confirm a logical command (#124). */
+export function confirmingFullCodesForCommand(
+  command: IfoodOrderCommandType,
+): string[] {
+  switch (command) {
+    case "CONFIRM":
+      return ["CONFIRMED"];
+    case "START_PREPARATION":
+      return ["START_PREPARATION", "PREPARATION_STARTED"];
+    case "READY_TO_PICKUP":
+      return ["READY_TO_PICKUP"];
+    case "DISPATCH":
+      return ["DISPATCHED"];
+  }
+}
+
+/** iFood event createdAt from raw payload; null when absent/invalid. */
+export function ifoodEventCreatedAtFromPayload(payload: unknown): Date | null {
+  if (payload == null || typeof payload !== "object" || Array.isArray(payload)) {
+    return null;
+  }
+  const createdAt = (payload as { createdAt?: unknown }).createdAt;
+  if (typeof createdAt !== "string") {
+    return null;
+  }
+  const date = new Date(createdAt);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
