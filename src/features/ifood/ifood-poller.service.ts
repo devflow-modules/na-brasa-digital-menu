@@ -8,11 +8,16 @@ import {
   isKnownIfoodFullCode,
   normalizeIfoodFullCode,
 } from "@/features/ifood/ifood-known-events";
+import {
+  compareIfoodPollingEvents,
+  shouldAdvanceIfoodLifecycle,
+} from "@/features/ifood/ifood-lifecycle";
 
 export type IfoodPollCycleResult = {
   connectionId: string;
   merchantId: string;
   locked: boolean;
+  skippedInactive: boolean;
   polled: number;
   persistedNew: number;
   duplicates: number;
@@ -40,8 +45,9 @@ function displayIdFromSnapshot(snapshot: unknown): string | null {
 }
 
 /**
- * One poll cycle for a single active connection.
+ * One poll cycle for a single connection.
  * Persist-before-ACK; ACK only ids that were durable (new or already stored).
+ * Inactive connections are not polled.
  */
 export async function runIfoodPollCycle(options: {
   prisma: PrismaClient;
@@ -57,6 +63,7 @@ export async function runIfoodPollCycle(options: {
     connectionId: connection.id,
     merchantId: connection.merchantId,
     locked: false,
+    skippedInactive: false,
     polled: 0,
     persistedNew: 0,
     duplicates: 0,
@@ -66,6 +73,11 @@ export async function runIfoodPollCycle(options: {
     leftPendingUnknown: 0,
     failedProcessing: 0,
   };
+
+  if (!connection.isActive) {
+    result.skippedInactive = true;
+    return result;
+  }
 
   const locked = await acquireIfoodPollLock(
     prisma,
@@ -80,10 +92,10 @@ export async function runIfoodPollCycle(options: {
 
   try {
     const auth = await api.authenticate();
-    const events = await api.pollEvents(
+    const events = (await api.pollEvents(
       auth.accessToken,
       connection.merchantId,
-    );
+    )).slice().sort(compareIfoodPollingEvents);
     result.polled = events.length;
 
     const ackIds: string[] = [];
@@ -172,8 +184,16 @@ export async function runIfoodPollCycle(options: {
             },
           });
 
-          const shouldAdvanceLifecycle =
-            !existing?.lastEventAt || eventAt >= existing.lastEventAt;
+          const shouldAdvance = shouldAdvanceIfoodLifecycle(
+            existing
+              ? {
+                  lastEventAt: existing.lastEventAt,
+                  lastExternalEventId: existing.lastExternalEventId,
+                }
+              : null,
+            eventAt,
+            event.id,
+          );
 
           const snapshot = await api.getOrder(
             auth.accessToken,
@@ -194,6 +214,7 @@ export async function runIfoodPollCycle(options: {
               displayId: displayIdFromSnapshot(snapshot),
               lastEventFullCode: fullCode,
               lastEventAt: eventAt,
+              lastExternalEventId: event.id,
               snapshot: snapshot as Prisma.InputJsonValue,
               snapshotFetchedAt: now,
             },
@@ -201,10 +222,11 @@ export async function runIfoodPollCycle(options: {
               displayId: displayIdFromSnapshot(snapshot),
               snapshot: snapshot as Prisma.InputJsonValue,
               snapshotFetchedAt: now,
-              ...(shouldAdvanceLifecycle
+              ...(shouldAdvance
                 ? {
                     lastEventFullCode: fullCode,
                     lastEventAt: eventAt,
+                    lastExternalEventId: event.id,
                   }
                 : {}),
             },
@@ -226,6 +248,7 @@ export async function runIfoodPollCycle(options: {
         });
         result.processed += 1;
       } catch (error) {
+        // Detail fetch/update failed — event stays durable (FAILED), still ACKed.
         result.failedProcessing += 1;
         await prisma.ifoodEvent.update({
           where: {

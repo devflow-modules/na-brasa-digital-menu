@@ -22,9 +22,7 @@ async function main() {
   try {
     await runIfoodPoller({ once });
   } finally {
-    if (once) {
-      await prisma.$disconnect();
-    }
+    await prisma.$disconnect();
   }
 }
 

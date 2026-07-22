@@ -161,8 +161,10 @@ model IfoodOrder {
   /// Latest event fullCode by event time — never by poll array order.
   lastEventFullCode String?
   lastEventAt       DateTime?
-  snapshot          Json?
-  snapshotFetchedAt DateTime?
+  /// Tie-break when lastEventAt collides (lexicographic external event id).
+  lastExternalEventId String?
+  snapshot            Json?
+  snapshotFetchedAt   DateTime?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 

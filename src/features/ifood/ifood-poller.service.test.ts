@@ -26,7 +26,14 @@ function createFakePrisma(options?: {
     });
   }
 
-  const orders = new Map<string, { lastEventAt: Date | null; lastEventFullCode: string | null }>();
+  const orders = new Map<
+    string,
+    {
+      lastEventAt: Date | null;
+      lastEventFullCode: string | null;
+      lastExternalEventId: string | null;
+    }
+  >();
   let updateManyCalls = 0;
 
   const prisma = {
@@ -88,8 +95,16 @@ function createFakePrisma(options?: {
       },
       async upsert(args: {
         where: { connectionId_externalOrderId: { externalOrderId: string } };
-        create: { lastEventAt: Date; lastEventFullCode: string };
-        update: { lastEventAt?: Date; lastEventFullCode?: string };
+        create: {
+          lastEventAt: Date;
+          lastEventFullCode: string;
+          lastExternalEventId: string;
+        };
+        update: {
+          lastEventAt?: Date;
+          lastEventFullCode?: string;
+          lastExternalEventId?: string;
+        };
       }) {
         const id = args.where.connectionId_externalOrderId.externalOrderId;
         const prev = orders.get(id);
@@ -97,12 +112,15 @@ function createFakePrisma(options?: {
           orders.set(id, {
             lastEventAt: args.create.lastEventAt,
             lastEventFullCode: args.create.lastEventFullCode,
+            lastExternalEventId: args.create.lastExternalEventId,
           });
         } else {
           orders.set(id, {
             lastEventAt: args.update.lastEventAt ?? prev.lastEventAt,
             lastEventFullCode:
               args.update.lastEventFullCode ?? prev.lastEventFullCode,
+            lastExternalEventId:
+              args.update.lastExternalEventId ?? prev.lastExternalEventId,
           });
         }
         return orders.get(id);
@@ -344,5 +362,107 @@ describe("runIfoodPollCycle", () => {
 
     assert.equal(result.locked, false);
     assert.equal(polled, false);
+  });
+
+  it("skips inactive connections without polling", async () => {
+    const prisma = createFakePrisma();
+    let polled = false;
+    const api: IfoodApiClient = {
+      async authenticate() {
+        throw new Error("should not auth");
+      },
+      async pollEvents() {
+        polled = true;
+        return [];
+      },
+      async acknowledge() {},
+      async getOrder() {
+        return {};
+      },
+    };
+
+    const result = await runIfoodPollCycle({
+      prisma: prisma as never,
+      api,
+      connection: { ...connection(), isActive: false },
+      lockedBy: "test",
+    });
+
+    assert.equal(result.skippedInactive, true);
+    assert.equal(result.locked, false);
+    assert.equal(polled, false);
+    assert.equal(prisma._updateManyCalls(), 0);
+  });
+
+  it("keeps durable event and ACKs when getOrder fails", async () => {
+    const prisma = createFakePrisma();
+    const acknowledged: string[] = [];
+    const api: IfoodApiClient = {
+      async authenticate() {
+        return { accessToken: "t", expiresIn: 100 };
+      },
+      async pollEvents() {
+        return [
+          {
+            id: "evt-detail-fail",
+            fullCode: "PLACED",
+            orderId: "ord-1",
+            merchantId: "merchant_1",
+            createdAt: "2026-07-22T12:00:00.000Z",
+          },
+        ];
+      },
+      async acknowledge(_token, ids) {
+        acknowledged.push(...ids);
+      },
+      async getOrder() {
+        throw new Error("getOrder 500");
+      },
+    };
+
+    const result = await runIfoodPollCycle({
+      prisma: prisma as never,
+      api,
+      connection: connection(),
+      lockedBy: "test",
+    });
+
+    assert.equal(result.persistedNew, 1);
+    assert.equal(result.failedProcessing, 1);
+    assert.equal(result.acknowledged, 1);
+    assert.deepEqual(acknowledged, ["evt-detail-fail"]);
+    assert.equal(
+      prisma._events.get("evt-detail-fail")?.processingStatus,
+      "FAILED",
+    );
+  });
+
+  it("releases lock when authenticate throws", async () => {
+    const prisma = createFakePrisma();
+    const api: IfoodApiClient = {
+      async authenticate() {
+        throw new Error("auth down");
+      },
+      async pollEvents() {
+        return [];
+      },
+      async acknowledge() {},
+      async getOrder() {
+        return {};
+      },
+    };
+
+    await assert.rejects(
+      () =>
+        runIfoodPollCycle({
+          prisma: prisma as never,
+          api,
+          connection: connection(),
+          lockedBy: "test",
+        }),
+      /auth down/,
+    );
+    // acquire + release
+    assert.equal(prisma._updateManyCalls(), 2);
   });
 });

@@ -2,7 +2,11 @@ import type { IfoodConnection, PrismaClient } from "@prisma/client";
 
 const LOCK_TTL_MS = 90_000;
 
-export async function ensureActiveIfoodConnection(
+/**
+ * Upsert Store ↔ merchant binding.
+ * Create starts active; update never reactivates a deactivated connection.
+ */
+export async function ensureIfoodConnection(
   prisma: PrismaClient,
   input: { storeSlug: string; merchantId: string },
 ): Promise<IfoodConnection> {
@@ -23,8 +27,16 @@ export async function ensureActiveIfoodConnection(
     },
     update: {
       storeId: store.id,
-      isActive: true,
     },
+  });
+}
+
+export async function loadIfoodConnection(
+  prisma: PrismaClient,
+  connectionId: string,
+): Promise<IfoodConnection | null> {
+  return prisma.ifoodConnection.findUnique({
+    where: { id: connectionId },
   });
 }
 
