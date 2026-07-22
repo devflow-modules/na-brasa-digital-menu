@@ -1,5 +1,6 @@
 import {
   PrismaClient,
+  type FunnelEventName,
   type Order,
   type OrderStatus,
   type PaymentMethod,
@@ -247,6 +248,68 @@ export async function findLatestOrderByCustomerName(
     where: { customerName },
     orderBy: { createdAt: "desc" },
   });
+}
+
+export async function getOfficialStoreIdForE2e(): Promise<string> {
+  const prisma = getPrisma();
+  const storeSlug = getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+    select: { id: true },
+  });
+  if (!store) {
+    throw new Error(`Store "${storeSlug}" not found for E2E funnel helpers.`);
+  }
+  return store.id;
+}
+
+/** Deletes funnel rows for the official store (E2E only). */
+export async function clearOfficialStoreFunnelEventsForE2e(): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+  const prisma = getPrisma();
+  const storeId = await getOfficialStoreIdForE2e();
+  await prisma.funnelEvent.deleteMany({ where: { storeId } });
+}
+
+export async function countOfficialStoreFunnelEventsForE2e(options: {
+  name: FunnelEventName;
+  sessionId?: string;
+  orderId?: string;
+}): Promise<number> {
+  const prisma = getPrisma();
+  const storeId = await getOfficialStoreIdForE2e();
+  return prisma.funnelEvent.count({
+    where: {
+      storeId,
+      name: options.name,
+      ...(options.sessionId ? { sessionId: options.sessionId } : {}),
+      ...(options.orderId ? { orderId: options.orderId } : {}),
+    },
+  });
+}
+
+export async function waitForOfficialStoreFunnelEventForE2e(options: {
+  name: FunnelEventName;
+  sessionId?: string;
+  orderId?: string;
+  timeoutMs?: number;
+}): Promise<void> {
+  const timeoutMs = options.timeoutMs ?? 15_000;
+  const started = Date.now();
+  while (Date.now() - started < timeoutMs) {
+    const count = await countOfficialStoreFunnelEventsForE2e(options);
+    if (count >= 1) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error(
+    `Timed out waiting for funnel event "${options.name}"` +
+      (options.sessionId ? ` session=${options.sessionId}` : "") +
+      (options.orderId ? ` order=${options.orderId}` : ""),
+  );
 }
 
 export async function createE2ePickupOrder(options?: {

@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FunnelCheckoutStartedTracker } from "@/features/analytics/components/funnel-checkout-started-tracker";
+import { trackClientFunnelEvent } from "@/features/analytics/track-client-funnel-event";
 import { CART_STORAGE_KEY, useCart } from "@/features/cart/use-cart";
 import {
   checkoutFormDefaultValues,
@@ -180,6 +182,11 @@ function AvailableCheckoutForm({
       clearCart();
       window.localStorage.removeItem(CART_STORAGE_KEY);
       setWhatsappFallbackUrl(result.whatsappUrl);
+      trackClientFunnelEvent({
+        storeSlug: store.slug,
+        name: "whatsapp_handoff_started",
+        orderId: result.orderId,
+      });
       window.location.href = result.whatsappUrl;
     });
   }
@@ -216,6 +223,7 @@ function AvailableCheckoutForm({
 
   return (
     <CheckoutShell store={store}>
+      <FunnelCheckoutStartedTracker storeSlug={store.slug} />
       {!store.isOpen ? <StoreClosedBanner /> : null}
 
       {cart.items.length > 0 ? (
