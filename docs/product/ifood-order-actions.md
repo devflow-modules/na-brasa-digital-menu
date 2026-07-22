@@ -2,7 +2,7 @@
 
 ## Decision
 
-`BUILD · PLATFORM`, test app only. This slice advances the external iFood lifecycle without creating or mutating the operational `Order` model.
+`BUILD · PLATFORM`, test app only. This slice advances the external iFood lifecycle via the command ledger. Operational `Order` projection is a separate bridge (#126); see [ifood-order-projection.md](./ifood-order-projection.md).
 
 ## Contract
 
@@ -33,4 +33,4 @@ Run the same command again to prove replay does not create another attempt or AP
 
 ## Out of scope
 
-Operational `Order`, admin UI, webhook, production merchant authorization, catalog, finance and shipping.
+Admin UI for iFood actions, webhook, production merchant authorization, catalog, finance and shipping. Operational projection itself is covered by #126.

@@ -1,0 +1,61 @@
+{
+  "id": "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",
+  "displayId": "5823",
+  "category": "FOOD",
+  "orderType": "DELIVERY",
+  "extraInfo": "Sem cebola",
+  "customer": {
+    "name": "Cliente Fixture",
+    "phone": {
+      "number": "11999990000"
+    }
+  },
+  "delivery": {
+    "observations": "Portão azul",
+    "deliveryAddress": {
+      "formattedAddress": "Rua Exemplo, 100",
+      "neighborhood": "Centro",
+      "city": "São Paulo",
+      "state": "SP",
+      "postalCode": "01000-000",
+      "complement": "Apto 1",
+      "reference": "Próximo à praça"
+    }
+  },
+  "items": [
+    {
+      "name": "X-Burguer Fixture",
+      "externalCode": "XB-1",
+      "quantity": 2,
+      "unitPrice": 25.5,
+      "totalPrice": 51,
+      "observations": "Ponto da carne médio",
+      "options": [
+        {
+          "name": "Bacon",
+          "unitPrice": 3,
+          "quantity": 1
+        },
+        {
+          "name": "Grupo molhos",
+          "unitPrice": 0,
+          "quantity": 1,
+          "customizations": [
+            {
+              "name": "Molho especial",
+              "unitPrice": 2.5,
+              "quantity": 1
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "total": {
+    "subTotal": 56.5,
+    "deliveryFee": 5,
+    "benefits": 10,
+    "additionalFees": 1.5,
+    "orderAmount": 53
+  }
+}
