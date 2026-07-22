@@ -86,9 +86,10 @@ model Store {
   orderPayments     OrderPayment[]
   users             User[]
   funnelEvents      FunnelEvent[]
-  ifoodConnections  IfoodConnection[]
-  ifoodEvents       IfoodEvent[]
-  ifoodOrders       IfoodOrder[]
+  ifoodConnections   IfoodConnection[]
+  ifoodEvents        IfoodEvent[]
+  ifoodOrders        IfoodOrder[]
+  ifoodOrderCommands IfoodOrderCommand[]
 }
 
 /// Processing state for durable iFood inbox events (#120).
@@ -98,6 +99,26 @@ enum IfoodEventProcessingStatus {
   /// Handled (order snapshot refreshed when applicable).
   PROCESSED
   /// Persist ok; later handling failed (still eligible for ACK).
+  FAILED
+}
+
+enum IfoodOrderCommandType {
+  CONFIRM
+  START_PREPARATION
+  READY_TO_PICKUP
+  DISPATCH
+}
+
+enum IfoodOrderCommandStatus {
+  PENDING
+  ACCEPTED
+  CONFIRMED
+  FAILED
+}
+
+enum IfoodOrderCommandAttemptStatus {
+  STARTED
+  ACCEPTED
   FAILED
 }
 
@@ -114,9 +135,10 @@ model IfoodConnection {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  store  Store        @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  events IfoodEvent[]
-  orders IfoodOrder[]
+  store    Store               @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  events   IfoodEvent[]
+  orders   IfoodOrder[]
+  commands IfoodOrderCommand[]
 
   @@unique([merchantId])
   @@unique([storeId, merchantId])
@@ -168,11 +190,54 @@ model IfoodOrder {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  connection IfoodConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  store      Store           @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  connection IfoodConnection     @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  store      Store               @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  commands   IfoodOrderCommand[]
 
   @@unique([connectionId, externalOrderId])
   @@index([storeId, updatedAt])
+}
+
+/// Idempotent logical action against one external test order (#122).
+/// HTTP 202 means ACCEPTED; only a later inbox event makes it CONFIRMED.
+model IfoodOrderCommand {
+  id                         String                  @id @default(cuid())
+  connectionId               String
+  storeId                    String
+  ifoodOrderId               String
+  type                       IfoodOrderCommandType
+  status                     IfoodOrderCommandStatus @default(PENDING)
+  correlationKey             String                  @unique
+  acceptedAt                 DateTime?
+  confirmedAt                DateTime?
+  confirmedByExternalEventId String?
+  lastError                  String?
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+
+  connection IfoodConnection            @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  store      Store                      @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  order      IfoodOrder                 @relation(fields: [ifoodOrderId], references: [id], onDelete: Cascade)
+  attempts   IfoodOrderCommandAttempt[]
+
+  @@unique([ifoodOrderId, type])
+  @@index([connectionId, status])
+  @@index([storeId, createdAt])
+}
+
+/// Append-only audit of every API attempt. Response body is intentionally not stored.
+model IfoodOrderCommandAttempt {
+  id             String                         @id @default(cuid())
+  commandId      String
+  status         IfoodOrderCommandAttemptStatus @default(STARTED)
+  httpStatus     Int?
+  sanitizedError String?
+  startedAt      DateTime                       @default(now())
+  finishedAt     DateTime?
+
+  command IfoodOrderCommand @relation(fields: [commandId], references: [id], onDelete: Cascade)
+
+  @@index([commandId, startedAt])
 }
 
 model User {

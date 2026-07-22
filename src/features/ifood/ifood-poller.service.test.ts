@@ -126,6 +126,11 @@ function createFakePrisma(options?: {
         return orders.get(id);
       },
     },
+    ifoodOrderCommand: {
+      async updateMany() {
+        return { count: 0 };
+      },
+    },
     _events: events,
     _orders: orders,
     _updateManyCalls: () => updateManyCalls,

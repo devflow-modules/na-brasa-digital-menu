@@ -480,6 +480,12 @@ export async function cleanupE2eStores(): Promise<number> {
     where: { storeId: { in: storeIds } },
   });
   // iFood inbox FKs are Restrict on Store — clear before Store delete.
+  await prisma.ifoodOrderCommandAttempt.deleteMany({
+    where: { command: { storeId: { in: storeIds } } },
+  });
+  await prisma.ifoodOrderCommand.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
   await prisma.ifoodEvent.deleteMany({
     where: { storeId: { in: storeIds } },
   });

@@ -14,6 +14,7 @@ export const IFOOD_KNOWN_FULL_CODES = new Set([
   "CONCLUDED",
   "PICKUP_AREA_ASSIGNED",
   "START_PREPARATION",
+  "PREPARATION_STARTED",
 ]);
 
 export function normalizeIfoodFullCode(

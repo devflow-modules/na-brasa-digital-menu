@@ -62,6 +62,7 @@ Login **runtime** em `/admin/login` usa `User` + bcrypt. Sessão JWT inclui `use
 - **`OrderPayment`** — parcelas de recebimento (Balcão); uma linha por `method` por pedido (`@@unique([orderId, method])`); FK composta `(orderId, storeId)` → `Order`; `amountCents` = valor aplicado ao total; `tenderedCents`/`changeCents` só em `CASH` (`changeCents` calculado no servidor). Sem `provider`/InfiniteTap nesta fatia
 - **`PaymentMethod`** — novos pedidos usam `CASH` / `PIX` / `DEBIT_CARD` / `CREDIT_CARD`; `CARD` permanece no enum só para histórico sem tipo de cartão documentado (não disponível na UI de criação)
 - **iFood inbox (test app, #120)** — `IfoodConnection` (`Store` ↔ `merchantId`; `isActive=false` para o poller), `IfoodEvent` append-only (`@@unique([connectionId, externalEventId])`), `IfoodOrder` snapshot por `externalOrderId` com lifecycle por `lastEventAt` + desempate `lastExternalEventId`. Credenciais só em env. **Não** cria/altera `Order` operacional nesta fatia.
+- **iFood actions (test app, #122)** — `IfoodOrderCommand` representa uma ação lógica idempotente por pedido/tipo; `PENDING`/`ACCEPTED` não confirmam lifecycle. Só o evento correlacionado muda para `CONFIRMED`. `IfoodOrderCommandAttempt` audita tentativas e status HTTP sanitizado, sem corpo upstream/PII. Ainda não cria/altera `Order` operacional.
 
 Regra multi-tenant futura (service, não schema): `storeId` e `createdByUserId` vêm do contexto autenticado; o service valida vínculo do usuário com a Store; o catálogo resolve pelo mesmo `storeId`.
 

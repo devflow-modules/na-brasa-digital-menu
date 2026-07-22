@@ -18,7 +18,28 @@ export type IfoodApiClient = {
   pollEvents: (accessToken: string, merchantId: string) => Promise<IfoodPollingEvent[]>;
   acknowledge: (accessToken: string, eventIds: string[]) => Promise<void>;
   getOrder: (accessToken: string, orderId: string) => Promise<unknown>;
+  executeOrderAction?: (
+    accessToken: string,
+    orderId: string,
+    action: IfoodApiOrderAction,
+  ) => Promise<{ status: number }>;
 };
+
+export type IfoodApiOrderAction =
+  | "confirm"
+  | "startPreparation"
+  | "readyToPickup"
+  | "dispatch";
+
+export class IfoodApiError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number | null,
+  ) {
+    super(message);
+    this.name = "IfoodApiError";
+  }
+}
 
 const AUTH_URL =
   "https://merchant-api.ifood.com.br/authentication/v1.0/oauth/token";
@@ -105,6 +126,24 @@ export function createIfoodApiClient(input: {
         throw new Error(`iFood GET order failed (${response.status})`);
       }
       return response.json();
+    },
+
+    async executeOrderAction(accessToken, orderId, action) {
+      const response = await fetchImpl(`${ORDER_URL}/${orderId}/${action}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+      if (response.status !== 202) {
+        // Never persist an upstream response body: it may contain customer data.
+        throw new IfoodApiError(
+          `iFood order action ${action} expected 202 (${response.status})`,
+          response.status,
+        );
+      }
+      return { status: response.status };
     },
   };
 }
