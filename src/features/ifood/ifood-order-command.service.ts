@@ -11,7 +11,9 @@ import {
 import {
   assertIfoodCommandAllowed,
   commandConfirmedByFullCode,
+  confirmingFullCodesForCommand,
   ifoodApiActionForCommand,
+  ifoodEventCreatedAtFromPayload,
   resolveIfoodTerminalCommand,
 } from "@/features/ifood/ifood-order-actions";
 
@@ -48,6 +50,7 @@ async function reserveLogicalCommand(input: {
     externalOrderId: string;
   };
   command: IfoodOrderCommandType;
+  now: Date;
 }): Promise<{ command: IfoodOrderCommand; replay: boolean }> {
   const key = {
     ifoodOrderId_type: {
@@ -86,6 +89,8 @@ async function reserveLogicalCommand(input: {
         ifoodOrderId: input.order.id,
         type: input.command,
         status: "PENDING",
+        // Explicit createdAt so event.createdAt >= command.createdAt is meaningful (#124).
+        createdAt: input.now,
         correlationKey: `ifood-command:${input.order.externalOrderId}:${input.command}:${randomUUID()}`,
       },
     });
@@ -95,6 +100,65 @@ async function reserveLogicalCommand(input: {
     const raced = await input.prisma.ifoodOrderCommand.findUniqueOrThrow({ where: key });
     return { command: raced, replay: true };
   }
+}
+
+/**
+ * After ACCEPTED (or while still PENDING), confirm from an inbox event already
+ * persisted for the same order/command. Never calls the Merchant API.
+ */
+export async function catchUpIfoodCommandFromInbox(input: {
+  prisma: PrismaClient;
+  command: IfoodOrderCommand;
+  externalOrderId: string;
+}): Promise<IfoodOrderCommand> {
+  if (
+    input.command.status !== "PENDING" &&
+    input.command.status !== "ACCEPTED"
+  ) {
+    return input.command;
+  }
+
+  const codes = confirmingFullCodesForCommand(input.command.type);
+  const events = await input.prisma.ifoodEvent.findMany({
+    where: {
+      connectionId: input.command.connectionId,
+      externalOrderId: input.externalOrderId,
+      fullCode: { in: codes },
+    },
+    select: {
+      externalEventId: true,
+      fullCode: true,
+      payload: true,
+      receivedAt: true,
+    },
+    orderBy: { receivedAt: "asc" },
+  });
+
+  for (const event of events) {
+    // Local barrier only — do not compare iFood clocks to app clocks (#124).
+    if (event.receivedAt.getTime() < input.command.createdAt.getTime()) {
+      continue;
+    }
+
+    const eventAt =
+      ifoodEventCreatedAtFromPayload(event.payload) ?? event.receivedAt;
+
+    await correlateIfoodCommandFromEvent({
+      prisma: input.prisma,
+      connectionId: input.command.connectionId,
+      externalOrderId: input.externalOrderId,
+      externalEventId: event.externalEventId,
+      fullCode: event.fullCode,
+      eventAt,
+      receivedAt: event.receivedAt,
+      commandId: input.command.id,
+    });
+    break;
+  }
+
+  return input.prisma.ifoodOrderCommand.findUniqueOrThrow({
+    where: { id: input.command.id },
+  });
 }
 
 export async function executeIfoodOrderCommand(input: {
@@ -125,10 +189,19 @@ export async function executeIfoodOrderCommand(input: {
     },
   });
   if (existingCommand && existingCommand.status !== "FAILED") {
+    // Heal ACCEPTED stuck behind a race without a new API attempt (#124).
+    const healed =
+      existingCommand.status === "ACCEPTED" || existingCommand.status === "PENDING"
+        ? await catchUpIfoodCommandFromInbox({
+            prisma: input.prisma,
+            command: existingCommand,
+            externalOrderId: order.externalOrderId,
+          })
+        : existingCommand;
     return {
-      commandId: existingCommand.id,
-      command: existingCommand.type,
-      status: existingCommand.status,
+      commandId: healed.id,
+      command: healed.type,
+      status: healed.status,
       replay: true,
       httpStatus: null,
     };
@@ -153,12 +226,22 @@ export async function executeIfoodOrderCommand(input: {
     prisma: input.prisma,
     order,
     command: input.command,
+    now,
   });
   if (reserved.replay) {
+    const healed =
+      reserved.command.status === "ACCEPTED" ||
+      reserved.command.status === "PENDING"
+        ? await catchUpIfoodCommandFromInbox({
+            prisma: input.prisma,
+            command: reserved.command,
+            externalOrderId: order.externalOrderId,
+          })
+        : reserved.command;
     return {
-      commandId: reserved.command.id,
+      commandId: healed.id,
       command: input.command,
-      status: reserved.command.status,
+      status: healed.status,
       replay: true,
       httpStatus: null,
     };
@@ -195,9 +278,16 @@ export async function executeIfoodOrderCommand(input: {
       }),
     ]);
 
-    const saved = await input.prisma.ifoodOrderCommand.findUniqueOrThrow({
+    const accepted = await input.prisma.ifoodOrderCommand.findUniqueOrThrow({
       where: { id: reserved.command.id },
     });
+    // Catch-up: confirming event may already be in the inbox (event → ACCEPTED race).
+    const saved = await catchUpIfoodCommandFromInbox({
+      prisma: input.prisma,
+      command: accepted,
+      externalOrderId: order.externalOrderId,
+    });
+
     return {
       commandId: saved.id,
       command: saved.type,
@@ -251,16 +341,29 @@ export async function correlateIfoodCommandFromEvent(input: {
   externalOrderId: string;
   externalEventId: string;
   fullCode: string | null;
+  /** External iFood event time — stored on confirmedAt / lifecycle only. */
   eventAt: Date;
+  /**
+   * Local receive time for the age barrier (`receivedAt >= command.createdAt`).
+   * Defaults to `eventAt` only when callers omit it (tests).
+   */
+  receivedAt?: Date;
+  /** Optional: restrict to one logical command row (catch-up). */
+  commandId?: string;
 }): Promise<number> {
   const type = commandConfirmedByFullCode(input.fullCode);
   if (!type) return 0;
 
+  const receivedAt = input.receivedAt ?? input.eventAt;
+
   const result = await input.prisma.ifoodOrderCommand.updateMany({
     where: {
+      ...(input.commandId ? { id: input.commandId } : {}),
       connectionId: input.connectionId,
       type,
       status: { in: ["PENDING", "ACCEPTED"] },
+      // IfoodEvent.receivedAt >= command.createdAt (same clock domain)
+      createdAt: { lte: receivedAt },
       order: { externalOrderId: input.externalOrderId },
     },
     data: {

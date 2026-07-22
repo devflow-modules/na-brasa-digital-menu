@@ -8,6 +8,7 @@
 
 - HTTP `202` records a command as `ACCEPTED`; it does not confirm lifecycle.
 - Only `CONFIRMED`, `PREPARATION_STARTED`/`START_PREPARATION`, `READY_TO_PICKUP`, or `DISPATCHED` inbox events correlate and confirm a command.
+- After `ACCEPTED`, catch-up (#124) looks for a confirming inbox event already persisted for the same order/command and correlates idempotently without re-calling the API. Age barrier uses local clocks only: `IfoodEvent.receivedAt >= command.createdAt`. External `createdAt` remains for lifecycle ordering / `confirmedAt`, never for cross-system skew. If none exists, the command stays `ACCEPTED` for the poller.
 - One logical command exists per external order and command type. Replays return it without another API request.
 - A failed attempt may retry the same logical command and adds an append-only attempt row.
 - Any `CANCELLED` event blocks every later action.
