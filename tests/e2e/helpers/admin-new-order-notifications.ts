@@ -41,6 +41,10 @@ export async function cleanupTrackedNotifyFixtures(): Promise<void> {
   }
 
   const prisma = getPrisma();
+  // FunnelEvent.storeId is Restrict — clear telemetry before Store delete.
+  await prisma.funnelEvent.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
   await prisma.order.deleteMany({ where: { storeId: { in: storeIds } } });
   await prisma.productAddon.deleteMany({
     where: { product: { storeId: { in: storeIds } } },

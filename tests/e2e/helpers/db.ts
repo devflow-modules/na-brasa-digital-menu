@@ -412,6 +412,10 @@ export async function cleanupE2eStores(): Promise<number> {
     return 0;
   }
   const storeIds = stores.map((s) => s.id);
+  // FunnelEvent.storeId is Restrict — must clear telemetry before Store delete.
+  await prisma.funnelEvent.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
   await prisma.order.deleteMany({
     where: {
       storeId: { in: storeIds },
