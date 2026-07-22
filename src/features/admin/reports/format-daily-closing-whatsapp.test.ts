@@ -28,6 +28,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "DELIVERY",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 9000,
         deliveryFeeCents: 1200,
         totalCents: 10200,
@@ -63,6 +64,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "CASH",
+        payments: [],
         subtotalCents: 3000,
         deliveryFeeCents: 0,
         totalCents: 3000,
@@ -84,6 +86,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "COUNTER",
         deliveryType: "PICKUP",
         paymentMethod: "CARD",
+        payments: [],
         subtotalCents: 3000,
         deliveryFeeCents: 0,
         totalCents: 3000,
@@ -105,6 +108,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "DELIVERY",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 0,
         deliveryFeeCents: 0,
         totalCents: 0,
@@ -117,6 +121,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 3500,
         deliveryFeeCents: 0,
         totalCents: 3500,
@@ -129,6 +134,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 9999,
         deliveryFeeCents: 0,
         totalCents: 9999,
@@ -141,6 +147,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "CASH",
+        payments: [],
         subtotalCents: 8888,
         deliveryFeeCents: 0,
         totalCents: 8888,
@@ -161,6 +168,7 @@ describe("formatDailyClosingWhatsapp", () => {
     assert.match(text, /Pedidos: 4/);
     assert.match(text, /Taxas de entrega: R\$\s*12,00/);
     assert.match(text, /\*Total vendido: R\$\s*162,00\*/);
+    assert.match(text, /Pagamento misto: 0/);
     assert.match(text, /💳 \*FORMAS DE PAGAMENTO\*/);
     assert.match(text, /• Pix: R\$\s*102,00 — 2 pedidos — /);
     assert.match(text, /• Cartão — tipo não informado: R\$\s*30,00 — 1 pedido — /);
@@ -195,6 +203,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 2000,
         deliveryFeeCents: 0,
         totalCents: 2000,
@@ -216,6 +225,7 @@ describe("formatDailyClosingWhatsapp", () => {
         source: "DIRECT",
         deliveryType: "PICKUP",
         paymentMethod: "PIX",
+        payments: [],
         subtotalCents: 1000,
         deliveryFeeCents: 0,
         totalCents: 1000,

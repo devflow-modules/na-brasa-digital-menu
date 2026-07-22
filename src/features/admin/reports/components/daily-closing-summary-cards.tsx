@@ -109,6 +109,18 @@ export function DailyClosingSummaryCards({
             {summary.cancelledOrders}
           </p>
         </article>
+
+        <article
+          data-testid="daily-closing-card-split-tender"
+          className="rounded-2xl border border-stone-800 bg-stone-900/60 px-4 py-3"
+        >
+          <p className="text-xs uppercase tracking-wide text-stone-500">
+            Pagamento misto
+          </p>
+          <p className="mt-2 text-lg font-medium text-stone-200">
+            {summary.splitTenderCompletedOrders}
+          </p>
+        </article>
       </div>
     </section>
   );

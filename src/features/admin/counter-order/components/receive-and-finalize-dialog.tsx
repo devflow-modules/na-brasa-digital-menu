@@ -2,16 +2,20 @@
 
 import { useCallback, useId, useMemo, useRef, useState, useTransition } from "react";
 import {
-  buildFinalizeCounterOrderPayload,
+  buildFinalizePaymentsPayload,
+  canConfirmCounterPaymentDraft,
   computeCashChangeCents,
-  isCashTenderValid,
+  createDraftLine,
+  remainingDraftCents,
+  type CounterPaymentDraftLine,
+  unusedPaymentMethods,
 } from "@/features/admin/counter-order/counter-order-change";
 import { useDialogFocusTrap } from "@/features/admin/counter-order/use-dialog-focus-trap";
 import { formatMoney } from "@/features/menu/format-money";
 import { finalizeCounterOrderAction } from "@/features/orders/actions/finalize-counter-order-action";
+import type { CreatablePaymentMethod } from "@/features/orders/payment-method";
+import { paymentMethodLabels } from "@/features/orders/payment-method";
 import { parseCurrencyToCents } from "@/features/orders/utils/parse-currency-to-cents";
-
-type PaymentMethod = "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD";
 
 type ReceiveAndFinalizeDialogProps = {
   orderId: string;
@@ -20,11 +24,11 @@ type ReceiveAndFinalizeDialogProps = {
   onSuccess: () => void;
 };
 
-const METHODS: Array<{ value: PaymentMethod; label: string }> = [
-  { value: "CASH", label: "Dinheiro" },
-  { value: "PIX", label: "Pix" },
-  { value: "DEBIT_CARD", label: "Cartão de débito" },
-  { value: "CREDIT_CARD", label: "Cartão de crédito" },
+const METHOD_ORDER: CreatablePaymentMethod[] = [
+  "CASH",
+  "PIX",
+  "DEBIT_CARD",
+  "CREDIT_CARD",
 ];
 
 export function ReceiveAndFinalizeDialog({
@@ -33,10 +37,7 @@ export function ReceiveAndFinalizeDialog({
   onClose,
   onSuccess,
 }: ReceiveAndFinalizeDialogProps) {
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(
-    null,
-  );
-  const [tenderedInput, setTenderedInput] = useState("");
+  const [lines, setLines] = useState<CounterPaymentDraftLine[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const isSubmittingRef = useRef(false);
@@ -59,62 +60,74 @@ export function ReceiveAndFinalizeDialog({
     initialFocusRef: closeButtonRef,
   });
 
-  const tenderedCents = useMemo(() => {
-    if (paymentMethod !== "CASH") {
-      return null;
-    }
-    const trimmed = tenderedInput.trim();
-    if (!trimmed) {
-      return null;
-    }
-    return parseCurrencyToCents(trimmed);
-  }, [paymentMethod, tenderedInput]);
+  const remainingCents = useMemo(
+    () => remainingDraftCents(totalCents, lines),
+    [lines, totalCents],
+  );
+  const availableMethods = useMemo(() => unusedPaymentMethods(lines), [lines]);
+  const canConfirm = canConfirmCounterPaymentDraft(totalCents, lines);
 
-  const changeCents = useMemo(() => {
-    if (paymentMethod !== "CASH") {
-      return null;
-    }
-    return computeCashChangeCents(totalCents, tenderedCents);
-  }, [paymentMethod, tenderedCents, totalCents]);
+  function addMethod(method: CreatablePaymentMethod) {
+    setLines((current) => {
+      if (current.some((line) => line.method === method)) {
+        return current;
+      }
+      const remaining = remainingDraftCents(totalCents, current);
+      return [...current, createDraftLine(method, Math.max(0, remaining))];
+    });
+    setErrorMessage(null);
+  }
 
-  const canConfirm =
-    paymentMethod != null &&
-    (paymentMethod !== "CASH" ||
-      (tenderedCents !== null
-        ? isCashTenderValid(totalCents, tenderedCents)
-        : tenderedInput.trim() === ""));
+  function removeMethod(method: CreatablePaymentMethod) {
+    setLines((current) => current.filter((line) => line.method !== method));
+    setErrorMessage(null);
+  }
+
+  function updateAmountInput(method: CreatablePaymentMethod, value: string) {
+    setLines((current) =>
+      current.map((line) => {
+        if (line.method !== method) {
+          return line;
+        }
+        const trimmed = value.trim();
+        const parsed = trimmed === "" ? null : parseCurrencyToCents(trimmed);
+        return {
+          ...line,
+          amountInput: value,
+          amountCents: parsed,
+        };
+      }),
+    );
+    setErrorMessage(null);
+  }
+
+  function updateTenderedInput(method: CreatablePaymentMethod, value: string) {
+    setLines((current) =>
+      current.map((line) => {
+        if (line.method !== method) {
+          return line;
+        }
+        const trimmed = value.trim();
+        const parsed = trimmed === "" ? null : parseCurrencyToCents(trimmed);
+        return {
+          ...line,
+          tenderedInput: value,
+          tenderedCents: parsed,
+        };
+      }),
+    );
+    setErrorMessage(null);
+  }
 
   function handleSubmit() {
-    if (!paymentMethod || !canConfirm || isPending || isSubmittingRef.current) {
-      return;
-    }
-
-    if (
-      paymentMethod === "CASH" &&
-      tenderedInput.trim() !== "" &&
-      tenderedCents == null
-    ) {
-      setErrorMessage("Informe um valor válido em reais.");
-      return;
-    }
-
-    if (
-      paymentMethod === "CASH" &&
-      tenderedCents != null &&
-      !isCashTenderValid(totalCents, tenderedCents)
-    ) {
-      setErrorMessage("Informe um valor igual ou maior que o total.");
+    if (!canConfirm || isPending || isSubmittingRef.current) {
       return;
     }
 
     isSubmittingRef.current = true;
     setErrorMessage(null);
 
-    const payload = buildFinalizeCounterOrderPayload({
-      orderId,
-      paymentMethod,
-      tenderedCents: paymentMethod === "CASH" ? tenderedCents : null,
-    });
+    const payload = buildFinalizePaymentsPayload({ orderId, lines });
 
     startTransition(async () => {
       try {
@@ -161,7 +174,7 @@ export function ReceiveAndFinalizeDialog({
               Receber e finalizar
             </h2>
             <p id={descriptionId} className="mt-1 text-sm text-stone-400">
-              Confirme o recebimento para concluir a comanda.
+              Combine formas de pagamento até fechar o total.
             </p>
           </div>
           <button
@@ -176,93 +189,140 @@ export function ReceiveAndFinalizeDialog({
           </button>
         </div>
 
-        <div className="rounded-xl border border-stone-800 bg-stone-900/70 px-3 py-3">
-          <p className="text-xs uppercase tracking-wide text-stone-500">
-            Total do pedido
-          </p>
-          <p
-            data-testid="receive-finalize-total"
-            className="mt-1 text-xl font-semibold text-orange-100"
-          >
-            {formatMoney(totalCents)}
-          </p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-xl border border-stone-800 bg-stone-900/70 px-3 py-3">
+            <p className="text-xs uppercase tracking-wide text-stone-500">
+              Total
+            </p>
+            <p
+              data-testid="receive-finalize-total"
+              className="mt-1 text-xl font-semibold text-orange-100"
+            >
+              {formatMoney(totalCents)}
+            </p>
+          </div>
+          <div className="rounded-xl border border-stone-800 bg-stone-900/70 px-3 py-3">
+            <p className="text-xs uppercase tracking-wide text-stone-500">
+              Restante
+            </p>
+            <p
+              data-testid="receive-remaining"
+              className={`mt-1 text-xl font-semibold ${
+                remainingCents === 0 ? "text-emerald-300" : "text-amber-200"
+              }`}
+            >
+              {formatMoney(remainingCents)}
+            </p>
+          </div>
         </div>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="text-sm font-medium text-stone-200">
-            Forma de pagamento
+            Adicionar forma
           </legend>
-          <div
-            role="radiogroup"
-            aria-label="Forma de pagamento"
-            className="grid grid-cols-1 gap-2 sm:grid-cols-3"
-          >
-            {METHODS.map((method) => {
-              const selected = paymentMethod === method.value;
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {METHOD_ORDER.map((method) => {
+              const available = availableMethods.includes(method);
               return (
                 <button
-                  key={method.value}
+                  key={method}
                   type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  data-testid={`receive-payment-${method.value}`}
-                  disabled={isPending}
-                  onClick={() => {
-                    setPaymentMethod(method.value);
-                    setErrorMessage(null);
-                    if (method.value !== "CASH") {
-                      setTenderedInput("");
-                    }
-                  }}
-                  className={`inline-flex h-11 items-center justify-center rounded-xl text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60 ${
-                    selected
-                      ? "bg-orange-500 text-stone-950"
-                      : "border border-stone-700 bg-stone-900 text-stone-100"
-                  }`}
+                  data-testid={`receive-payment-${method}`}
+                  disabled={isPending || !available}
+                  onClick={() => addMethod(method)}
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-stone-700 bg-stone-900 text-sm font-semibold text-stone-100 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
                 >
-                  {method.label}
+                  {paymentMethodLabels[method]}
                 </button>
               );
             })}
           </div>
         </fieldset>
 
-        {paymentMethod === "CASH" ? (
-          <div className="flex flex-col gap-3">
-            <label className="block">
-              <span className="text-sm font-medium text-stone-200">
-                Valor entregue
-              </span>
-              <input
-                type="text"
-                inputMode="decimal"
-                value={tenderedInput}
-                disabled={isPending}
-                onChange={(event) => {
-                  setTenderedInput(event.target.value);
-                  setErrorMessage(null);
-                }}
-                placeholder="Vazio = pagamento exato"
-                data-testid="receive-tendered-input"
-                className="mt-2 h-11 w-full rounded-xl border border-stone-700 bg-stone-900 px-3 text-sm text-stone-100 placeholder:text-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
-              />
-              <span className="mt-1 block text-xs text-stone-500">
-                Deixe vazio para pagamento exato.
-              </span>
-            </label>
+        {lines.length > 0 ? (
+          <ul className="flex flex-col gap-3">
+            {lines.map((line) => {
+              const changeCents =
+                line.method === "CASH" && line.amountCents != null
+                  ? computeCashChangeCents(line.amountCents, line.tenderedCents)
+                  : null;
 
-            <div className="rounded-xl border border-stone-800 bg-stone-900/50 px-3 py-2 text-sm text-stone-300">
-              <div className="flex justify-between gap-3">
-                <span>Troco</span>
-                <span data-testid="receive-change-preview">
-                  {changeCents == null
-                    ? "—"
-                    : formatMoney(changeCents)}
-                </span>
-              </div>
-            </div>
-          </div>
-        ) : null}
+              return (
+                <li
+                  key={line.method}
+                  data-testid={`receive-payment-line-${line.method}`}
+                  className="rounded-xl border border-stone-800 bg-stone-900/60 p-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-semibold text-stone-100">
+                      {paymentMethodLabels[line.method]}
+                    </p>
+                    <button
+                      type="button"
+                      data-testid={`receive-remove-payment-${line.method}`}
+                      disabled={isPending}
+                      onClick={() => removeMethod(line.method)}
+                      className="text-xs font-medium text-stone-400 hover:text-stone-100"
+                    >
+                      Remover
+                    </button>
+                  </div>
+
+                  <label className="mt-3 block">
+                    <span className="text-xs font-medium text-stone-300">
+                      Valor aplicado
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="decimal"
+                      value={line.amountInput}
+                      disabled={isPending}
+                      onChange={(event) =>
+                        updateAmountInput(line.method, event.target.value)
+                      }
+                      data-testid={`receive-payment-amount-${line.method}`}
+                      className="mt-1 h-11 w-full rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
+                    />
+                  </label>
+
+                  {line.method === "CASH" ? (
+                    <div className="mt-3 flex flex-col gap-2">
+                      <label className="block">
+                        <span className="text-xs font-medium text-stone-300">
+                          Valor entregue
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="decimal"
+                          value={line.tenderedInput}
+                          disabled={isPending}
+                          onChange={(event) =>
+                            updateTenderedInput(line.method, event.target.value)
+                          }
+                          placeholder="Vazio = pagamento exato"
+                          data-testid="receive-tendered-input"
+                          className="mt-1 h-11 w-full rounded-xl border border-stone-700 bg-stone-950 px-3 text-sm text-stone-100 placeholder:text-stone-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400/60"
+                        />
+                      </label>
+                      <div className="flex justify-between gap-3 text-sm text-stone-300">
+                        <span>Troco</span>
+                        <span data-testid="receive-change-preview">
+                          {changeCents == null
+                            ? "—"
+                            : formatMoney(changeCents)}
+                        </span>
+                      </div>
+                    </div>
+                  ) : null}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <p className="text-sm text-stone-400">
+            Selecione ao menos uma forma de pagamento.
+          </p>
+        )}
 
         {errorMessage ? (
           <p

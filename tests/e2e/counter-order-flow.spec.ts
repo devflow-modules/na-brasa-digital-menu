@@ -197,13 +197,22 @@ test.describe("counter order operational flow", () => {
     );
     await expect(page.getByTestId("counter-order-receive-cta")).toHaveCount(0);
     await expect(page.getByTestId("order-paid-at")).toBeVisible();
-    await expect(page.getByTestId("order-cash-tender")).toContainText("troco");
+    await expect(page.getByTestId("order-payment-line-CASH")).toContainText(
+      "troco",
+    );
 
     const paid = await getOrderPaymentSnapshot(created.id);
     expect(paid.status).toBe("COMPLETED");
     expect(paid.paymentMethod).toBe("CASH");
     expect(paid.paidAt).not.toBeNull();
     expect(paid.changeForCents).toBe(tenderedCents);
+    expect(paid.payments).toHaveLength(1);
+    expect(paid.payments[0]).toMatchObject({
+      method: "CASH",
+      amountCents: paid.totalCents,
+      tenderedCents,
+      changeCents: 800,
+    });
   });
 
   test("OPERATOR registers two consecutive COUNTER orders without leaving Balcão", async ({
@@ -324,6 +333,111 @@ test.describe("counter order operational flow", () => {
     expect(paid.paymentMethod).toBe("PIX");
     expect(paid.changeForCents).toBeNull();
     expect(paid.paidAt).not.toBeNull();
+    expect(paid.payments).toEqual([
+      {
+        method: "PIX",
+        amountCents: 2500,
+        tenderedCents: null,
+        changeCents: null,
+      },
+    ]);
+    await expect(page.getByTestId("order-payment-line-PIX")).toBeVisible();
+  });
+
+  test("COUNTER READY accepts mixed PIX + CASH with change", async ({
+    page,
+  }) => {
+    const operator = await ensureE2eStoreUser({
+      role: "OPERATOR",
+      email: "e2e-counter-operator-mix@example.com",
+    });
+    const order = await createE2eCounterOrder({
+      customerName: uniqueCustomerName("Balcao Mix"),
+      status: "READY",
+      createdByUserId: operator.userId,
+      totalCents: 5000,
+    });
+
+    await loginAsUser(page, operator);
+    await page.goto(`/admin/pedidos/${order.id}`);
+    await page.getByTestId("counter-order-receive-cta").click();
+
+    await page.getByTestId("receive-payment-CASH").click();
+    await page.getByTestId("receive-payment-amount-CASH").fill("20,00");
+    await expect(page.getByTestId("receive-remaining")).toContainText("30,00");
+    await expect(page.getByTestId("receive-finalize-confirm")).toBeDisabled();
+
+    await page.getByTestId("receive-payment-PIX").click();
+    await expect(page.getByTestId("receive-payment-amount-PIX")).toHaveValue(
+      "30,00",
+    );
+    await expect(page.getByTestId("receive-remaining")).toContainText("0,00");
+
+    await page.getByTestId("receive-tendered-input").fill("25,00");
+    await expect(page.getByTestId("receive-change-preview")).toContainText(
+      "5,00",
+    );
+
+    await page.getByTestId("receive-finalize-confirm").click();
+    await expect(page.getByTestId("order-status-badge")).toHaveAttribute(
+      "data-status",
+      "COMPLETED",
+      { timeout: 15_000 },
+    );
+
+    await expect(page.getByTestId("order-payment-line-CASH")).toContainText(
+      "troco",
+    );
+    await expect(page.getByTestId("order-payment-line-PIX")).toBeVisible();
+
+    const paid = await getOrderPaymentSnapshot(order.id);
+    expect(paid.status).toBe("COMPLETED");
+    // Split tender clears the legacy single-method mirror.
+    expect(paid.paymentMethod).toBeNull();
+    expect(paid.changeForCents).toBeNull();
+    expect(paid.payments).toEqual([
+      {
+        method: "CASH",
+        amountCents: 2000,
+        tenderedCents: 2500,
+        changeCents: 500,
+      },
+      {
+        method: "PIX",
+        amountCents: 3000,
+        tenderedCents: null,
+        changeCents: null,
+      },
+    ]);
+  });
+
+  test("legacy COUNTER cash without OrderPayment shows tender mirror", async ({
+    page,
+  }) => {
+    const operator = await ensureE2eStoreUser({
+      role: "OPERATOR",
+      email: "e2e-counter-operator-legacy@example.com",
+    });
+    const order = await createE2eCounterOrder({
+      customerName: uniqueCustomerName("Balcao Legacy Cash"),
+      status: "COMPLETED",
+      createdByUserId: operator.userId,
+      totalCents: 4200,
+      paymentMethod: "CASH",
+      changeForCents: 5000,
+      paidAt: new Date(),
+    });
+
+    await loginAsUser(page, operator);
+    await page.goto(`/admin/pedidos/${order.id}`);
+
+    await expect(page.getByTestId("order-payment-lines")).toHaveCount(0);
+    await expect(page.getByTestId("order-cash-tender")).toContainText("troco");
+
+    const snapshot = await getOrderPaymentSnapshot(order.id);
+    expect(snapshot.payments).toEqual([]);
+    expect(snapshot.paymentMethod).toBe("CASH");
+    expect(snapshot.changeForCents).toBe(5000);
   });
 
   test("KITCHEN cannot access balcao and cannot finalize", async ({ page }) => {

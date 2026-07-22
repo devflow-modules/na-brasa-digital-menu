@@ -84,6 +84,7 @@ export function aggregateDailyClosingReport(options: {
   let productsSubtotalCents = 0;
   let deliveryFeesCents = 0;
   let grossTotalCents = 0;
+  let splitTenderCompletedOrders = 0;
 
   const paymentMap = new Map<
     DailyClosingPaymentMethod,
@@ -106,11 +107,26 @@ export function aggregateDailyClosingReport(options: {
     deliveryFeesCents += order.deliveryFeeCents;
     grossTotalCents += order.totalCents;
 
-    const pay = paymentKey(order.paymentMethod);
-    const payRow = paymentMap.get(pay) ?? { orderCount: 0, amountCents: 0 };
-    payRow.orderCount += 1;
-    payRow.amountCents += order.totalCents;
-    paymentMap.set(pay, payRow);
+    if (order.payments.length > 1) {
+      splitTenderCompletedOrders += 1;
+    }
+
+    // Exclusive: OrderPayment lines OR legacy paymentMethod — never both.
+    if (order.payments.length > 0) {
+      for (const payment of order.payments) {
+        const pay = paymentKey(payment.method);
+        const payRow = paymentMap.get(pay) ?? { orderCount: 0, amountCents: 0 };
+        payRow.orderCount += 1;
+        payRow.amountCents += payment.amountCents;
+        paymentMap.set(pay, payRow);
+      }
+    } else {
+      const pay = paymentKey(order.paymentMethod);
+      const payRow = paymentMap.get(pay) ?? { orderCount: 0, amountCents: 0 };
+      payRow.orderCount += 1;
+      payRow.amountCents += order.totalCents;
+      paymentMap.set(pay, payRow);
+    }
 
     const channel = fulfillmentChannel(order);
     const channelRow = fulfillmentMap.get(channel) ?? {
@@ -188,7 +204,16 @@ export function aggregateDailyClosingReport(options: {
   const notes: string[] = [
     "Fechamento operacional — não é caixa conciliado nem resultado fiscal.",
     "Pedidos online concluídos não confirmam recebimento financeiro (paidAt).",
+    "Formas de pagamento: usa OrderPayment quando existir; senão paymentMethod legado (nunca as duas).",
   ];
+
+  if (splitTenderCompletedOrders > 0) {
+    notes.push(
+      splitTenderCompletedOrders === 1
+        ? "1 comanda concluída usou pagamento misto (mais de uma forma)."
+        : `${splitTenderCompletedOrders} comandas concluídas usaram pagamento misto (mais de uma forma).`,
+    );
+  }
 
   if (open.length > 0) {
     notes.push(
@@ -211,6 +236,7 @@ export function aggregateDailyClosingReport(options: {
       deliveryFeesCents,
       grossTotalCents,
       averageTicketCents,
+      splitTenderCompletedOrders,
     },
     payments,
     fulfillment,

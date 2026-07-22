@@ -127,6 +127,16 @@ export async function getAdminOrderById(
       notes: true,
       subtotalCents: true,
       deliveryFeeCents: true,
+      payments: {
+        select: {
+          id: true,
+          method: true,
+          amountCents: true,
+          tenderedCents: true,
+          changeCents: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
       totalCents: true,
       whatsappMessage: true,
       createdAt: true,

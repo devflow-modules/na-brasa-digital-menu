@@ -71,6 +71,8 @@ export type DailyClosingSummary = {
   deliveryFeesCents: number;
   grossTotalCents: number;
   averageTicketCents: number;
+  /** COMPLETED orders with more than one OrderPayment line. */
+  splitTenderCompletedOrders: number;
 };
 
 export type DailyClosingReport = {
@@ -101,6 +103,11 @@ export type DailyClosingOrderItemInput = {
   addons: DailyClosingOrderItemAddonInput[];
 };
 
+export type DailyClosingOrderPaymentInput = {
+  method: "CASH" | "PIX" | "DEBIT_CARD" | "CREDIT_CARD" | "CARD";
+  amountCents: number;
+};
+
 export type DailyClosingOrderInput = {
   code: string;
   status: string;
@@ -113,6 +120,8 @@ export type DailyClosingOrderInput = {
     | "CREDIT_CARD"
     | "CARD"
     | null;
+  /** When non-empty, exclusive source for payment aggregation (never mix with paymentMethod). */
+  payments: DailyClosingOrderPaymentInput[];
   subtotalCents: number;
   deliveryFeeCents: number;
   totalCents: number;
