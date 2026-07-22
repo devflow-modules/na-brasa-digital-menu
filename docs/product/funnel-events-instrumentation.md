@@ -12,7 +12,8 @@ skills `.cursor/skills/product-grill` e `.cursor/skills/revenue-centric-design`.
 BUILD (after REDUCE SCOPE)
 Classification: PLATFORM
 Issue: #103
-PR A (schema + recorder): in progress / shipping
+PR A (schema + recorder): merged
+PR B (lifecycle server): shipping
 Analytics SaaS / dashboard UI: not authorized
 InfiniteTap payment capture: vocabulary only (implement in #110)
 ```
@@ -20,8 +21,8 @@ InfiniteTap payment capture: vocabulary only (implement in #110)
 | Item | Classificação |
 | --- | --- |
 | Product-grill | **BUILD** (após REDUCE SCOPE) |
-| PR A — schema + recorder + purge dry-run | **Autorizada** |
-| PR B — lifecycle server | **Próxima** |
+| PR A — schema + recorder + purge dry-run | **Feita** |
+| PR B — lifecycle server | **Autorizada / em curso** |
 | PR C — client Online | **Depois de B** |
 | Dashboard / PostHog / Mixpanel | **Fora** |
 | Eventos InfiniteTap em runtime | **Fora** (#110) |
@@ -189,10 +190,19 @@ password, token, e qualquer chave fora da allowlist.
 * dashboard
 * qualquer dado pessoal
 
-### PR B / PR C
+### PR B — lifecycle server
 
-* B: `order_created` / confirmed / completed / cancelled (+ handoff se couber server)
-* C: `menu_viewed`, `product_added`, `checkout_started`, `whatsapp_handoff_started` no client
+* `order_created` após persistência `DIRECT` e `COUNTER`
+* `order_confirmed` / `order_completed` / `order_cancelled` após transição bem-sucedida
+* `order_completed` também via `finalizeCounterOrder` (Balcão)
+* dados só do pedido persistido (`storeId`, `orderId`, `source`)
+* dedupe `{name}:{orderId}` por loja
+* falha de telemetria não altera o fluxo operacional
+* sem client, sem WhatsApp handoff, sem consultas, sem InfiniteTap
+
+### PR C
+
+* `menu_viewed`, `product_added`, `checkout_started`, `whatsapp_handoff_started` no client
 
 ---
 
@@ -209,18 +219,41 @@ password, token, e qualquer chave fora da allowlist.
 - [x] Testes de validação, dedupe e isolamento por store
 - [x] Sem client / lifecycle / dashboard / InfiniteTap
 
+## Critérios de aceite (PR B)
+
+- [x] `order_created` para DIRECT e COUNTER
+- [x] `order_confirmed` / `order_completed` / `order_cancelled` nas transições
+- [x] `order_completed` no finalize de Balcão
+- [x] propriedades só do pedido persistido
+- [x] emissão após sucesso da operação
+- [x] dedupe por evento + pedido
+- [x] telemetria isolada do fluxo operacional
+- [x] testes de serviços/transições
+- [x] sem client / WhatsApp / consultas / InfiniteTap
+
 ---
 
 ## Arquivos (PR A)
 
 * `prisma/schema.prisma`
 * `prisma/migrations/20260722010000_add_funnel_events/`
-* `src/features/analytics/*`
+* `src/features/analytics/*` (schema/recorder/retention)
 * `scripts/purge-funnel-events.ts`
 * `package.json` (`test` + `data:purge-funnel-events`)
+* este documento
+
+## Arquivos (PR B)
+
+* `src/features/analytics/record-order-lifecycle-funnel-event.ts` (+ test)
+* `src/features/orders/services/create-order.service.ts` (+ test)
+* `src/features/orders/services/create-counter-order.service.ts` (+ test)
+* `src/features/orders/services/finalize-counter-order.service.ts` (+ test)
+* `src/features/admin/orders/admin-order-status.service.ts` (+ test)
+* `package.json` (test entry)
 * este documento
 
 ## Explicitamente fora
 
 PostHog/GA/dashboard · session replay · UTM · InfiniteTap runtime ·
-mudança de checkout/preço · ranking via eventos · job automático de purge
+mudança de checkout/preço · ranking via eventos · job automático de purge ·
+eventos client · `whatsapp_handoff_started` · consultas semanais

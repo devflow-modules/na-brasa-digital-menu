@@ -1,3 +1,4 @@
+import { recordOrderLifecycleFunnelEvent } from "@/features/analytics/record-order-lifecycle-funnel-event";
 import { createOrderWithItems } from "@/features/orders/repositories/orders.repository";
 import { createCounterOrderSchema } from "@/features/orders/schemas/create-counter-order.schema";
 import { resolveAndPriceOrderItems } from "@/features/orders/services/resolve-and-price-order-items";
@@ -22,12 +23,14 @@ export type CreateCounterOrderDeps = {
   resolveAndPriceOrderItems: typeof resolveAndPriceOrderItems;
   createOrderWithItems: typeof createOrderWithItems;
   generateOrderCode: typeof generateOrderCode;
+  recordOrderLifecycleFunnelEvent?: typeof recordOrderLifecycleFunnelEvent;
 };
 
 const defaultDeps: CreateCounterOrderDeps = {
   resolveAndPriceOrderItems,
   createOrderWithItems,
   generateOrderCode,
+  recordOrderLifecycleFunnelEvent,
 };
 
 /**
@@ -88,6 +91,20 @@ export async function createCounterOrder(
 
     try {
       const created = await deps.createOrderWithItems(persistence);
+
+      try {
+        const recordLifecycle =
+          deps.recordOrderLifecycleFunnelEvent ??
+          recordOrderLifecycleFunnelEvent;
+        await recordLifecycle({
+          storeId: context.storeId,
+          orderId: created.id,
+          source: "COUNTER",
+          name: "order_created",
+        });
+      } catch {
+        // Telemetry must never fail order creation.
+      }
 
       return {
         ok: true,

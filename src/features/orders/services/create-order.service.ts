@@ -1,3 +1,4 @@
+import { recordOrderLifecycleFunnelEvent } from "@/features/analytics/record-order-lifecycle-funnel-event";
 import { createOrderSchema } from "@/features/orders/schemas/create-order.schema";
 import {
   createOrderWithItems,
@@ -23,6 +24,7 @@ export type CreateOrderDeps = {
   resolveAndPriceOrderItems: typeof resolveAndPriceOrderItems;
   createOrderWithItems: typeof createOrderWithItems;
   generateOrderCode: typeof generateOrderCode;
+  recordOrderLifecycleFunnelEvent?: typeof recordOrderLifecycleFunnelEvent;
 };
 
 const defaultDeps: CreateOrderDeps = {
@@ -30,6 +32,7 @@ const defaultDeps: CreateOrderDeps = {
   resolveAndPriceOrderItems,
   createOrderWithItems,
   generateOrderCode,
+  recordOrderLifecycleFunnelEvent,
 };
 
 function firstZodMessage(error: {
@@ -171,6 +174,20 @@ export async function createOrder(
     try {
       const created = await deps.createOrderWithItems(persistence);
       const whatsappUrl = createWhatsAppUrl(store.whatsapp, whatsappMessage);
+
+      try {
+        const recordLifecycle =
+          deps.recordOrderLifecycleFunnelEvent ??
+          recordOrderLifecycleFunnelEvent;
+        await recordLifecycle({
+          storeId: store.id,
+          orderId: created.id,
+          source: "DIRECT",
+          name: "order_created",
+        });
+      } catch {
+        // Telemetry must never fail order creation.
+      }
 
       return {
         ok: true,

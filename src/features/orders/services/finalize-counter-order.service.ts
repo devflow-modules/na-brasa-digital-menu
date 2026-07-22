@@ -7,6 +7,7 @@ import {
   findOrderForCounterFinalize,
   finalizeCounterOrderPayment,
 } from "@/features/admin/orders/admin-orders.repository";
+import { recordOrderLifecycleFunnelEvent } from "@/features/analytics/record-order-lifecycle-funnel-event";
 import { finalizeCounterOrderSchema } from "@/features/orders/schemas/finalize-counter-order.schema";
 import type { UserRole } from "@prisma/client";
 
@@ -30,12 +31,14 @@ export type FinalizeCounterOrderDeps = {
   findOrderForCounterFinalize: typeof findOrderForCounterFinalize;
   finalizeCounterOrderPayment: typeof finalizeCounterOrderPayment;
   now: () => Date;
+  recordOrderLifecycleFunnelEvent?: typeof recordOrderLifecycleFunnelEvent;
 };
 
 const defaultDeps: FinalizeCounterOrderDeps = {
   findOrderForCounterFinalize,
   finalizeCounterOrderPayment,
   now: () => new Date(),
+  recordOrderLifecycleFunnelEvent,
 };
 
 function firstZodMessage(error: {
@@ -150,6 +153,20 @@ export async function finalizeCounterOrder(
         ok: false,
         message: "Não foi possível finalizar o pedido. Tente novamente.",
       };
+    }
+
+    try {
+      const recordLifecycle =
+        deps.recordOrderLifecycleFunnelEvent ??
+        recordOrderLifecycleFunnelEvent;
+      await recordLifecycle({
+        storeId: order.storeId,
+        orderId: order.id,
+        source: "COUNTER",
+        name: "order_completed",
+      });
+    } catch {
+      // Telemetry must never fail counter finalization.
     }
 
     return {

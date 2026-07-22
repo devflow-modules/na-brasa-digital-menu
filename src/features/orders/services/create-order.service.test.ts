@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import type { RecordOrderLifecycleFunnelEventInput } from "@/features/analytics/record-order-lifecycle-funnel-event";
 import type { OrderStoreRecord } from "@/features/orders/repositories/orders.repository";
-import { createOrder } from "@/features/orders/services/create-order.service";
+import {
+  createOrder,
+  type CreateOrderDeps,
+} from "@/features/orders/services/create-order.service";
 import type {
   CreateOrderInput,
   CreateOrderPersistenceInput,
@@ -59,7 +63,7 @@ function mockDeps(options: {
   subtotalCents: number;
   items?: PreparedOrderItem[];
   captured?: CreateOrderPersistenceInput[];
-}) {
+}): CreateOrderDeps {
   const captured = options.captured ?? [];
   const items = options.items ?? [pricedItem(options.subtotalCents)];
 
@@ -75,6 +79,12 @@ function mockDeps(options: {
       return { id: "order_1", code: "NB-123456-100" };
     },
     generateOrderCode: () => "NB-123456-100",
+    recordOrderLifecycleFunnelEvent: async (
+      _input: RecordOrderLifecycleFunnelEventInput,
+    ) => ({
+      ok: true as const,
+      recorded: true as const,
+    }),
   };
 }
 
@@ -259,6 +269,46 @@ describe("createOrder delivery minimum", () => {
 
     assert.equal(result.ok, true);
     assert.equal(captured[0]?.source, "DIRECT");
+  });
+
+  it("emits order_created funnel event after successful DIRECT persist", async () => {
+    const funnelCalls: Array<Record<string, unknown>> = [];
+    const deps = mockDeps({ store: baseStore(), subtotalCents: 100 });
+    deps.recordOrderLifecycleFunnelEvent = async (input) => {
+      funnelCalls.push(input);
+      return { ok: true, recorded: true };
+    };
+
+    const result = await createOrder(
+      validInput({ deliveryType: "PICKUP" }),
+      deps,
+    );
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(funnelCalls, [
+      {
+        storeId: "store_1",
+        orderId: "order_1",
+        source: "DIRECT",
+        name: "order_created",
+      },
+    ]);
+  });
+
+  it("keeps successful create when funnel recording fails", async () => {
+    const deps = mockDeps({ store: baseStore(), subtotalCents: 100 });
+    deps.recordOrderLifecycleFunnelEvent = async () => {
+      throw new Error("funnel down");
+    };
+
+    const result = await createOrder(
+      validInput({ deliveryType: "PICKUP" }),
+      deps,
+    );
+
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.orderId, "order_1");
   });
 
   it("rejects when store is closed before pricing or persistence", async () => {

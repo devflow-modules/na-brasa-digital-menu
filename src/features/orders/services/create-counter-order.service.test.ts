@@ -3,6 +3,9 @@ import { describe, it } from "node:test";
 import { createCounterOrder } from "@/features/orders/services/create-counter-order.service";
 import type { CreateOrderPersistenceInput } from "@/features/orders/types";
 
+const noopFunnel = async () =>
+  ({ ok: true as const, recorded: true as const });
+
 describe("createCounterOrder", () => {
   it("persists COUNTER order without payment, phone, WhatsApp or minimum", async () => {
     const captured: CreateOrderPersistenceInput[] = [];
@@ -42,6 +45,7 @@ describe("createCounterOrder", () => {
           return { id: "order_1", code: "NB-123456-100" };
         },
         generateOrderCode: () => "NB-123456-100",
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
 
@@ -107,6 +111,7 @@ describe("createCounterOrder", () => {
           return { id: "order_2", code: "NB-222222-200" };
         },
         generateOrderCode: () => "NB-222222-200",
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
 
@@ -118,6 +123,52 @@ describe("createCounterOrder", () => {
     assert.equal(persisted.createdByUserId, "user_1");
     assert.equal(persisted.storeId, "store_1");
     assert.equal(persisted.paymentMethod, null);
+  });
+
+  it("emits order_created funnel event for COUNTER after persist", async () => {
+    const funnelCalls: Array<Record<string, unknown>> = [];
+
+    const result = await createCounterOrder(
+      { storeId: "store_1", createdByUserId: "user_1" },
+      { items: [{ productId: "p1", quantity: 1 }] },
+      {
+        resolveAndPriceOrderItems: async () => ({
+          ok: true,
+          subtotalCents: 1000,
+          items: [
+            {
+              productId: "p1",
+              productNameSnapshot: "Suco",
+              productDescriptionSnapshot: null,
+              quantity: 1,
+              unitPriceCents: 1000,
+              totalCents: 1000,
+              notes: null,
+              addons: [],
+            },
+          ],
+        }),
+        createOrderWithItems: async () => ({
+          id: "order_counter",
+          code: "NB-333333-300",
+        }),
+        generateOrderCode: () => "NB-333333-300",
+        recordOrderLifecycleFunnelEvent: async (input) => {
+          funnelCalls.push(input);
+          return { ok: true, recorded: true };
+        },
+      },
+    );
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(funnelCalls, [
+      {
+        storeId: "store_1",
+        orderId: "order_counter",
+        source: "COUNTER",
+        name: "order_created",
+      },
+    ]);
   });
 
   it("rejects empty payload and surfaces pricing failures", async () => {

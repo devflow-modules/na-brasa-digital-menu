@@ -10,6 +10,10 @@ import {
   updateOrderStatus,
 } from "@/features/admin/orders/admin-orders.repository";
 import type { AdminOrderStatus } from "@/features/admin/orders/admin-orders.types";
+import {
+  lifecycleFunnelEventForStatus,
+  recordOrderLifecycleFunnelEvent,
+} from "@/features/analytics/record-order-lifecycle-funnel-event";
 
 export type UpdateOrderStatusResult =
   | { ok: true; status: AdminOrderStatus }
@@ -18,11 +22,13 @@ export type UpdateOrderStatusResult =
 export type UpdateAdminOrderStatusDeps = {
   findOrderStatusForUpdate: typeof findOrderStatusForUpdate;
   updateOrderStatus: typeof updateOrderStatus;
+  recordOrderLifecycleFunnelEvent?: typeof recordOrderLifecycleFunnelEvent;
 };
 
 const defaultDeps: UpdateAdminOrderStatusDeps = {
   findOrderStatusForUpdate,
   updateOrderStatus,
+  recordOrderLifecycleFunnelEvent,
 };
 
 /**
@@ -78,6 +84,24 @@ export async function updateAdminOrderStatus(
 
   try {
     const updated = await deps.updateOrderStatus(orderId, storeId, nextStatus);
+
+    const lifecycleName = lifecycleFunnelEventForStatus(updated.status);
+    if (lifecycleName) {
+      try {
+        const recordLifecycle =
+          deps.recordOrderLifecycleFunnelEvent ??
+          recordOrderLifecycleFunnelEvent;
+        await recordLifecycle({
+          storeId: order.storeId,
+          orderId: order.id,
+          source: order.source,
+          name: lifecycleName,
+        });
+      } catch {
+        // Telemetry must never fail status transitions.
+      }
+    }
+
     return { ok: true, status: updated.status };
   } catch (error) {
     if (error instanceof Error && error.message === "ORDER_NOT_IN_STORE") {
