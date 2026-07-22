@@ -61,6 +61,7 @@ Login **runtime** em `/admin/login` usa `User` + bcrypt. Sessão JWT inclui `use
 - **`changeForCents`** — espelho legado: valor **entregue** pelo cliente em `CASH` no finalize single-tender (pagamento exato = `null`); troco de apresentação legado = `changeForCents - totalCents`. Em pagamento misto fica `null` (ver `OrderPayment`)
 - **`OrderPayment`** — parcelas de recebimento (Balcão); uma linha por `method` por pedido (`@@unique([orderId, method])`); FK composta `(orderId, storeId)` → `Order`; `amountCents` = valor aplicado ao total; `tenderedCents`/`changeCents` só em `CASH` (`changeCents` calculado no servidor). Sem `provider`/InfiniteTap nesta fatia
 - **`PaymentMethod`** — novos pedidos usam `CASH` / `PIX` / `DEBIT_CARD` / `CREDIT_CARD`; `CARD` permanece no enum só para histórico sem tipo de cartão documentado (não disponível na UI de criação)
+- **iFood inbox (test app, #120)** — `IfoodConnection` (`Store` ↔ `merchantId`), `IfoodEvent` append-only (`@@unique([connectionId, externalEventId])`), `IfoodOrder` snapshot por `externalOrderId`. Credenciais só em env. **Não** cria/altera `Order` operacional nesta fatia.
 
 Regra multi-tenant futura (service, não schema): `storeId` e `createdByUserId` vêm do contexto autenticado; o service valida vínculo do usuário com a Store; o catálogo resolve pelo mesmo `storeId`.
 

@@ -36,6 +36,9 @@
 *.pem
 Thumbs.db
 
+# Local ops artifacts (iFood smoke inbox, etc.)
+.local/
+
 # Cursor local MCP (optional; see .cursor/mcp.playwright.example.json)
 .cursor/mcp.json
 
