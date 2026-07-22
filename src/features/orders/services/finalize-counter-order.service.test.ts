@@ -3,6 +3,9 @@ import { describe, it } from "node:test";
 import type { CounterFinalizeOrderRecord } from "@/features/admin/orders/admin-orders.repository";
 import { finalizeCounterOrder } from "@/features/orders/services/finalize-counter-order.service";
 
+const noopFunnel = async () =>
+  ({ ok: true as const, recorded: true as const });
+
 function readyCounterOrder(
   overrides: Partial<CounterFinalizeOrderRecord> = {},
 ): CounterFinalizeOrderRecord {
@@ -39,6 +42,7 @@ describe("finalizeCounterOrder", () => {
           return { updated: true };
         },
         now: () => paidAt,
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
 
@@ -52,6 +56,33 @@ describe("finalizeCounterOrder", () => {
     assert.equal(writes[0]?.changeForCents, null);
     assert.equal(writes[0]?.paymentMethod, "CASH");
     assert.equal(writes[0]?.paidAt, paidAt);
+  });
+
+  it("emits order_completed funnel event after successful finalize", async () => {
+    const funnelCalls: Array<Record<string, unknown>> = [];
+    const result = await finalizeCounterOrder(
+      { storeId: "store_1", role: "OPERATOR" },
+      { orderId: "order_1", paymentMethod: "PIX" },
+      {
+        findOrderForCounterFinalize: async () => readyCounterOrder(),
+        finalizeCounterOrderPayment: async () => ({ updated: true }),
+        now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: async (input) => {
+          funnelCalls.push(input);
+          return { ok: true, recorded: true };
+        },
+      },
+    );
+
+    assert.equal(result.ok, true);
+    assert.deepEqual(funnelCalls, [
+      {
+        storeId: "store_1",
+        orderId: "order_1",
+        source: "COUNTER",
+        name: "order_completed",
+      },
+    ]);
   });
 
   it("persists tendered cash amount and accepts card/pix without change", async () => {
@@ -70,6 +101,7 @@ describe("finalizeCounterOrder", () => {
           return { updated: true };
         },
         now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
     assert.equal(result.ok, true);
@@ -85,6 +117,7 @@ describe("finalizeCounterOrder", () => {
           return { updated: true };
         },
         now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
     assert.equal(pix.ok, true);
@@ -99,6 +132,7 @@ describe("finalizeCounterOrder", () => {
           return { updated: true };
         },
         now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
     assert.equal(card.ok, true);
@@ -221,6 +255,7 @@ describe("finalizeCounterOrder", () => {
           return { updated: true };
         },
         now: () => new Date("2026-07-15T22:00:00.000Z"),
+        recordOrderLifecycleFunnelEvent: noopFunnel,
       },
     );
     assert.equal(result.ok, true);
