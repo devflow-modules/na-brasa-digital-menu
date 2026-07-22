@@ -55,6 +55,14 @@ export async function updateAdminOrderStatus(
     return { ok: false, message: "Pedido não encontrado." };
   }
 
+  if (order.source === "IFOOD") {
+    return {
+      ok: false,
+      message:
+        "Pedidos iFood só podem ter o status atualizado pelos eventos da plataforma.",
+    };
+  }
+
   if (
     nextStatus === "COMPLETED" &&
     order.source === "COUNTER" &&

@@ -173,7 +173,8 @@ model IfoodEvent {
   @@index([processingStatus])
 }
 
-/// External order snapshot keyed by iFood order id (not operational Order).
+/// External order snapshot keyed by iFood order id.
+/// Optional 1:1 projection to operational Order (#126) — IfoodOrder remains source of truth.
 model IfoodOrder {
   id                String    @id @default(cuid())
   connectionId      String
@@ -187,12 +188,15 @@ model IfoodOrder {
   lastExternalEventId String?
   snapshot            Json?
   snapshotFetchedAt   DateTime?
+  /// Operational projection (#126). Unique 1:1 when set.
+  operationalOrderId  String?   @unique
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
-  connection IfoodConnection     @relation(fields: [connectionId], references: [id], onDelete: Cascade)
-  store      Store               @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  commands   IfoodOrderCommand[]
+  connection       IfoodConnection     @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  store            Store               @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  operationalOrder Order?              @relation(fields: [operationalOrderId], references: [id], onDelete: SetNull)
+  commands         IfoodOrderCommand[]
 
   @@unique([connectionId, externalOrderId])
   @@index([storeId, updatedAt])
@@ -396,11 +400,12 @@ model Order {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
-  store         Store          @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  createdByUser User?          @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
-  items         OrderItem[]
-  payments      OrderPayment[]
-  funnelEvents  FunnelEvent[]
+  store           Store          @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdByUser   User?          @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  items           OrderItem[]
+  payments        OrderPayment[]
+  funnelEvents    FunnelEvent[]
+  ifoodProjection IfoodOrder?
 
   @@unique([id, storeId])
   @@index([storeId, createdAt])

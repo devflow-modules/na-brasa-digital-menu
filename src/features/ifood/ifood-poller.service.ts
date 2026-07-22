@@ -13,6 +13,7 @@ import {
   shouldAdvanceIfoodLifecycle,
 } from "@/features/ifood/ifood-lifecycle";
 import { correlateIfoodCommandFromEvent } from "@/features/ifood/ifood-order-command.service";
+import { syncIfoodOperationalProjection } from "@/features/ifood/ifood-order-projection.service";
 
 export type IfoodPollCycleResult = {
   connectionId: string;
@@ -56,9 +57,12 @@ export async function runIfoodPollCycle(options: {
   connection: IfoodConnection;
   lockedBy: string;
   now?: Date;
+  syncOperationalProjection?: typeof syncIfoodOperationalProjection;
 }): Promise<IfoodPollCycleResult> {
   const now = options.now ?? new Date();
   const { prisma, api, connection, lockedBy } = options;
+  const syncOperationalProjection =
+    options.syncOperationalProjection ?? syncIfoodOperationalProjection;
 
   const result: IfoodPollCycleResult = {
     connectionId: connection.id,
@@ -242,6 +246,19 @@ export async function runIfoodPollCycle(options: {
             eventAt,
             receivedAt: now,
           });
+
+          // Projection must not break inbox/ACK; retry on later events.
+          try {
+            await syncOperationalProjection({
+              prisma,
+              connectionId: connection.id,
+              externalOrderId,
+            });
+          } catch {
+            console.error(
+              "[runIfoodPollCycle] operational projection failed; inbox kept",
+            );
+          }
         }
 
         await prisma.ifoodEvent.update({

@@ -2,6 +2,33 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { updateAdminOrderStatus } from "@/features/admin/orders/admin-order-status.service";
 
+describe("updateAdminOrderStatus IFOOD guard", () => {
+  it("rejects generic status mutation for source=IFOOD", async () => {
+    const result = await updateAdminOrderStatus(
+      { orderId: "order_ifood", nextStatus: "CONFIRMED" },
+      "store_1",
+      "OPERATOR",
+      {
+        findOrderStatusForUpdate: async () => ({
+          id: "order_ifood",
+          storeId: "store_1",
+          status: "PENDING",
+          deliveryType: "DELIVERY",
+          source: "IFOOD",
+          paidAt: null,
+        }),
+        updateOrderStatus: async () => {
+          throw new Error("should not update");
+        },
+      },
+    );
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.match(result.message, /iFood/i);
+  });
+});
+
 describe("updateAdminOrderStatus COUNTER payment guard", () => {
   it("blocks generic COMPLETED for unpaid COUNTER", async () => {
     const result = await updateAdminOrderStatus(
