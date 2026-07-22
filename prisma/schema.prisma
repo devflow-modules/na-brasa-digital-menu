@@ -78,14 +78,101 @@ model Store {
   createdAt                DateTime   @default(now())
   updatedAt                DateTime   @updatedAt
 
-  categories    Category[]
-  products      Product[]
-  addons        Addon[]
-  addonGroups   AddonGroup[]
-  orders        Order[]
-  orderPayments OrderPayment[]
-  users         User[]
-  funnelEvents  FunnelEvent[]
+  categories        Category[]
+  products          Product[]
+  addons            Addon[]
+  addonGroups       AddonGroup[]
+  orders            Order[]
+  orderPayments     OrderPayment[]
+  users             User[]
+  funnelEvents      FunnelEvent[]
+  ifoodConnections  IfoodConnection[]
+  ifoodEvents       IfoodEvent[]
+  ifoodOrders       IfoodOrder[]
+}
+
+/// Processing state for durable iFood inbox events (#120).
+enum IfoodEventProcessingStatus {
+  /// Persisted but not handled (unknown codes stay here).
+  PENDING
+  /// Handled (order snapshot refreshed when applicable).
+  PROCESSED
+  /// Persist ok; later handling failed (still eligible for ACK).
+  FAILED
+}
+
+/// Store ↔ iFood merchant binding. Credentials stay in env, never here.
+model IfoodConnection {
+  id           String    @id @default(cuid())
+  storeId      String
+  merchantId   String
+  isActive     Boolean   @default(true)
+  /// Optimistic poller lock — stale locks may be stolen after TTL.
+  pollLockedAt DateTime?
+  pollLockedBy String?
+  lastPolledAt DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  store  Store        @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  events IfoodEvent[]
+  orders IfoodOrder[]
+
+  @@unique([merchantId])
+  @@unique([storeId, merchantId])
+  @@index([storeId, isActive])
+}
+
+/// Append-only iFood events inbox. ACK only after durable persist.
+model IfoodEvent {
+  id               String                      @id @default(cuid())
+  connectionId     String
+  storeId          String
+  externalEventId  String
+  code             String?
+  fullCode         String?
+  externalOrderId  String?
+  merchantId       String
+  /// Raw event JSON (no credentials).
+  payload          Json
+  receivedAt       DateTime                    @default(now())
+  acknowledgedAt   DateTime?
+  processingStatus IfoodEventProcessingStatus  @default(PENDING)
+  processedAt      DateTime?
+  processingError  String?
+
+  connection IfoodConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  store      Store           @relation(fields: [storeId], references: [id], onDelete: Restrict)
+
+  @@unique([connectionId, externalEventId])
+  @@index([connectionId, receivedAt])
+  @@index([storeId, receivedAt])
+  @@index([externalOrderId])
+  @@index([processingStatus])
+}
+
+/// External order snapshot keyed by iFood order id (not operational Order).
+model IfoodOrder {
+  id                String    @id @default(cuid())
+  connectionId      String
+  storeId           String
+  externalOrderId   String
+  displayId         String?
+  /// Latest event fullCode by event time — never by poll array order.
+  lastEventFullCode String?
+  lastEventAt       DateTime?
+  /// Tie-break when lastEventAt collides (lexicographic external event id).
+  lastExternalEventId String?
+  snapshot            Json?
+  snapshotFetchedAt   DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  connection IfoodConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  store      Store           @relation(fields: [storeId], references: [id], onDelete: Restrict)
+
+  @@unique([connectionId, externalOrderId])
+  @@index([storeId, updatedAt])
 }
 
 model User {

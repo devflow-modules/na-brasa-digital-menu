@@ -479,6 +479,16 @@ export async function cleanupE2eStores(): Promise<number> {
   await prisma.funnelEvent.deleteMany({
     where: { storeId: { in: storeIds } },
   });
+  // iFood inbox FKs are Restrict on Store — clear before Store delete.
+  await prisma.ifoodEvent.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
+  await prisma.ifoodOrder.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
+  await prisma.ifoodConnection.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
   // OrderPayment cascades from Order, but clear explicitly for leftover rows.
   await prisma.orderPayment.deleteMany({
     where: { storeId: { in: storeIds } },
