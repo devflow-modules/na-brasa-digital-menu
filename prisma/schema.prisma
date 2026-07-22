@@ -49,6 +49,19 @@ enum UserRole {
   KITCHEN
 }
 
+/// Closed allowlist for pilot funnel instrumentation (#103).
+/// Reserved payment_* names for InfiniteTap are documented, not emitted here.
+enum FunnelEventName {
+  menu_viewed
+  product_added
+  checkout_started
+  order_created
+  whatsapp_handoff_started
+  order_confirmed
+  order_completed
+  order_cancelled
+}
+
 model Store {
   id                       String     @id @default(cuid())
   name                     String
@@ -65,12 +78,13 @@ model Store {
   createdAt                DateTime   @default(now())
   updatedAt                DateTime   @updatedAt
 
-  categories  Category[]
-  products    Product[]
-  addons      Addon[]
-  addonGroups AddonGroup[]
-  orders      Order[]
-  users       User[]
+  categories   Category[]
+  products     Product[]
+  addons       Addon[]
+  addonGroups  AddonGroup[]
+  orders       Order[]
+  users        User[]
+  funnelEvents FunnelEvent[]
 }
 
 model User {
@@ -228,13 +242,41 @@ model Order {
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
 
-  store         Store       @relation(fields: [storeId], references: [id], onDelete: Restrict)
-  createdByUser User?       @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  store         Store         @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  createdByUser User?         @relation("OrderCreatedByUser", fields: [createdByUserId], references: [id], onDelete: SetNull)
   items         OrderItem[]
+  funnelEvents  FunnelEvent[]
 
   @@index([storeId, createdAt])
   @@index([storeId, status])
   @@index([source])
+}
+
+/// Append-only funnel telemetry. No PII. Server sets occurredAt.
+model FunnelEvent {
+  id               String          @id @default(cuid())
+  storeId          String
+  name             FunnelEventName
+  /// Unique per store — never global. Callers must encode occurrence for repeatable events.
+  dedupeKey        String
+  /// Always assigned by the server at record time.
+  occurredAt       DateTime
+  /// Optional client clock — auxiliary only; never trusted as occurredAt.
+  clientOccurredAt DateTime?
+  sessionId        String?
+  orderId          String?
+  productId        String?
+  source           OrderSource?
+  quantity         Int?
+  createdAt        DateTime        @default(now())
+
+  store Store  @relation(fields: [storeId], references: [id], onDelete: Restrict)
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@unique([storeId, dedupeKey])
+  @@index([storeId, name, occurredAt])
+  @@index([storeId, occurredAt])
+  @@index([orderId])
 }
 
 model OrderItem {
