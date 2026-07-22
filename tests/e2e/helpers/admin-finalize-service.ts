@@ -16,6 +16,7 @@ export async function attemptFinalizeCounterOrder(options: {
     {
       storeId: options.storeId,
       role: options.role,
+      userId: null,
     },
     {
       orderId: options.orderId,

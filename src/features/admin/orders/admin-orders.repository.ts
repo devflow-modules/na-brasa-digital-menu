@@ -181,6 +181,13 @@ export async function findOrderStatusForUpdate(
   });
 }
 
+export type CounterFinalizePaymentRecord = {
+  method: PaymentMethod;
+  amountCents: number;
+  tenderedCents: number | null;
+  changeCents: number | null;
+};
+
 export type CounterFinalizeOrderRecord = {
   id: string;
   storeId: string;
@@ -191,6 +198,7 @@ export type CounterFinalizeOrderRecord = {
   changeForCents: number | null;
   paidAt: Date | null;
   totalCents: number;
+  payments: CounterFinalizePaymentRecord[];
 };
 
 export async function findOrderForCounterFinalize(
@@ -209,34 +217,77 @@ export async function findOrderForCounterFinalize(
       changeForCents: true,
       paidAt: true,
       totalCents: true,
+      payments: {
+        select: {
+          method: true,
+          amountCents: true,
+          tenderedCents: true,
+          changeCents: true,
+        },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
 }
 
+export type FinalizeCounterOrderPaymentLine = {
+  method: PaymentMethod;
+  amountCents: number;
+  tenderedCents: number | null;
+  changeCents: number | null;
+};
+
+/**
+ * Concurrency-safe finalize: updates order only when still READY/unpaid,
+ * then inserts OrderPayment rows in the same transaction.
+ * storeId on payments is always taken from the trusted store scope — never from client.
+ */
 export async function finalizeCounterOrderPayment(input: {
   orderId: string;
   storeId: string;
-  paymentMethod: PaymentMethod;
+  payments: FinalizeCounterOrderPaymentLine[];
+  /** Legacy mirror: single method or null when mixed. */
+  paymentMethod: PaymentMethod | null;
+  /** Legacy mirror: cash tendered amount when single CASH; else null. */
   changeForCents: number | null;
   paidAt: Date;
+  createdByUserId: string | null;
 }): Promise<{ updated: boolean }> {
-  const result = await prisma.order.updateMany({
-    where: {
-      id: input.orderId,
-      storeId: input.storeId,
-      source: "COUNTER",
-      status: "READY",
-      paidAt: null,
-    },
-    data: {
-      paymentMethod: input.paymentMethod,
-      changeForCents: input.changeForCents,
-      paidAt: input.paidAt,
-      status: "COMPLETED",
-    },
-  });
+  return prisma.$transaction(async (tx) => {
+    const result = await tx.order.updateMany({
+      where: {
+        id: input.orderId,
+        storeId: input.storeId,
+        source: "COUNTER",
+        status: "READY",
+        paidAt: null,
+      },
+      data: {
+        paymentMethod: input.paymentMethod,
+        changeForCents: input.changeForCents,
+        paidAt: input.paidAt,
+        status: "COMPLETED",
+      },
+    });
 
-  return { updated: result.count === 1 };
+    if (result.count !== 1) {
+      return { updated: false };
+    }
+
+    await tx.orderPayment.createMany({
+      data: input.payments.map((line) => ({
+        storeId: input.storeId,
+        orderId: input.orderId,
+        method: line.method,
+        amountCents: line.amountCents,
+        tenderedCents: line.tenderedCents,
+        changeCents: line.changeCents,
+        createdByUserId: input.createdByUserId,
+      })),
+    });
+
+    return { updated: true };
+  });
 }
 
 export async function updateOrderStatus(

@@ -45,6 +45,9 @@ export async function cleanupTrackedNotifyFixtures(): Promise<void> {
   await prisma.funnelEvent.deleteMany({
     where: { storeId: { in: storeIds } },
   });
+  await prisma.orderPayment.deleteMany({
+    where: { storeId: { in: storeIds } },
+  });
   await prisma.order.deleteMany({ where: { storeId: { in: storeIds } } });
   await prisma.productAddon.deleteMany({
     where: { product: { storeId: { in: storeIds } } },

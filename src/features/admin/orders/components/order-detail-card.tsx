@@ -90,7 +90,9 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
           <div>
             <dt className="text-xs text-stone-500">Pagamento</dt>
             <dd className="mt-1 text-stone-100">
-              {formatPaymentMethod(order.paymentMethod)}
+              {formatPaymentMethod(order.paymentMethod, {
+                paid: order.paidAt != null,
+              })}
               {order.source !== "COUNTER" &&
               typeof order.changeForCents === "number" ? (
                 <span className="text-stone-400">
