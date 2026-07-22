@@ -12,6 +12,7 @@ import {
   compareIfoodPollingEvents,
   shouldAdvanceIfoodLifecycle,
 } from "@/features/ifood/ifood-lifecycle";
+import { correlateIfoodCommandFromEvent } from "@/features/ifood/ifood-order-command.service";
 
 export type IfoodPollCycleResult = {
   connectionId: string;
@@ -230,6 +231,15 @@ export async function runIfoodPollCycle(options: {
                   }
                 : {}),
             },
+          });
+
+          await correlateIfoodCommandFromEvent({
+            prisma,
+            connectionId: connection.id,
+            externalOrderId,
+            externalEventId: event.id,
+            fullCode,
+            eventAt,
           });
         }
 
