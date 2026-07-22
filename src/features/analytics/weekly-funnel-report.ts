@@ -40,6 +40,19 @@ export type TimingSummary = {
   medianMs: number | null;
 };
 
+/** Volume ratios (counts ÷ counts). Null when denominator is 0 — never 0%. */
+export type OnlineFunnelRatios = {
+  productAddedPerMenuViewed: number | null;
+  checkoutStartedPerMenuViewed: number | null;
+  orderCreatedDirectPerCheckoutStarted: number | null;
+  whatsappHandoffPerOrderCreatedDirect: number | null;
+};
+
+export type LifecycleSourceBreakdown = {
+  bySource: Record<OrderSource, number>;
+  unclassified: number;
+};
+
 export type WeeklyFunnelReport = {
   store: { id: string; slug: string; name: string };
   period: WeeklyFunnelReportPeriod;
@@ -50,6 +63,8 @@ export type WeeklyFunnelReport = {
     checkoutStarted: number;
     orderCreatedDirect: number;
     whatsappHandoffStarted: number;
+    /** Volume ratios only — not per-session conversion. */
+    ratios: OnlineFunnelRatios;
   };
   creationCohort: {
     total: number;
@@ -69,9 +84,9 @@ export type WeeklyFunnelReport = {
     orderCompleted: number;
     orderCancelled: number;
     bySource: {
-      orderConfirmed: Record<OrderSource, number>;
-      orderCompleted: Record<OrderSource, number>;
-      orderCancelled: Record<OrderSource, number>;
+      orderConfirmed: LifecycleSourceBreakdown;
+      orderCompleted: LifecycleSourceBreakdown;
+      orderCancelled: LifecycleSourceBreakdown;
     };
   };
   timing: {
@@ -154,11 +169,43 @@ function emptySourceCounts(): Record<OrderSource, number> {
   return { DIRECT: 0, COUNTER: 0, IFOOD: 0, OTHER: 0 };
 }
 
+function emptyLifecycleSourceBreakdown(): LifecycleSourceBreakdown {
+  return { bySource: emptySourceCounts(), unclassified: 0 };
+}
+
 function formatSourceCounts(counts: Record<OrderSource, number>): string {
   return (Object.keys(counts) as OrderSource[])
     .filter((source) => counts[source] > 0 || source === "DIRECT" || source === "COUNTER")
     .map((source) => `${source}=${counts[source]}`)
     .join(" ");
+}
+
+function formatLifecycleSourceBreakdown(
+  breakdown: LifecycleSourceBreakdown,
+): string {
+  const parts = [formatSourceCounts(breakdown.bySource)];
+  if (breakdown.unclassified > 0) {
+    parts.push(`unclassified=${breakdown.unclassified}`);
+  }
+  return parts.filter(Boolean).join(" ");
+}
+
+/** Count ÷ count; null when denominator is 0 (never coerce to 0%). */
+export function safeRatio(
+  numerator: number,
+  denominator: number,
+): number | null {
+  if (denominator === 0) {
+    return null;
+  }
+  return numerator / denominator;
+}
+
+export function formatRatio(ratio: number | null): string {
+  if (ratio == null) {
+    return "n/a";
+  }
+  return `${(ratio * 100).toFixed(1)}%`;
 }
 
 function medianMs(values: number[]): number | null {
@@ -188,7 +235,9 @@ function buildNotes(): string[] {
     "Revenue and ticket use creation-cohort orders currently COMPLETED only; older orders completed this week appear only under lifecycle events.",
     "Top products: operational quantity excludes CANCELLED; revenue rows are COMPLETED only (pending totals are never called revenue).",
     "whatsapp_handoff_started proves link activation, not WhatsApp delivery.",
-    "Online funnel ratios are count-based, not perfect per-session attribution.",
+    "Online funnel ratios are volume ratios (event counts ÷ event counts), not per-session conversion.",
+    "Denominator zero yields n/a for ratios — never 0%.",
+    "Lifecycle events with null source count toward totals and unclassified; they are never inferred as DIRECT.",
   ];
 }
 
@@ -274,25 +323,31 @@ export function buildWeeklyFunnelReportFromData(input: {
     .slice(0, 10);
 
   const lifecycleBySource = {
-    orderConfirmed: emptySourceCounts(),
-    orderCompleted: emptySourceCounts(),
-    orderCancelled: emptySourceCounts(),
+    orderConfirmed: emptyLifecycleSourceBreakdown(),
+    orderCompleted: emptyLifecycleSourceBreakdown(),
+    orderCancelled: emptyLifecycleSourceBreakdown(),
   };
   let orderConfirmed = 0;
   let orderCompleted = 0;
   let orderCancelled = 0;
 
   for (const event of input.lifecycleEvents) {
-    const source = event.source ?? "DIRECT";
+    let bucket: LifecycleSourceBreakdown | null = null;
     if (event.name === "order_confirmed") {
       orderConfirmed += 1;
-      lifecycleBySource.orderConfirmed[source] += 1;
+      bucket = lifecycleBySource.orderConfirmed;
     } else if (event.name === "order_completed") {
       orderCompleted += 1;
-      lifecycleBySource.orderCompleted[source] += 1;
+      bucket = lifecycleBySource.orderCompleted;
     } else if (event.name === "order_cancelled") {
       orderCancelled += 1;
-      lifecycleBySource.orderCancelled[source] += 1;
+      bucket = lifecycleBySource.orderCancelled;
+    }
+    if (!bucket) continue;
+    if (event.source == null) {
+      bucket.unclassified += 1;
+    } else {
+      bucket.bySource[event.source] += 1;
     }
   }
 
@@ -326,19 +381,37 @@ export function buildWeeklyFunnelReportFromData(input: {
     count: countByName(input.funnelCounts, name),
   }));
 
+  const menuViewed = countByName(input.funnelCounts, "menu_viewed");
+  const productAdded = countByName(input.funnelCounts, "product_added");
+  const checkoutStarted = countByName(input.funnelCounts, "checkout_started");
+  const orderCreatedDirect = input.orderCreatedDirectCount;
+  const whatsappHandoffStarted = countByName(
+    input.funnelCounts,
+    "whatsapp_handoff_started",
+  );
+
   return {
     store: input.store,
     period: input.period,
     funnelEventCounts,
     onlineFunnel: {
-      menuViewed: countByName(input.funnelCounts, "menu_viewed"),
-      productAdded: countByName(input.funnelCounts, "product_added"),
-      checkoutStarted: countByName(input.funnelCounts, "checkout_started"),
-      orderCreatedDirect: input.orderCreatedDirectCount,
-      whatsappHandoffStarted: countByName(
-        input.funnelCounts,
-        "whatsapp_handoff_started",
-      ),
+      menuViewed,
+      productAdded,
+      checkoutStarted,
+      orderCreatedDirect,
+      whatsappHandoffStarted,
+      ratios: {
+        productAddedPerMenuViewed: safeRatio(productAdded, menuViewed),
+        checkoutStartedPerMenuViewed: safeRatio(checkoutStarted, menuViewed),
+        orderCreatedDirectPerCheckoutStarted: safeRatio(
+          orderCreatedDirect,
+          checkoutStarted,
+        ),
+        whatsappHandoffPerOrderCreatedDirect: safeRatio(
+          whatsappHandoffStarted,
+          orderCreatedDirect,
+        ),
+      },
     },
     creationCohort: {
       total: input.cohortOrders.length,
@@ -530,7 +603,7 @@ export function formatWeeklyFunnelReportText(report: WeeklyFunnelReport): string
   }
   lines.push("");
 
-  lines.push("## Online funnel (count-based)");
+  lines.push("## Online funnel (counts + volume ratios)");
   lines.push(`- menu_viewed: ${onlineFunnel.menuViewed}`);
   lines.push(`- product_added: ${onlineFunnel.productAdded}`);
   lines.push(`- checkout_started: ${onlineFunnel.checkoutStarted}`);
@@ -539,6 +612,21 @@ export function formatWeeklyFunnelReportText(report: WeeklyFunnelReport): string
   );
   lines.push(
     `- whatsapp_handoff_started: ${onlineFunnel.whatsappHandoffStarted}`,
+  );
+  lines.push(
+    `- ratio product_added / menu_viewed: ${formatRatio(onlineFunnel.ratios.productAddedPerMenuViewed)}`,
+  );
+  lines.push(
+    `- ratio checkout_started / menu_viewed: ${formatRatio(onlineFunnel.ratios.checkoutStartedPerMenuViewed)}`,
+  );
+  lines.push(
+    `- ratio order_created DIRECT / checkout_started: ${formatRatio(onlineFunnel.ratios.orderCreatedDirectPerCheckoutStarted)}`,
+  );
+  lines.push(
+    `- ratio whatsapp_handoff_started / order_created DIRECT: ${formatRatio(onlineFunnel.ratios.whatsappHandoffPerOrderCreatedDirect)}`,
+  );
+  lines.push(
+    "- note: ratios are volume counts ÷ counts, not per-session conversion; denominator 0 → n/a",
   );
   lines.push("");
 
@@ -569,13 +657,16 @@ export function formatWeeklyFunnelReportText(report: WeeklyFunnelReport): string
 
   lines.push("## Lifecycle events occurred (FunnelEvent.occurredAt in window)");
   lines.push(
-    `- order_confirmed: ${lifecycleEventsOccurred.orderConfirmed} (${formatSourceCounts(lifecycleEventsOccurred.bySource.orderConfirmed)})`,
+    `- order_confirmed: ${lifecycleEventsOccurred.orderConfirmed} (${formatLifecycleSourceBreakdown(lifecycleEventsOccurred.bySource.orderConfirmed)})`,
   );
   lines.push(
-    `- order_completed: ${lifecycleEventsOccurred.orderCompleted} (${formatSourceCounts(lifecycleEventsOccurred.bySource.orderCompleted)})`,
+    `- order_completed: ${lifecycleEventsOccurred.orderCompleted} (${formatLifecycleSourceBreakdown(lifecycleEventsOccurred.bySource.orderCompleted)})`,
   );
   lines.push(
-    `- order_cancelled: ${lifecycleEventsOccurred.orderCancelled} (${formatSourceCounts(lifecycleEventsOccurred.bySource.orderCancelled)})`,
+    `- order_cancelled: ${lifecycleEventsOccurred.orderCancelled} (${formatLifecycleSourceBreakdown(lifecycleEventsOccurred.bySource.orderCancelled)})`,
+  );
+  lines.push(
+    "- note: null source is unclassified (never inferred as DIRECT)",
   );
   lines.push("");
 

@@ -215,6 +215,9 @@ password, token, e qualquer chave fora da allowlist.
 * `pnpm report:weekly-funnel` + SQL Neon editável (`WITH params AS (...)`)
 * janela half-open `FROM <= t < TO` em `America/Sao_Paulo` → UTC
 * coorte de criação (`Order.createdAt` + status atual) separada de eventos lifecycle ocorridos
+* ratios de volume Online (`product_added/menu_viewed`, etc.; denom 0 → `n/a`)
+* `source` null → `unclassified` (nunca inferido como `DIRECT`)
+* tempos medianos created→confirmed/completed (CLI + SQL `percentile_cont`)
 * todos os `OrderStatus` + grupos open/completed/cancelled
 * receita/ticket só coorte criada no período e atualmente `COMPLETED`
 * top produtos: qty operacional (≠ CANCELLED) vs receita só `COMPLETED`
