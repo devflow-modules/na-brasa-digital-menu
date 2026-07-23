@@ -38,6 +38,8 @@ export function OrderStatusActions({
   const [isPending, startTransition] = useTransition();
   const roleLabel = formatAdminRoleLabel(role);
 
+  // IFOOD lifecycle actions are rendered by IfoodOrderActions (#131).
+  // Keep a defensive read-only fallback if the panel was not provided.
   if (source === "IFOOD") {
     return (
       <section

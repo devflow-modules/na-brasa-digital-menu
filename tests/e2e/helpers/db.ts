@@ -708,6 +708,9 @@ export async function createE2eIfoodOrder(options?: {
   deliveryAddress?: string | null;
   notes?: string | null;
   totalCents?: number;
+  /** When true, links a test IfoodOrder + connection for admin action panel (#131). */
+  withProjectionLink?: boolean;
+  merchantId?: string;
 }): Promise<Order> {
   const prisma = getPrisma();
   const storeSlug = options?.storeSlug ?? getStoreSlug();
@@ -731,7 +734,7 @@ export async function createE2eIfoodOrder(options?: {
   const totalCents = options?.totalCents ?? itemTotalCents + deliveryFeeCents;
   const code = `E2I${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 90 + 10)}`;
 
-  return prisma.order.create({
+  const order = await prisma.order.create({
     data: {
       storeId: store.id,
       code,
@@ -775,6 +778,60 @@ export async function createE2eIfoodOrder(options?: {
       },
     },
   });
+
+  if (options?.withProjectionLink) {
+    const merchantId =
+      options.merchantId ??
+      process.env.IFOOD_TEST_MERCHANT_ID ??
+      `e2e-ifood-merchant-${store.id.slice(-8)}`;
+    const existingConnection = await prisma.ifoodConnection.findFirst({
+      where: { storeId: store.id },
+    });
+    const connection =
+      existingConnection ??
+      (await prisma.ifoodConnection.create({
+        data: {
+          storeId: store.id,
+          merchantId,
+          isActive: true,
+        },
+      }));
+    if (!connection.isActive) {
+      await prisma.ifoodConnection.update({
+        where: { id: connection.id },
+        data: { isActive: true },
+      });
+    }
+    const externalOrderId = `e2e-${order.id}`;
+    await prisma.ifoodOrder.create({
+      data: {
+        connectionId: connection.id,
+        storeId: store.id,
+        externalOrderId,
+        displayId: code.slice(-4),
+        lastEventFullCode:
+          order.status === "PENDING"
+            ? "PLACED"
+            : order.status === "CONFIRMED"
+              ? "CONFIRMED"
+              : order.status === "PREPARING"
+                ? "PREPARATION_STARTED"
+                : null,
+        lastEventAt: new Date(),
+        lastExternalEventId: `e2e-evt-${order.id}`,
+        snapshot: {
+          id: externalOrderId,
+          displayId: code.slice(-4),
+          orderType: deliveryType === "DELIVERY" ? "DELIVERY" : "TAKEOUT",
+          category: "FOOD",
+        },
+        snapshotFetchedAt: new Date(),
+        operationalOrderId: order.id,
+      },
+    });
+  }
+
+  return order;
 }
 
 export async function disconnectE2ePrisma(): Promise<void> {

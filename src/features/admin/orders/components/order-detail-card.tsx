@@ -11,17 +11,24 @@ import {
   formatPhone,
 } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminOrderDetail } from "@/features/admin/orders/admin-orders.types";
+import { IfoodOrderActions } from "@/features/admin/orders/components/ifood-order-actions";
 import { OrderSourceBadge } from "@/features/admin/orders/components/order-source-badge";
 import { OrderStatusBadge } from "@/features/admin/orders/components/order-status-badge";
 import { OrderStatusActions } from "@/features/admin/orders/components/order-status-actions";
+import type { AdminIfoodActionPanel } from "@/features/admin/orders/get-admin-ifood-action-panel";
 import { formatPaymentMethodLabel } from "@/features/orders/payment-method";
 
 type OrderDetailCardProps = {
   order: AdminOrderDetail;
   role: UserRole;
+  ifoodActionPanel?: AdminIfoodActionPanel | null;
 };
 
-export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
+export function OrderDetailCard({
+  order,
+  role,
+  ifoodActionPanel = null,
+}: OrderDetailCardProps) {
   const canReceiveCounter =
     order.source === "COUNTER" &&
     order.status === "READY" &&
@@ -63,14 +70,22 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
         />
       ) : null}
 
-      <OrderStatusActions
-        orderId={order.id}
-        status={order.status}
-        deliveryType={order.deliveryType}
-        role={role}
-        source={order.source}
-        paidAt={order.paidAt}
-      />
+      {order.source === "IFOOD" && ifoodActionPanel ? (
+        <IfoodOrderActions
+          orderId={order.id}
+          role={role}
+          panel={ifoodActionPanel}
+        />
+      ) : (
+        <OrderStatusActions
+          orderId={order.id}
+          status={order.status}
+          deliveryType={order.deliveryType}
+          role={role}
+          source={order.source}
+          paidAt={order.paidAt}
+        />
+      )}
 
       <section className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4">
         <h2 className="text-sm font-semibold text-orange-50">Cliente</h2>
