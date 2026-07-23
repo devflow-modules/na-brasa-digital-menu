@@ -263,6 +263,6 @@ Registrar a decisão em `## Product Decision` (plano da feature e corpo da PR).
 - [product/addon-management-workspace.md](product/addon-management-workspace.md)
 - [product/payment-methods-debit-credit.md](product/payment-methods-debit-credit.md)
 - [product/addon-selection-groups.md](product/addon-selection-groups.md)
-- [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [testing.md](testing.md)
+- [database.md](database.md) · [deployment.md](deployment.md) · [operations.md](operations.md) · [operations/uptime-and-alerts.md](operations/uptime-and-alerts.md) · [testing.md](testing.md)
 - [adr/0002-database-backed-multi-admin-and-master-panel.md](adr/0002-database-backed-multi-admin-and-master-panel.md)
 - [adr/0003-ui-ux-direction-for-pilot.md](adr/0003-ui-ux-direction-for-pilot.md) (UX **específica do piloto** Na Braza)

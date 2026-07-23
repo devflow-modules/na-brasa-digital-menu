@@ -23,6 +23,7 @@ Use dados **fictícios** no smoke (nome/telefone de teste). Não use PII real de
 - [ ] WhatsApp da loja **confirmado** (número oficial, não placeholder)
 - [ ] Credenciais de sessão: `ADMIN_JWT_SECRET` forte + `ADMIN_SESSION_COOKIE`
 - [ ] Checkout DIRECT: `ORDER_IDEMPOTENCY_SECRET` (mín. 16; único por ambiente) + migration de idempotência aplicada
+- [ ] Observabilidade (#108): `MONITORING_WEBHOOK_URL` opcional (Slack/Discord Incoming Webhook) + redeploy; validar `/api/health` e workflow `Production Uptime`
 - [ ] Usuário admin no banco: seed com `MASTER_ADMIN_NAME` / `MASTER_ADMIN_EMAIL` / `MASTER_ADMIN_PASSWORD` (ou User criado manualmente)
 - [ ] `ADMIN_EMAIL` / `ADMIN_PASSWORD` **não** são mais necessários no runtime (podem ser removidos da Vercel após cutover)
 - [ ] `NEXT_PUBLIC_APP_URL` planejado (URL Vercel HTTPS)

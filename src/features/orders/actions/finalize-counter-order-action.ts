@@ -6,6 +6,7 @@ import {
   hasAdminPermission,
 } from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
+import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
 import {
   finalizeCounterOrder,
   type FinalizeCounterOrderResult,
@@ -41,7 +42,12 @@ export async function finalizeCounterOrderAction(
 
     return result;
   } catch {
-    console.error("[finalizeCounterOrderAction] unexpected error");
+    await logOpsCriticalError({
+      scope: "counter.finalize-order",
+      message: "Unexpected failure finalizing counter order",
+      storeId: context.storeId,
+      code: "unexpected",
+    });
     return {
       ok: false,
       message: "Não foi possível finalizar o pedido. Tente novamente.",

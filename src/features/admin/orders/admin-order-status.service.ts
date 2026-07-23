@@ -14,6 +14,8 @@ import {
   lifecycleFunnelEventForStatus,
   recordOrderLifecycleFunnelEvent,
 } from "@/features/analytics/record-order-lifecycle-funnel-event";
+import { logOpsInfo } from "@/features/ops/ops-log";
+import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
 
 export type UpdateOrderStatusResult =
   | { ok: true; status: AdminOrderStatus }
@@ -110,12 +112,26 @@ export async function updateAdminOrderStatus(
       }
     }
 
+    logOpsInfo({
+      scope: "admin.order-status",
+      message: "Order status updated",
+      orderId: order.id,
+      storeId: order.storeId,
+      code: updated.status,
+    });
+
     return { ok: true, status: updated.status };
   } catch (error) {
     if (error instanceof Error && error.message === "ORDER_NOT_IN_STORE") {
       return { ok: false, message: "Pedido não encontrado." };
     }
-    console.error("[updateAdminOrderStatus] failed to update order status");
+    await logOpsCriticalError({
+      scope: "admin.order-status",
+      message: "Failed to update order status",
+      orderId,
+      storeId,
+      code: "update_failed",
+    });
     return {
       ok: false,
       message: "Não foi possível atualizar o status. Tente novamente.",
