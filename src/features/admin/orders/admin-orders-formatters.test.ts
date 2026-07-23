@@ -39,11 +39,11 @@ describe("admin-orders-formatters domain compatibility", () => {
   it("labels IFOOD payment as managed by iFood without inventing tender", () => {
     assert.equal(
       formatAdminOrderPaymentLabel("IFOOD", null),
-      "Pago/gerenciado pelo iFood",
+      "Pagamento gerenciado pelo iFood",
     );
     assert.equal(
       formatAdminOrderPaymentLabel("IFOOD", "PIX"),
-      "Pago/gerenciado pelo iFood",
+      "Pagamento gerenciado pelo iFood",
     );
     assert.equal(
       formatAdminOrderPaymentLabel("DIRECT", null),

@@ -7,7 +7,7 @@
 ## Contract
 
 - Queue and source filter already include `IFOOD`; copy mentions online, counter and iFood.
-- Payment label for iFood: **Pago/gerenciado pelo iFood** (never “Pagamento pendente”; no invented tender).
+- Payment label for iFood: **Pagamento gerenciado pelo iFood** (never “Pagamento pendente”; no invented tender).
 - Detail shows projected customer, modality, address, notes, item/addon snapshots and totals.
 - Status note: **Status controlado pelo iFood; atualização automática pelos eventos.**
 - No generic status buttons and no counter finalize for `IFOOD` (any role).

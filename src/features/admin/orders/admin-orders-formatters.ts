@@ -50,7 +50,7 @@ export function formatAdminOrderPaymentLabel(
   options?: { paid?: boolean },
 ): string {
   if (source === "IFOOD") {
-    return "Pago/gerenciado pelo iFood";
+    return "Pagamento gerenciado pelo iFood";
   }
 
   return formatPaymentMethod(method, options);

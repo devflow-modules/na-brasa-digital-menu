@@ -124,7 +124,7 @@ test.describe("admin orders", () => {
     );
     await expect(ifoodRow.getByTestId("order-source-badge")).toHaveText("iFood");
     await expect(ifoodRow.getByTestId("admin-order-payment-label")).toHaveText(
-      "Pago/gerenciado pelo iFood",
+      "Pagamento gerenciado pelo iFood",
     );
     await expect(ifoodRow.getByTestId("admin-order-payment-label")).not.toHaveText(
       "Pagamento pendente",
@@ -137,7 +137,7 @@ test.describe("admin orders", () => {
       "IFOOD",
     );
     await expect(detail.getByTestId("order-payment-label")).toHaveText(
-      "Pago/gerenciado pelo iFood",
+      "Pagamento gerenciado pelo iFood",
     );
     await expect(detail.getByTestId("order-ifood-status-note")).toContainText(
       "Status controlado pelo iFood",
