@@ -29,7 +29,7 @@ export function AdminOrdersDashboard({
     >
       <AdminPageHeader
         title="Pedidos pendentes"
-        description="Acompanhe os pedidos online e de balcão que ainda exigem ação."
+        description="Acompanhe os pedidos online, de balcão e do iFood."
       />
 
       <div>

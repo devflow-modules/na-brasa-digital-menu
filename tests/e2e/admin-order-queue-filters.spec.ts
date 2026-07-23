@@ -3,6 +3,7 @@ import { loginAsUser } from "./helpers/auth";
 import {
   cleanupE2eOrders,
   createE2eCounterOrder,
+  createE2eIfoodOrder,
   createE2ePickupOrder,
   disconnectE2ePrisma,
 } from "./helpers/db";
@@ -37,6 +38,7 @@ test.describe("admin order queue filters", () => {
     });
     const directCustomer = uniqueCustomerName("Filter Direct Customer");
     const counterCustomer = uniqueCustomerName("Filter Counter Customer");
+    const ifoodCustomer = uniqueCustomerName("Filter Ifood Customer");
 
     const directOrder = await createE2ePickupOrder({
       customerName: directCustomer,
@@ -44,6 +46,10 @@ test.describe("admin order queue filters", () => {
     });
     const counterOrder = await createE2eCounterOrder({
       customerName: counterCustomer,
+      status: "PENDING",
+    });
+    const ifoodOrder = await createE2eIfoodOrder({
+      customerName: ifoodCustomer,
       status: "PENDING",
     });
 
@@ -57,18 +63,32 @@ test.describe("admin order queue filters", () => {
     const counterRow = page.locator(
       `[data-testid="admin-order-row"][data-order-id="${counterOrder.id}"]`,
     );
+    const ifoodRow = page.locator(
+      `[data-testid="admin-order-row"][data-order-id="${ifoodOrder.id}"]`,
+    );
     await expect(directRow).toBeVisible();
     await expect(counterRow).toBeVisible();
+    await expect(ifoodRow).toBeVisible();
 
     await page.getByTestId("admin-orders-filter-source").selectOption("COUNTER");
     await page.getByTestId("admin-orders-filter-apply").click();
     await expect(page).toHaveURL(/source=COUNTER/);
     await expect(counterRow).toBeVisible();
     await expect(directRow).toHaveCount(0);
+    await expect(ifoodRow).toHaveCount(0);
+
+    await clearQueueFilters(page);
+    await page.getByTestId("admin-orders-filter-source").selectOption("IFOOD");
+    await page.getByTestId("admin-orders-filter-apply").click();
+    await expect(page).toHaveURL(/source=IFOOD/);
+    await expect(ifoodRow).toBeVisible();
+    await expect(directRow).toHaveCount(0);
+    await expect(counterRow).toHaveCount(0);
 
     await clearQueueFilters(page);
     await expect(directRow).toBeVisible();
     await expect(counterRow).toBeVisible();
+    await expect(ifoodRow).toBeVisible();
 
     await page.getByTestId("admin-orders-filter-q").fill(directOrder.code);
     await page.getByTestId("admin-orders-filter-apply").click();

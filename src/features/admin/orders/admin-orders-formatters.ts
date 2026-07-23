@@ -43,6 +43,22 @@ export function formatPaymentMethod(
   return formatPaymentMethodLabel(method);
 }
 
+/** Source-aware payment label for queue/detail (#129). Never invents iFood tender. */
+export function formatAdminOrderPaymentLabel(
+  source: AdminOrderSource,
+  method: AdminPaymentMethod | null,
+  options?: { paid?: boolean },
+): string {
+  if (source === "IFOOD") {
+    return "Pago/gerenciado pelo iFood";
+  }
+
+  return formatPaymentMethod(method, options);
+}
+
+export const IFOOD_EXTERNAL_STATUS_NOTE =
+  "Status controlado pelo iFood; atualização automática pelos eventos.";
+
 export function formatOrderSource(source: AdminOrderSource): string {
   switch (source) {
     case "DIRECT":

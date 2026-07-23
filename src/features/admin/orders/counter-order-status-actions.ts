@@ -4,8 +4,9 @@ import type {
 } from "@/features/admin/orders/admin-orders.types";
 
 /**
- * COUNTER unpaid orders cannot use the generic COMPLETED transition.
- * Payment confirmation must go through finalizeCounterOrder.
+ * Source-aware generic status actions (#129).
+ * - IFOOD: no local status buttons (lifecycle is event-driven).
+ * - COUNTER unpaid: hide COMPLETED (use finalizeCounterOrder).
  */
 export function filterGenericStatusActionsForOrder(
   actions: OrderStatusAction[],
@@ -14,6 +15,10 @@ export function filterGenericStatusActionsForOrder(
     paidAt: Date | null;
   },
 ): OrderStatusAction[] {
+  if (order.source === "IFOOD") {
+    return [];
+  }
+
   if (order.source === "COUNTER" && order.paidAt == null) {
     return actions.filter((action) => action.nextStatus !== "COMPLETED");
   }

@@ -4,10 +4,10 @@ import { hasAdminPermission } from "@/features/admin/auth/admin-permissions";
 import { CounterOrderFinalizePanel } from "@/features/admin/counter-order/components/counter-order-finalize-panel";
 import { computeCashChangeCents } from "@/features/admin/counter-order/counter-order-change";
 import {
+  formatAdminOrderPaymentLabel,
   formatDateTime,
   formatDeliveryType,
   formatMoney,
-  formatPaymentMethod,
   formatPhone,
 } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminOrderDetail } from "@/features/admin/orders/admin-orders.types";
@@ -93,12 +93,16 @@ export function OrderDetailCard({ order, role }: OrderDetailCardProps) {
           </div>
           <div>
             <dt className="text-xs text-stone-500">Pagamento</dt>
-            <dd className="mt-1 text-stone-100">
-              {formatPaymentMethod(order.paymentMethod, {
+            <dd
+              data-testid="order-payment-label"
+              className="mt-1 text-stone-100"
+            >
+              {formatAdminOrderPaymentLabel(order.source, order.paymentMethod, {
                 paid: order.paidAt != null,
               })}
               {!hasPaymentLines &&
               order.source !== "COUNTER" &&
+              order.source !== "IFOOD" &&
               typeof order.changeForCents === "number" ? (
                 <span className="text-stone-400">
                   {" "}
