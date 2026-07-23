@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { describe, it } from "node:test";
-import type { RecordOrderLifecycleFunnelEventInput } from "@/features/analytics/record-order-lifecycle-funnel-event";
+import type { DirectOrderIdempotencyRecord } from "@/features/orders/services/resolve-direct-order-idempotency";
+import {
+  ORDER_IDEMPOTENCY_CONFLICT_MESSAGE,
+} from "@/features/orders/utils/order-idempotency";
 import type { OrderStoreRecord } from "@/features/orders/repositories/orders.repository";
 import {
   createOrder,
@@ -54,6 +58,7 @@ function validInput(
     deliveryType: "PICKUP",
     paymentMethod: "PIX",
     items: [{ productId: "p1", quantity: 1, addonIds: [] }],
+    idempotencyKey: randomUUID(),
     ...overrides,
   };
 }
@@ -63,25 +68,38 @@ function mockDeps(options: {
   subtotalCents: number;
   items?: PreparedOrderItem[];
   captured?: CreateOrderPersistenceInput[];
+  existingIdempotency?: DirectOrderIdempotencyRecord | null;
+  createThrows?: unknown;
+  findCalls?: number[];
 }): CreateOrderDeps {
   const captured = options.captured ?? [];
   const items = options.items ?? [pricedItem(options.subtotalCents)];
+  let createCallCount = 0;
 
   return {
     findStoreForOrderBySlug: async () => options.store ?? null,
+    findDirectOrderByIdempotencyKey: async () => {
+      if (options.findCalls) {
+        options.findCalls.push(createCallCount);
+      }
+      return options.existingIdempotency ?? null;
+    },
+    getOrderIdempotencySecret: () => "test-idempotency-secret-min-16",
     resolveAndPriceOrderItems: async () => ({
       ok: true as const,
       subtotalCents: options.subtotalCents,
       items,
     }),
     createOrderWithItems: async (input: CreateOrderPersistenceInput) => {
+      createCallCount += 1;
+      if (options.createThrows) {
+        throw options.createThrows;
+      }
       captured.push(input);
       return { id: "order_1", code: "NB-123456-100" };
     },
     generateOrderCode: () => "NB-123456-100",
-    recordOrderLifecycleFunnelEvent: async (
-      _input: RecordOrderLifecycleFunnelEventInput,
-    ) => ({
+    recordOrderLifecycleFunnelEvent: async () => ({
       ok: true as const,
       recorded: true as const,
     }),
@@ -317,6 +335,8 @@ describe("createOrder delivery minimum", () => {
 
     const result = await createOrder(validInput({ deliveryType: "PICKUP" }), {
       findStoreForOrderBySlug: async () => baseStore({ isOpen: false }),
+      findDirectOrderByIdempotencyKey: async () => null,
+      getOrderIdempotencySecret: () => "test-idempotency-secret-min-16",
       resolveAndPriceOrderItems: async () => {
         pricedCalls += 1;
         return {
@@ -337,5 +357,171 @@ describe("createOrder delivery minimum", () => {
     assert.equal(result.message, "A loja está fechada no momento.");
     assert.equal(pricedCalls, 0);
     assert.equal(createCalls, 0);
+  });
+});
+
+describe("createOrder DIRECT idempotency", () => {
+  const idempotencyKey = "a1b2c3d4-e5f6-4789-a012-3456789abcde";
+
+  it("replays existing order without persisting again or emitting order_created", async () => {
+    const funnelCalls: Array<Record<string, unknown>> = [];
+    const captured: CreateOrderPersistenceInput[] = [];
+    const input = validInput({
+      deliveryType: "PICKUP",
+      idempotencyKey,
+    });
+
+    const { computeOrderIdempotencyFingerprint, buildOrderIdempotencyCanonicalPayload } =
+      await import("@/features/orders/utils/order-idempotency");
+    const fingerprint = computeOrderIdempotencyFingerprint(
+      "test-idempotency-secret-min-16",
+      buildOrderIdempotencyCanonicalPayload({
+        storeId: "store_1",
+        customerName: input.customerName.trim(),
+        customerPhone: input.customerPhone.trim(),
+        deliveryType: input.deliveryType,
+        deliveryAddress: null,
+        paymentMethod: input.paymentMethod,
+        changeForCents: null,
+        notes: null,
+        subtotalCents: 100,
+        deliveryFeeCents: 0,
+        totalCents: 100,
+        pricedItems: [pricedItem(100)],
+        clientItems: input.items,
+      }),
+    );
+
+    const replayDeps = mockDeps({
+      store: baseStore(),
+      subtotalCents: 100,
+      captured,
+      existingIdempotency: {
+        id: "order_existing",
+        code: "NB-EXISTING-1",
+        idempotencyFingerprint: fingerprint,
+        whatsappMessage: "Pedido NB-EXISTING-1",
+      },
+    });
+    replayDeps.recordOrderLifecycleFunnelEvent = async (event) => {
+      funnelCalls.push(event);
+      return { ok: true, recorded: true };
+    };
+
+    const replay = await createOrder(input, replayDeps);
+
+    assert.equal(replay.ok, true);
+    if (!replay.ok) return;
+    assert.equal(replay.orderId, "order_existing");
+    assert.equal(replay.orderCode, "NB-EXISTING-1");
+    assert.match(replay.whatsappUrl, /wa\.me|api\.whatsapp\.com/);
+    assert.equal(captured.length, 0);
+    assert.equal(funnelCalls.length, 0);
+  });
+
+  it("returns conflict when key matches but fingerprint differs", async () => {
+    const captured: CreateOrderPersistenceInput[] = [];
+    const result = await createOrder(
+      validInput({ deliveryType: "PICKUP", idempotencyKey }),
+      mockDeps({
+        store: baseStore(),
+        subtotalCents: 100,
+        captured,
+        existingIdempotency: {
+          id: "order_existing",
+          code: "NB-EXISTING-1",
+          idempotencyFingerprint: "different-fingerprint",
+          whatsappMessage: "Pedido",
+        },
+      }),
+    );
+
+    assert.equal(result.ok, false);
+    if (result.ok) return;
+    assert.equal(result.message, ORDER_IDEMPOTENCY_CONFLICT_MESSAGE);
+    assert.equal(result.code, "IDEMPOTENCY_CONFLICT");
+    assert.equal(captured.length, 0);
+  });
+
+  it("reloads after idempotency unique race and replays without duplicate funnel", async () => {
+    const funnelCalls: Array<Record<string, unknown>> = [];
+    const captured: CreateOrderPersistenceInput[] = [];
+    let findCount = 0;
+    const input = validInput({ deliveryType: "PICKUP", idempotencyKey });
+
+    const { computeOrderIdempotencyFingerprint, buildOrderIdempotencyCanonicalPayload } =
+      await import("@/features/orders/utils/order-idempotency");
+    const fingerprint = computeOrderIdempotencyFingerprint(
+      "test-idempotency-secret-min-16",
+      buildOrderIdempotencyCanonicalPayload({
+        storeId: "store_1",
+        customerName: input.customerName.trim(),
+        customerPhone: input.customerPhone.trim(),
+        deliveryType: input.deliveryType,
+        deliveryAddress: null,
+        paymentMethod: input.paymentMethod,
+        changeForCents: null,
+        notes: null,
+        subtotalCents: 100,
+        deliveryFeeCents: 0,
+        totalCents: 100,
+        pricedItems: [pricedItem(100)],
+        clientItems: input.items,
+      }),
+    );
+
+    const deps: CreateOrderDeps = {
+      findStoreForOrderBySlug: async () => baseStore(),
+      findDirectOrderByIdempotencyKey: async () => {
+        findCount += 1;
+        if (findCount >= 2) {
+          return {
+            id: "order_raced",
+            code: "NB-RACED-1",
+            idempotencyFingerprint: fingerprint,
+            whatsappMessage: "Pedido raced",
+          };
+        }
+        return null;
+      },
+      getOrderIdempotencySecret: () => "test-idempotency-secret-min-16",
+      resolveAndPriceOrderItems: async () => ({
+        ok: true as const,
+        subtotalCents: 100,
+        items: [pricedItem(100)],
+      }),
+      createOrderWithItems: async () => {
+        const err = Object.assign(new Error("Unique"), {
+          code: "P2002",
+          meta: { target: ["storeId", "idempotencyKey"] },
+        });
+        throw err;
+      },
+      generateOrderCode: () => "NB-123456-100",
+      recordOrderLifecycleFunnelEvent: async (event) => {
+        funnelCalls.push(event);
+        return { ok: true, recorded: true };
+      },
+    };
+
+    const result = await createOrder(input, deps);
+    assert.equal(result.ok, true);
+    if (!result.ok) return;
+    assert.equal(result.orderId, "order_raced");
+    assert.equal(captured.length, 0);
+    assert.equal(funnelCalls.length, 0);
+  });
+
+  it("persists idempotency fields on new DIRECT create", async () => {
+    const captured: CreateOrderPersistenceInput[] = [];
+    const key = randomUUID();
+    const result = await createOrder(
+      validInput({ deliveryType: "PICKUP", idempotencyKey: key }),
+      mockDeps({ store: baseStore(), subtotalCents: 100, captured }),
+    );
+
+    assert.equal(result.ok, true);
+    assert.equal(captured[0]?.idempotencyKey, key);
+    assert.match(captured[0]?.idempotencyFingerprint ?? "", /^[a-f0-9]{64}$/);
   });
 });

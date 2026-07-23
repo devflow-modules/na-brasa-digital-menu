@@ -16,7 +16,7 @@ import {
 } from "./helpers/db";
 import { loadLocalEnvFile } from "./helpers/load-env";
 import { clearCartStorage } from "./helpers/menu";
-import { e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
+import { e2eOrderIdempotencyKey, e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
 import { createOrder } from "@/features/orders/services/create-order.service";
 
 async function openAddonCreateForm(page: Page) {
@@ -279,6 +279,7 @@ test.describe("admin addon management", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [{ productId: product.id, quantity: 1, addonIds: [addon.id] }],
     });
     expect(unlinked.ok).toBe(false);
@@ -299,6 +300,7 @@ test.describe("admin addon management", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [{ productId: product.id, quantity: 1, addonIds: [addon.id] }],
     });
     expect(inactive.ok).toBe(false);

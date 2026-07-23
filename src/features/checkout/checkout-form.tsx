@@ -27,6 +27,10 @@ import type { CheckoutStoreInfo } from "@/features/checkout/types";
 import { formatMoney } from "@/features/menu/format-money";
 import { createOrderAction } from "@/features/orders/actions/create-order-action";
 import { isBelowDeliveryMinimumOrder } from "@/features/orders/utils/delivery-minimum-order";
+import {
+  clearCheckoutIdempotencyAttempt,
+  resolveCheckoutIdempotencyKey,
+} from "@/features/checkout/checkout-idempotency-session";
 
 type CheckoutFormProps = {
   store: CheckoutStoreInfo;
@@ -158,6 +162,21 @@ function AvailableCheckoutForm({
         : undefined;
 
     startTransition(async () => {
+      const idempotencyKey = resolveCheckoutIdempotencyKey(store.slug, {
+        items: cart.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          addonIds: item.selectedAddons.map((addon) => addon.id),
+        })),
+        customerName: values.customerName,
+        customerPhone: values.customerPhone,
+        deliveryType: values.deliveryType,
+        deliveryAddress: values.deliveryAddress,
+        paymentMethod: values.paymentMethod,
+        changeFor,
+        notes: values.notes,
+      });
+
       const result = await createOrderAction({
         storeSlug: store.slug,
         customerName: values.customerName,
@@ -167,6 +186,7 @@ function AvailableCheckoutForm({
         paymentMethod: values.paymentMethod,
         changeFor,
         notes: values.notes,
+        idempotencyKey,
         items: cart.items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -179,6 +199,7 @@ function AvailableCheckoutForm({
         return;
       }
 
+      clearCheckoutIdempotencyAttempt(store.slug);
       clearCart();
       window.localStorage.removeItem(CART_STORAGE_KEY);
       setWhatsappFallbackUrl(result.whatsappUrl);

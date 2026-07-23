@@ -156,7 +156,7 @@ Nenhum conhecido
 
 | Item | Decisão | Documento | Nota |
 | --- | --- | --- | --- |
-| Idempotência checkout Online | VALIDATE | [checkout-idempotency-validation.md](checkout-idempotency-validation.md) | 14 dias; sem implementação autorizada |
+| Idempotência checkout Online | BUILD (#105) | [checkout-idempotency-validation.md](checkout-idempotency-validation.md) | Deploy com migration + `ORDER_IDEMPOTENCY_SECRET` |
 | Histórico de status | VALIDATE | [order-history-validation.md](order-history-validation.md) | Sem implementação autorizada |
 | Expansão do resumo Admin | DEFER | [admin-daily-summary-validation.md](admin-daily-summary-validation.md) | Reabrir só com gap operacional concreto |
 

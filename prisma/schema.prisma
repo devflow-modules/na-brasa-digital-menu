@@ -393,6 +393,10 @@ model Order {
   status            OrderStatus    @default(PENDING)
   source            OrderSource    @default(DIRECT)
   whatsappMessage   String?
+  /// Client submit intent (DIRECT Online only). Nullable for COUNTER / legacy rows.
+  idempotencyKey    String?
+  /// HMAC-SHA-256 of canonical validated payload (server-only; never log).
+  idempotencyFingerprint String?
   /// Set when payment is confirmed (future COUNTER checkout). Existing rows stay null.
   paidAt            DateTime?
   /// Operator who opened the order (COUNTER). Never accepted from untrusted client payload.
@@ -408,6 +412,7 @@ model Order {
   ifoodProjection IfoodOrder?
 
   @@unique([id, storeId])
+  @@unique([storeId, idempotencyKey])
   @@index([storeId, createdAt])
   @@index([storeId, status])
   @@index([source])

@@ -22,6 +22,7 @@ export type CreateOrderInput = {
   changeFor?: string;
   notes?: string;
   items: CreateOrderItemInput[];
+  idempotencyKey: string;
 };
 
 export type CreateOrderSuccess = {
@@ -34,6 +35,7 @@ export type CreateOrderSuccess = {
 export type CreateOrderFailure = {
   ok: false;
   message: string;
+  code?: "IDEMPOTENCY_CONFLICT";
 };
 
 export type CreateOrderResult = CreateOrderSuccess | CreateOrderFailure;
@@ -72,6 +74,8 @@ export type CreateOrderPersistenceInput = {
   whatsappMessage: string | null;
   createdByUserId: string | null;
   items: PreparedOrderItem[];
+  idempotencyKey?: string | null;
+  idempotencyFingerprint?: string | null;
 };
 
 export type CounterOrderContext = {

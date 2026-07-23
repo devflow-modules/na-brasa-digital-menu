@@ -8,6 +8,7 @@ const validBase = {
   customerPhone: "13988887777",
   deliveryType: "PICKUP" as const,
   paymentMethod: "PIX" as const,
+  idempotencyKey: "550e8400-e29b-41d4-a716-446655440000",
   items: [{ productId: "prod_1", quantity: 1, addonIds: [] as string[] }],
 };
 
@@ -30,6 +31,16 @@ describe("createOrderSchema public DIRECT regression", () => {
     };
     const result = createOrderSchema.safeParse(withoutPayment);
     assert.equal(result.success, false);
+  });
+
+  it("requires idempotencyKey as UUID", () => {
+    assert.equal(
+      createOrderSchema.safeParse({
+        ...validBase,
+        idempotencyKey: "not-a-uuid",
+      }).success,
+      false,
+    );
   });
 
   it("accepts a valid public payload", () => {

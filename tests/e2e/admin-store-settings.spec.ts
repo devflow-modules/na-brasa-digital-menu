@@ -18,7 +18,7 @@ import {
   getPrisma,
 } from "./helpers/db";
 import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
-import { e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
+import { e2eOrderIdempotencyKey, e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
 import { PILOT_BURGER_PRODUCT_NAME } from "../../prisma/na-braza-pilot-menu";
 
 const E2E_ADDRESS_MARKER = "E2E Settings Address";
@@ -161,6 +161,7 @@ test.describe("admin store settings", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
     });
     expect(denied.ok).toBe(false);
@@ -189,6 +190,7 @@ test.describe("admin store settings", () => {
       deliveryType: "DELIVERY",
       deliveryAddress: "Rua E2E, 1",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
     });
     expect(denied.ok).toBe(false);
@@ -216,6 +218,7 @@ test.describe("admin store settings", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
     });
     expect(denied.ok).toBe(false);
@@ -372,6 +375,7 @@ test.describe("admin store settings", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [{ productId: product!.id, quantity: 2, addonIds: [] }],
     });
     expect(created.ok).toBe(true);

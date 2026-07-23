@@ -10,7 +10,7 @@ import {
 } from "./helpers/db";
 import { clearCartStorage } from "./helpers/menu";
 import { createOrder } from "@/features/orders/services/create-order.service";
-import { e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
+import { e2eOrderIdempotencyKey, e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
 import { PrismaClient } from "@prisma/client";
 
 test.describe("addon selection groups", () => {
@@ -79,6 +79,7 @@ test.describe("addon selection groups", () => {
       customerPhone: e2ePhone,
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
+      idempotencyKey: e2eOrderIdempotencyKey(),
       items: [
         {
           productId: burger.id,

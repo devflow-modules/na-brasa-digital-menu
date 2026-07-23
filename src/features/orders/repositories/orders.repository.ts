@@ -127,6 +127,25 @@ export async function findActiveProductsForOrder(
   });
 }
 
+export async function findDirectOrderByIdempotencyKey(
+  storeId: string,
+  idempotencyKey: string,
+) {
+  return prisma.order.findFirst({
+    where: {
+      storeId,
+      idempotencyKey,
+      source: "DIRECT",
+    },
+    select: {
+      id: true,
+      code: true,
+      idempotencyFingerprint: true,
+      whatsappMessage: true,
+    },
+  });
+}
+
 export async function createOrderWithItems(
   input: CreateOrderPersistenceInput,
 ) {
@@ -145,6 +164,8 @@ export async function createOrderWithItems(
     status: "PENDING",
     source: input.source,
     whatsappMessage: input.whatsappMessage,
+    idempotencyKey: input.idempotencyKey ?? undefined,
+    idempotencyFingerprint: input.idempotencyFingerprint ?? undefined,
     paidAt: null,
     store: {
       connect: { id: input.storeId },

@@ -54,6 +54,7 @@ Browsers / projetos Playwright:
   - ou, como fixture local: `ADMIN_EMAIL` / `ADMIN_PASSWORD` (só para o helper E2E criar `User` no banco — **não** usados pelo runtime)
   - `NEXT_PUBLIC_APP_URL`
   - `NEXT_PUBLIC_STORE_SLUG`
+  - `ORDER_IDEMPOTENCY_SECRET` (mín. 16 caracteres; checkout DIRECT)
 - Loja + usuário admin seedados:
 
 ```bash

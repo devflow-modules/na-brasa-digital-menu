@@ -34,6 +34,10 @@ export const createOrderSchema = z
         }),
       )
       .min(1, "Carrinho vazio"),
+    idempotencyKey: z
+      .string()
+      .trim()
+      .uuid("Chave de idempotência inválida"),
   })
   .refine(
     (data) =>

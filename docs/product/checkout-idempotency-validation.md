@@ -8,17 +8,17 @@ Relacionado: [../product.md](../product.md) · skill `.cursor/skills/product-gri
 ## Status
 
 ```text
-VALIDATE
+BUILD (implemented — #105)
 Classification: TENANT
-Migration / contract change: not authorized
+Migration / contract change: DIRECT Online idempotency live on branch feat/online-order-idempotency-105
 ```
 
 | Item | Classificação |
 | --- | --- |
-| Product-grill da proposta | **VALIDATE** |
-| Idempotência server-side (`createOrder`) | **Não autorizada** |
-| Proposta reduzida (abaixo) | **Somente se evidência positiva → novo grill** |
-| Decisão pós-observação | **Pending** |
+| Product-grill da proposta | **BUILD** (#105) |
+| Idempotência server-side (`createOrder` DIRECT) | **Implementada** — `idempotencyKey` (UUID cliente) + fingerprint HMAC no servidor |
+| Observação manual (abaixo) | **Opcional** — monitorar duplicações residuais pós-deploy |
+| Decisão pós-observação | **Monitor** |
 
 ## Classification
 
