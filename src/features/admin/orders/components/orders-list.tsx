@@ -1,10 +1,10 @@
 import Link from "next/link";
 import {
+  formatAdminOrderPaymentLabel,
   formatDateTime,
   formatDeliveryType,
   formatMoney,
   formatOrderElapsedTime,
-  formatPaymentMethod,
   formatPhone,
 } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminOrderListItem } from "@/features/admin/orders/admin-orders.types";
@@ -78,7 +78,7 @@ export function OrdersList({
               Nenhum pedido encontrado.
             </p>
             <p className="mt-2 text-sm text-stone-400">
-              Quando chegar um pedido online ou uma comanda de balcão, ele
+              Quando chegar um pedido online, de balcão ou do iFood, ele
               aparecerá aqui.
             </p>
           </>
@@ -132,10 +132,17 @@ export function OrdersList({
                 <td className="px-4 py-3">
                   {formatDeliveryType(order.deliveryType)}
                 </td>
-                <td className="px-4 py-3">
-                  {formatPaymentMethod(order.paymentMethod, {
-                    paid: order.status === "COMPLETED",
-                  })}
+                <td
+                  className="px-4 py-3"
+                  data-testid="admin-order-payment-label"
+                >
+                  {formatAdminOrderPaymentLabel(
+                    order.source,
+                    order.paymentMethod,
+                    {
+                      paid: order.status === "COMPLETED",
+                    },
+                  )}
                 </td>
                 <td className="px-4 py-3">{formatMoney(order.totalCents)}</td>
                 <td className="px-4 py-3">
@@ -190,10 +197,17 @@ export function OrdersList({
               </div>
               <div>
                 <dt className="text-stone-500">Pagamento</dt>
-                <dd className="text-stone-200">
-                  {formatPaymentMethod(order.paymentMethod, {
-                    paid: order.status === "COMPLETED",
-                  })}
+                <dd
+                  data-testid="admin-order-payment-label"
+                  className="text-stone-200"
+                >
+                  {formatAdminOrderPaymentLabel(
+                    order.source,
+                    order.paymentMethod,
+                    {
+                      paid: order.status === "COMPLETED",
+                    },
+                  )}
                 </dd>
               </div>
               <div>

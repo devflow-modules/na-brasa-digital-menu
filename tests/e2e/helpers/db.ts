@@ -696,6 +696,87 @@ export async function createE2eCounterOrder(options?: {
   });
 }
 
+/**
+ * Seeds an IFOOD operational projection for read-only admin UI E2E (#129).
+ * Snapshots only — null catalog FKs, no paymentMethod / OrderPayment / whatsapp.
+ */
+export async function createE2eIfoodOrder(options?: {
+  customerName?: string;
+  status?: OrderStatus;
+  storeSlug?: string;
+  deliveryType?: "PICKUP" | "DELIVERY";
+  deliveryAddress?: string | null;
+  notes?: string | null;
+  totalCents?: number;
+}): Promise<Order> {
+  const prisma = getPrisma();
+  const storeSlug = options?.storeSlug ?? getStoreSlug();
+  const store = await prisma.store.findUnique({
+    where: { slug: storeSlug },
+  });
+
+  if (!store) {
+    throw new Error(
+      `Store "${storeSlug}" not found. Run pnpm prisma db seed before E2E.`,
+    );
+  }
+
+  const customerName =
+    options?.customerName ?? uniqueCustomerName("Ifood Order");
+  const deliveryType = options?.deliveryType ?? "DELIVERY";
+  const unitPriceCents = 1500;
+  const addonPriceCents = 200;
+  const itemTotalCents = unitPriceCents + addonPriceCents;
+  const deliveryFeeCents = deliveryType === "DELIVERY" ? 500 : 0;
+  const totalCents = options?.totalCents ?? itemTotalCents + deliveryFeeCents;
+  const code = `E2I${Date.now().toString().slice(-8)}${Math.floor(Math.random() * 90 + 10)}`;
+
+  return prisma.order.create({
+    data: {
+      storeId: store.id,
+      code,
+      customerName,
+      customerPhone: "11999990000",
+      deliveryType,
+      deliveryAddress:
+        options?.deliveryAddress ??
+        (deliveryType === "DELIVERY" ? "Rua E2E iFood, 100 — Centro" : null),
+      paymentMethod: null,
+      changeForCents: null,
+      notes: options?.notes ?? "Observação E2E iFood",
+      paidAt: null,
+      subtotalCents: itemTotalCents,
+      deliveryFeeCents,
+      totalCents,
+      status: options?.status ?? "PENDING",
+      source: "IFOOD",
+      whatsappMessage: null,
+      items: {
+        create: [
+          {
+            productId: null,
+            productNameSnapshot: "Produto E2E iFood",
+            productDescriptionSnapshot: null,
+            quantity: 1,
+            unitPriceCents,
+            totalCents: itemTotalCents,
+            notes: null,
+            addons: {
+              create: [
+                {
+                  addonId: null,
+                  addonNameSnapshot: "Complemento E2E iFood",
+                  addonPriceCents,
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
+}
+
 export async function disconnectE2ePrisma(): Promise<void> {
   if (globalForPrisma.e2ePrisma) {
     await globalForPrisma.e2ePrisma.$disconnect();

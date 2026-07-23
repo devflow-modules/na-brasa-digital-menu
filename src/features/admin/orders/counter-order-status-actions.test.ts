@@ -44,4 +44,14 @@ describe("filterGenericStatusActionsForOrder", () => {
       2,
     );
   });
+
+  it("hides all generic actions for IFOOD", () => {
+    assert.deepEqual(
+      filterGenericStatusActionsForOrder(actions, {
+        source: "IFOOD",
+        paidAt: null,
+      }),
+      [],
+    );
+  });
 });

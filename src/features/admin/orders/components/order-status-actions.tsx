@@ -13,6 +13,7 @@ import type {
   AdminOrderSource,
   AdminOrderStatus,
 } from "@/features/admin/orders/admin-orders.types";
+import { IFOOD_EXTERNAL_STATUS_NOTE } from "@/features/admin/orders/admin-orders-formatters";
 import { filterGenericStatusActionsForOrder } from "@/features/admin/orders/counter-order-status-actions";
 import { requestAdminOrdersRefresh } from "@/features/admin/orders/live-refresh/admin-orders-refresh";
 
@@ -35,6 +36,34 @@ export function OrderStatusActions({
 }: OrderStatusActionsProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const roleLabel = formatAdminRoleLabel(role);
+
+  if (source === "IFOOD") {
+    return (
+      <section
+        data-testid="order-status-actions"
+        data-mode="ifood-external"
+        className="rounded-2xl border border-stone-800 bg-stone-900/70 p-4"
+      >
+        <h2 className="text-sm font-semibold text-orange-50">
+          Status do pedido
+        </h2>
+        <p
+          data-testid="order-status-role-note"
+          className="mt-2 text-xs text-stone-500"
+        >
+          Perfil: {roleLabel}
+        </p>
+        <p
+          data-testid="order-ifood-status-note"
+          className="mt-3 text-sm text-stone-300"
+        >
+          {IFOOD_EXTERNAL_STATUS_NOTE}
+        </p>
+      </section>
+    );
+  }
+
   const workflowActions = filterGenericStatusActionsForOrder(
     getOrderStatusActions(status, deliveryType),
     { source, paidAt },
@@ -43,7 +72,6 @@ export function OrderStatusActions({
     getPermittedOrderStatusActions(role, status, deliveryType),
     { source, paidAt },
   );
-  const roleLabel = formatAdminRoleLabel(role);
   const emptyMessage =
     workflowActions.length === 0
       ? source === "COUNTER" && paidAt == null && status === "READY"

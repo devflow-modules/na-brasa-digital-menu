@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { OrderSource } from "@prisma/client";
 import {
+  formatAdminOrderPaymentLabel,
   formatOrderElapsedTime,
   formatOrderSource,
   formatPaymentMethod,
   formatPhone,
+  IFOOD_EXTERNAL_STATUS_NOTE,
 } from "@/features/admin/orders/admin-orders-formatters";
 
 describe("admin-orders-formatters domain compatibility", () => {
@@ -32,6 +34,23 @@ describe("admin-orders-formatters domain compatibility", () => {
       formatPaymentMethod(null, { paid: true }),
       "Pagamento misto",
     );
+  });
+
+  it("labels IFOOD payment as managed by iFood without inventing tender", () => {
+    assert.equal(
+      formatAdminOrderPaymentLabel("IFOOD", null),
+      "Pagamento gerenciado pelo iFood",
+    );
+    assert.equal(
+      formatAdminOrderPaymentLabel("IFOOD", "PIX"),
+      "Pagamento gerenciado pelo iFood",
+    );
+    assert.equal(
+      formatAdminOrderPaymentLabel("DIRECT", null),
+      "Pagamento pendente",
+    );
+    assert.equal(formatAdminOrderPaymentLabel("COUNTER", "CASH"), "Dinheiro");
+    assert.match(IFOOD_EXTERNAL_STATUS_NOTE, /controlado pelo iFood/i);
   });
 
   it("keeps known payment method labels", () => {
