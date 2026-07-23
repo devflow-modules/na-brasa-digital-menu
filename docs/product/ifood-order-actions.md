@@ -2,7 +2,7 @@
 
 ## Decision
 
-`BUILD · PLATFORM`, test app only. This slice advances the external iFood lifecycle via the command ledger. Operational `Order` projection is a separate bridge (#126); see [ifood-order-projection.md](./ifood-order-projection.md).
+`BUILD · PLATFORM`, test app only. This slice advances the external iFood lifecycle via the command ledger. Operational `Order` projection is a separate bridge (#126); see [ifood-order-projection.md](./ifood-order-projection.md). Admin detail actions (#131) are a thin tenant/RBAC adapter over the same ledger — see [ifood-admin-order-actions.md](./ifood-admin-order-actions.md).
 
 ## Contract
 
