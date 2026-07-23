@@ -1,11 +1,12 @@
 "use client";
 
 import type { UserRole } from "@prisma/client";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { formatAdminRoleLabel } from "@/features/admin/auth/admin-permissions";
 import { executeIfoodOrderAction } from "@/features/admin/orders/actions/execute-ifood-order-action";
 import {
   IFOOD_AWAITING_CONFIRMATION_MESSAGE,
+  shouldShowIfoodActionAwaiting,
 } from "@/features/admin/orders/admin-ifood-order-action";
 import { IFOOD_EXTERNAL_STATUS_NOTE } from "@/features/admin/orders/admin-orders-formatters";
 import type { AdminIfoodActionPanel } from "@/features/admin/orders/get-admin-ifood-action-panel";
@@ -23,30 +24,47 @@ export function IfoodOrderActions({
   panel,
 }: IfoodOrderActionsProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [awaitingLocal, setAwaitingLocal] = useState(panel.awaitingConfirmation);
+  const [localAwaiting, setLocalAwaiting] = useState(false);
+  const [submittedCommand, setSubmittedCommand] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const roleLabel = formatAdminRoleLabel(role);
-  const awaiting = awaitingLocal || panel.awaitingConfirmation;
+
+  // When projection advances (new nextCommand / server awaiting flag), drop local sticky state (#132).
+  useEffect(() => {
+    setLocalAwaiting(panel.awaitingConfirmation);
+    if (!panel.awaitingConfirmation) {
+      setSubmittedCommand(null);
+    }
+    setErrorMessage(null);
+  }, [panel.awaitingConfirmation, panel.nextCommand]);
+
+  const awaiting = shouldShowIfoodActionAwaiting({
+    panelAwaitingConfirmation: panel.awaitingConfirmation,
+    localAwaiting,
+    panelNextCommand: panel.nextCommand,
+    submittedCommand,
+  });
 
   function onExecute() {
     setErrorMessage(null);
+    const commandAtClick = panel.nextCommand;
 
     startTransition(async () => {
       const result = await executeIfoodOrderAction({ orderId });
 
       if (!result.ok) {
         setErrorMessage(result.message);
+        setLocalAwaiting(false);
+        setSubmittedCommand(null);
         return;
       }
 
-      if (
-        result.status === "PENDING" ||
-        result.status === "ACCEPTED" ||
-        result.status === "CONFIRMED"
-      ) {
-        setAwaitingLocal(
-          result.status === "PENDING" || result.status === "ACCEPTED",
-        );
+      if (result.status === "PENDING" || result.status === "ACCEPTED") {
+        setLocalAwaiting(true);
+        setSubmittedCommand(commandAtClick);
+      } else {
+        setLocalAwaiting(false);
+        setSubmittedCommand(null);
       }
 
       requestAdminOrdersRefresh("status-updated");

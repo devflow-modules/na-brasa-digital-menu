@@ -6,6 +6,7 @@ import {
   createE2eIfoodOrder,
   createE2ePickupOrder,
   disconnectE2ePrisma,
+  getPrisma,
 } from "./helpers/db";
 import { ensureE2eStoreUser } from "./helpers/e2e-admin-user";
 import { uniqueCustomerName } from "./helpers/test-data";
@@ -163,6 +164,62 @@ test.describe("admin orders", () => {
     await expect(
       detail.getByRole("heading", { name: "Mensagem WhatsApp" }),
     ).toHaveCount(0);
+  });
+
+  test("after projection advances, awaiting clears and next iFood action shows", async ({
+    page,
+  }) => {
+    const manager = await ensureE2eStoreUser({
+      role: "MANAGER",
+      email: "e2e-orders-ifood-await-advance@example.com",
+    });
+    const order = await createE2eIfoodOrder({
+      customerName: uniqueCustomerName("Ifood Await Advance"),
+      status: "PENDING",
+      withProjectionLink: true,
+    });
+
+    const prisma = getPrisma();
+    const ifoodOrder = await prisma.ifoodOrder.findFirstOrThrow({
+      where: { operationalOrderId: order.id },
+      select: { id: true, connectionId: true, storeId: true },
+    });
+    await prisma.ifoodOrderCommand.create({
+      data: {
+        connectionId: ifoodOrder.connectionId,
+        storeId: ifoodOrder.storeId,
+        ifoodOrderId: ifoodOrder.id,
+        type: "CONFIRM",
+        status: "ACCEPTED",
+        correlationKey: `e2e-await-${order.id}`,
+        acceptedAt: new Date(),
+      },
+    });
+
+    await loginAsUser(page, manager);
+    await page.goto(`/admin/pedidos/${order.id}`);
+    const detail = page.getByTestId("admin-order-detail");
+    await expect(detail.getByTestId("order-ifood-action-awaiting")).toBeVisible();
+    await expect(detail.getByTestId("order-ifood-action-CONFIRM")).toHaveCount(0);
+
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { status: "CONFIRMED" },
+    });
+    await prisma.ifoodOrder.update({
+      where: { id: ifoodOrder.id },
+      data: { lastEventFullCode: "CONFIRMED" },
+    });
+    await prisma.ifoodOrderCommand.updateMany({
+      where: { ifoodOrderId: ifoodOrder.id, type: "CONFIRM" },
+      data: { status: "CONFIRMED", confirmedAt: new Date() },
+    });
+
+    await page.reload();
+    await expect(
+      detail.getByTestId("order-ifood-action-START_PREPARATION"),
+    ).toBeVisible();
+    await expect(detail.getByTestId("order-ifood-action-awaiting")).toHaveCount(0);
   });
 
   test("KITCHEN sees prepare for CONFIRMED iFood but never confirm", async ({

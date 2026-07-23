@@ -4,6 +4,7 @@ import {
   ifoodCommandLabel,
   permissionForIfoodCommand,
   resolveNextIfoodAdminCommand,
+  shouldShowIfoodActionAwaiting,
 } from "@/features/admin/orders/admin-ifood-order-action";
 
 describe("resolveNextIfoodAdminCommand", () => {
@@ -46,6 +47,41 @@ describe("resolveNextIfoodAdminCommand", () => {
         snapshot: {},
       }),
       null,
+    );
+  });
+});
+
+describe("shouldShowIfoodActionAwaiting", () => {
+  it("clears local awaiting when nextCommand advances after CONFIRMED", () => {
+    assert.equal(
+      shouldShowIfoodActionAwaiting({
+        panelAwaitingConfirmation: false,
+        localAwaiting: true,
+        panelNextCommand: "START_PREPARATION",
+        submittedCommand: "CONFIRM",
+      }),
+      false,
+    );
+  });
+
+  it("keeps awaiting while panel or same submitted command is pending", () => {
+    assert.equal(
+      shouldShowIfoodActionAwaiting({
+        panelAwaitingConfirmation: true,
+        localAwaiting: false,
+        panelNextCommand: "CONFIRM",
+        submittedCommand: null,
+      }),
+      true,
+    );
+    assert.equal(
+      shouldShowIfoodActionAwaiting({
+        panelAwaitingConfirmation: false,
+        localAwaiting: true,
+        panelNextCommand: "CONFIRM",
+        submittedCommand: "CONFIRM",
+      }),
+      true,
     );
   });
 });

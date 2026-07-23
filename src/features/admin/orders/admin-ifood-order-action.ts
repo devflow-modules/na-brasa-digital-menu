@@ -8,6 +8,27 @@ import {
 export const IFOOD_AWAITING_CONFIRMATION_MESSAGE =
   "Solicitação enviada; aguardando confirmação do iFood";
 
+/**
+ * Local "awaiting" after HTTP 202 must not stick after the projection advances
+ * to a new nextCommand (#132 review).
+ */
+export function shouldShowIfoodActionAwaiting(input: {
+  panelAwaitingConfirmation: boolean;
+  localAwaiting: boolean;
+  panelNextCommand: string | null;
+  submittedCommand: string | null;
+}): boolean {
+  if (input.panelAwaitingConfirmation) {
+    return true;
+  }
+
+  return (
+    input.localAwaiting &&
+    input.submittedCommand != null &&
+    input.panelNextCommand === input.submittedCommand
+  );
+}
+
 export function ifoodCommandLabel(command: IfoodOrderCommandType): string {
   switch (command) {
     case "CONFIRM":

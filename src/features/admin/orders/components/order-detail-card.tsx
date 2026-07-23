@@ -72,6 +72,7 @@ export function OrderDetailCard({
 
       {order.source === "IFOOD" && ifoodActionPanel ? (
         <IfoodOrderActions
+          key={`${order.status}:${ifoodActionPanel.nextCommand ?? "none"}:${ifoodActionPanel.awaitingConfirmation ? "await" : "idle"}`}
           orderId={order.id}
           role={role}
           panel={ifoodActionPanel}
