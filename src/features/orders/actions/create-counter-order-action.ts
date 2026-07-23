@@ -6,6 +6,7 @@ import {
   canCreateOrder,
 } from "@/features/admin/auth/admin-permissions";
 import { requireAdminStoreContext } from "@/features/admin/auth/admin-store-context";
+import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
 import { createCounterOrder } from "@/features/orders/services/create-counter-order.service";
 import type { CreateCounterOrderResult } from "@/features/orders/types";
 
@@ -37,7 +38,12 @@ export async function createCounterOrderAction(
 
     return result;
   } catch {
-    console.error("[createCounterOrderAction] unexpected error");
+    await logOpsCriticalError({
+      scope: "counter.create-order",
+      message: "Unexpected failure creating counter order",
+      storeId: context.storeId,
+      code: "unexpected",
+    });
     return {
       ok: false,
       message: "Não foi possível criar o pedido. Tente novamente.",

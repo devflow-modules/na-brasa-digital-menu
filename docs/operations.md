@@ -2,7 +2,7 @@
 
 Guia para o dono/operador do **cliente 1 (Na Braza)** usar o painel no dia a dia. Procedimentos e dados abaixo são **específicos do piloto** (`na-brasa`), não onboarding genérico de novos tenants.
 
-Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Produto](product.md) · [Release notes](release-notes/mvp-v0.1.0.md) · [Dados do piloto Na Braza](client/na-braza-pilot-data.md)
+Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [Produto](product.md) · [Uptime e alertas](operations/uptime-and-alerts.md) · [Release notes](release-notes/mvp-v0.1.0.md) · [Dados do piloto Na Braza](client/na-braza-pilot-data.md)
 
 ## Dados reais da loja (Na Braza)
 

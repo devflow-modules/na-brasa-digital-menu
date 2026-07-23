@@ -14,6 +14,8 @@ import {
 } from "@/features/ifood/ifood-lifecycle";
 import { correlateIfoodCommandFromEvent } from "@/features/ifood/ifood-order-command.service";
 import { syncIfoodOperationalProjection } from "@/features/ifood/ifood-order-projection.service";
+import { logOpsError } from "@/features/ops/ops-log";
+import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
 
 export type IfoodPollCycleResult = {
   connectionId: string;
@@ -255,9 +257,12 @@ export async function runIfoodPollCycle(options: {
               externalOrderId,
             });
           } catch {
-            console.error(
-              "[runIfoodPollCycle] operational projection failed; inbox kept",
-            );
+            await logOpsCriticalError({
+              scope: "ifood-poller",
+              message: "Operational projection failed; inbox kept",
+              storeId: connection.storeId,
+              code: "projection_failed",
+            });
           }
         }
 
@@ -276,8 +281,13 @@ export async function runIfoodPollCycle(options: {
         });
         result.processed += 1;
       } catch (error) {
-        // Detail fetch/update failed — event stays durable (FAILED), still ACKed.
         result.failedProcessing += 1;
+        logOpsError({
+          scope: "ifood-poller",
+          message: "Event processing failed",
+          storeId: connection.storeId,
+          code: "event_processing_failed",
+        });
         await prisma.ifoodEvent.update({
           where: {
             connectionId_externalEventId: {

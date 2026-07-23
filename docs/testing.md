@@ -34,6 +34,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/admin-chrome-by-role.spec.ts` | AdminShell por papel: links filtrados, active state, menu do usuário/logout, KITCHEN só Pedidos |
 | `tests/e2e/mobile-admin-chrome.spec.ts` | AdminShell no Pixel 5: hamburger, navegação e menu do usuário |
 | `tests/e2e/admin-access-denied.spec.ts` | Acesso negado explícito (Balcão/KITCHEN), login redirect, 404 tenant, Cardápio read-only |
+| `tests/e2e/health.spec.ts` | `GET /api/health` → 200, `status`/`db` ok, sem campos extras |
 
 Browsers / projetos Playwright:
 

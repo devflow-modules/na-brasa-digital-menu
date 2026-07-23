@@ -1,5 +1,6 @@
 "use server";
 
+import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
 import { createOrder } from "@/features/orders/services/create-order.service";
 import type {
   CreateOrderInput,
@@ -12,7 +13,11 @@ export async function createOrderAction(
   try {
     return await createOrder(input);
   } catch {
-    console.error("[createOrderAction] unexpected error");
+    await logOpsCriticalError({
+      scope: "checkout.create-order",
+      message: "Unexpected failure creating online order",
+      code: "unexpected",
+    });
     return {
       ok: false,
       message: "Não foi possível criar o pedido. Tente novamente.",

@@ -1,0 +1,37 @@
+name: Production Uptime
+
+on:
+  schedule:
+    # GitHub scheduled workflows can start late; pilot minimum, not a commercial SLA.
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: production-uptime
+  cancel-in-progress: false
+
+jobs:
+  health:
+    name: Probe production /api/health
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Check health endpoint
+        env:
+          PRODUCTION_HEALTH_URL: ${{ secrets.PRODUCTION_HEALTH_URL }}
+        run: |
+          URL="${PRODUCTION_HEALTH_URL:-https://na-brasa-cardapio.vercel.app/api/health}"
+          echo "Probing $URL"
+          HTTP_CODE=$(curl -sS -o /tmp/health-body.json -w "%{http_code}" --max-time 30 "$URL")
+          cat /tmp/health-body.json
+          echo ""
+          echo "HTTP $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Health check failed (expected HTTP 200)"
+            exit 1
+          fi
+          if ! grep -q '"status"[[:space:]]*:[[:space:]]*"ok"' /tmp/health-body.json; then
+            echo "Response missing status ok"
+            exit 1
+          fi

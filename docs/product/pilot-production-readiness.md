@@ -65,12 +65,12 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 | CI workflows | EXISTS — ADEQUATE | Quality inclui `pnpm test` (PPR-07); E2E com Postgres efêmero; triggers PR + push `main`; concurrency | — | PPR-07 done |
 | Branch protection | EXISTS — ADEQUATE | Ruleset `Protect main` (id 19223806): PR obrigatório; checks `Lint, typecheck and build` + `Playwright E2E`; non-fast-forward; push direto bloqueado | — | PPR-08 done |
 | Secret scanning e Dependabot | EXISTS — ADEQUATE | Secret scanning + push protection + Dependabot security updates enabled; `.github/dependabot.yml` (npm + github-actions semanal) | Validity checks / non-provider patterns ainda disabled (opcional) | PPR-09 done |
-| Observabilidade | MISSING | Cobertura parcial: `console.error` em catches; Vercel Runtime Logs possivelmente disponíveis (externo) | Sem error tracking, correlação, dashboard, retenção documentada, alertas, uptime, política de logs, APM | PPR-01 → PPR-02 → PPR-03 |
+| Observabilidade | PARTIAL | `#108`: `/api/health`, logs JSON allowlisted, webhook opcional, Actions a cada ~5 min; Runtime Logs Vercel | Sem APM/dashboard/replay; cron GitHub pode atrasar (piloto, não SLA) | PPR-01 → PPR-02 → PPR-03 |
 | Backup e PITR | EXTERNAL CONFIRMATION REQUIRED | Rollback de aplicação documentado; preservação do banco e migrations seguras em docs | Provedor real, PITR, retenção, restore testado e responsável não confirmados | PPR-04 → PPR-05 |
 | Recuperação administrativa | EXISTS — ADEQUATE (docs) | Runbook [admin-access-recovery.md](../admin-access-recovery.md); script Owner; MASTER users UI; bcrypt; rotação JWT; inativo bloqueia novo login | Reset self-service no painel continua roadmap; sessão JWT pré-existente até 8h sem recheck de `isActive` | PPR-06 done |
 | Rate limiting | MISSING | Nenhuma dependência/código/docs de rate limit | Login, `createOrder`, polling Admin (e catálogo público se aplicável) sem limite; sem incidente de abuso documentado | PPR-10 → PPR-11 |
 | Deploy, smoke e rollback | EXISTS — ADEQUATE | Deploy Vercel; migrations; seed controlado; checklist; smoke; rollback de app; scripts operacionais | Rollback de **dados** não coberto | PPR-04 / PPR-05 |
-| Health e uptime | MISSING | Sem `/health`; sem monitor externo documentado; sem alerta de indisponibilidade | Detecção tardia de outage | PPR-12 (Fase 2) |
+| Health e uptime | PARTIAL | `#108` health + workflow `Production Uptime` + runbook | Monitor dedicado / SLA comercial ainda DEFER | PPR-12 |
 | Runbook de incidentes | EXISTS — INCOMPLETE | Troubleshooting parcial (`deployment.md`); rollback básico | Sem matriz consolidada incidente → mitigação → responsável → comunicação | PPR-13 |
 
 ### Estados usados no inventário
@@ -258,7 +258,7 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | DONE | — | Secret scanning + push protection + Dependabot security updates + `dependabot.yml` |
 | PPR-10 | Plan rate limiting | P1 | PRODUCT-GRILL | NOT STARTED | Preferível após PPR-01/02 | Product Decision |
 | PPR-11 | Implement approved rate limiting | P1 | BUILD | BLOCKED | PPR-10 = BUILD | Limites em login/`createOrder` (escopo aprovado) |
-| PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | NOT STARTED | — | Monitor externo + alerta de indisponibilidade |
+| PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | DONE (#108) | — | Health + Actions + webhook opcional; monitor dedicado ainda DEFER |
 | PPR-13 | Consolidate incident runbook | P2 | DOCUMENTATION | NOT STARTED | Útil após PPR-06 | Matriz incidente → mitigação → responsável → comunicação |
 | PPR-14 | Re-run production smoke | P1 | VALIDATION | NOT STARTED | Após fatias relevantes | Smoke checklist verde documentado |
 

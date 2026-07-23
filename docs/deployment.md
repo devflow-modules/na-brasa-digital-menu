@@ -56,6 +56,7 @@ Alternativa de banco: **Supabase Postgres** — mesmo fluxo, só muda o provedor
 | `NEXT_PUBLIC_APP_URL` | Sim | URL **final** HTTPS do deploy |
 | `NEXT_PUBLIC_STORE_SLUG` | Sim | `na-brasa` (deve existir no banco) |
 | `ORDER_IDEMPOTENCY_SECRET` | Sim | Segredo HMAC para fingerprint de idempotência do checkout DIRECT (mín. 16; preferir 32+). Rotacionar invalida replay de tentativas antigas com a mesma chave. |
+| `MONITORING_WEBHOOK_URL` | Não | Webhook Slack/Discord para erros críticos inesperados (best-effort). Ver [uptime e alertas](operations/uptime-and-alerts.md). |
 | `NODE_ENV` | Automático | Vercel define `production`; cookie admin usa `Secure` |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Não | **Deprecated** — removidos do runtime de `/admin/login`. Auth é via tabela `User`. |
 

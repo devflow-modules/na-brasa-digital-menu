@@ -22,6 +22,7 @@ import {
 import { readIfoodEnv, type IfoodEnvConfig } from "@/features/ifood/ifood-env";
 import { IfoodOrderActionBlockedError } from "@/features/ifood/ifood-order-actions";
 import { executeIfoodOrderCommand } from "@/features/ifood/ifood-order-command.service";
+import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
 import { prisma as defaultPrisma } from "@/lib/prisma";
 
 export type ExecuteAdminIfoodOrderActionResult =
@@ -169,7 +170,19 @@ export async function executeAdminIfoodOrderAction(
       httpStatus: result.httpStatus,
     };
   } catch (error) {
-    console.error("[executeAdminIfoodOrderAction] failed");
+    const code =
+      error instanceof IfoodOrderActionBlockedError
+        ? "blocked"
+        : error instanceof IfoodApiError
+          ? "ifood_api"
+          : "unexpected";
+    await logOpsCriticalError({
+      scope: "admin.ifood-order-action",
+      message: "iFood admin action failed",
+      orderId,
+      storeId,
+      code,
+    });
     return { ok: false, message: sanitizeUserMessage(error) };
   }
 }
