@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { withSessionVersionBump } from "@/features/admin/auth/user-session-version";
 import { applyNaBrazaPilotMenu } from "./na-braza-pilot-menu";
 
 const prisma = new PrismaClient();
@@ -81,13 +82,13 @@ async function upsertMasterUser(): Promise<{ seeded: boolean; email?: string }> 
       storeId: null,
       isActive: true,
     },
-    update: {
+    update: withSessionVersionBump({
       name: name!,
       passwordHash,
       role: UserRole.MASTER,
       storeId: null,
       isActive: true,
-    },
+    }),
     select: { email: true, role: true },
   });
 

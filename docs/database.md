@@ -36,7 +36,7 @@ Store
 
 ### Usuários
 
-- **User** — `email` (unique), `passwordHash`, `role`, `isActive`, `storeId?`
+- **User** — `email` (unique), `passwordHash`, `role`, `isActive`, `sessionVersion` (revoga JWTs antigos ao incrementar), `storeId?`
 - **UserRole** — `MASTER` | `STORE_OWNER` | `MANAGER` | `OPERATOR` | `KITCHEN`
 
 | Role | `storeId` |

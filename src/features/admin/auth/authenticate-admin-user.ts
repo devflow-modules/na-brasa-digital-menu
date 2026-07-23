@@ -32,6 +32,7 @@ export async function authenticateAdminUser(
       storeId: true,
       isActive: true,
       passwordHash: true,
+      sessionVersion: true,
     },
   });
 
@@ -48,5 +49,6 @@ export async function authenticateAdminUser(
     email: user.email,
     role: user.role,
     storeId: user.storeId,
+    sessionVersion: user.sessionVersion,
   };
 }

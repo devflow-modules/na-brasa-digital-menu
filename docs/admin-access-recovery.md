@@ -22,7 +22,7 @@ Este documento **não** autoriza feature de “esqueci minha senha”. Descreve 
 4. Senha temporária: forte (≥ 12 caracteres), **uso único**, pedir troca assim que existir fluxo de reset no painel (hoje: roadmap — comunicar troca via nova intervenção se necessário).
 5. **Registrar a intervenção** (quem pediu, quem executou, o quê, quando, resultado).
 6. Preferir desativar usuário a deletar histórico.
-7. Sessões JWT atuais duram **8 horas** (`ADMIN_JWT_SECRET`). Não há denylist de token; revogação prática = desativar usuário e/ou rotacionar o secret.
+7. Sessões JWT duram **8 horas** (`ADMIN_JWT_SECRET`). Revogação por usuário: incrementar `User.sessionVersion` (desativar/reativar, mudança de role, reset de senha via seed/script) invalida JWTs antigos na próxima revalidação — sem denylist nem Redis. Rotacionar `ADMIN_JWT_SECRET` ainda derruba **todas** as sessões.
 
 ---
 
@@ -92,7 +92,7 @@ pnpm store:create-na-braza-owner
 O script:
 
 * faz upsert do usuário Owner da Store `na-brasa`;
-* **substitui** o `passwordHash` (bcrypt);
+* **substitui** o `passwordHash` (bcrypt) e **incrementa** `sessionVersion` (invalida sessões JWT anteriores desse usuário);
 * garante `isActive=true` e role `STORE_OWNER`.
 
 Depois:

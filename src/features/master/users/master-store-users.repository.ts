@@ -7,6 +7,7 @@ import {
   type MasterStoreUsersPageData,
   type StoreUserRole,
 } from "@/features/master/users/master-store-users.types";
+import { withSessionVersionBump } from "@/features/admin/auth/user-session-version";
 
 const BCRYPT_ROUNDS = 10;
 
@@ -148,7 +149,7 @@ export async function setMasterStoreUserActive(input: {
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: { isActive: input.isActive },
+      data: withSessionVersionBump({ isActive: input.isActive }),
     });
     return { ok: true };
   } catch {
@@ -177,11 +178,11 @@ export async function updateMasterStoreUserRole(input: {
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: {
+      data: withSessionVersionBump({
         role: input.role,
         // Keep storeId stable — never clear for store users.
         storeId: input.storeId,
-      },
+      }),
     });
     return { ok: true };
   } catch {

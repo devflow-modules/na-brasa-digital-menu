@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole } from "@prisma/client";
 import bcrypt from "bcryptjs";
+import { withSessionVersionBump } from "@/features/admin/auth/user-session-version";
 
 const STORE_SLUG = "na-brasa";
 const OWNER_NAME = "Lucas Araújo";
@@ -59,13 +60,13 @@ async function main(): Promise<void> {
         storeId: store.id,
         isActive: true,
       },
-      update: {
+      update: withSessionVersionBump({
         name: OWNER_NAME,
         passwordHash,
         role: UserRole.STORE_OWNER,
         storeId: store.id,
         isActive: true,
-      },
+      }),
       select: { id: true, email: true, role: true },
     });
 

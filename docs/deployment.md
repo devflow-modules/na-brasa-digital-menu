@@ -64,7 +64,7 @@ Placeholders locais (sem secrets reais): [`.env.example`](../.env.example).
 ### Auth (database-backed)
 
 - Login em `/admin/login` valida `User` no banco (`email` + `passwordHash` com `bcryptjs.compare`).
-- Sessão JWT (cookie HttpOnly, path `/`) inclui `userId`, `name`, `email`, `role`, `storeId`.
+- Sessão JWT (cookie HttpOnly, path `/`) inclui `userId`, `name`, `email`, `role`, `storeId`, `sessionVersion`. Cada request revalida `isActive`, `sessionVersion`, `role` e `storeId` contra o banco (`User.sessionVersion`, default `0`; tokens legados sem claim equivalem a `0`).
 - Usuário `isActive === false` não autentica (mensagem genérica).
 - **`/master`**: apenas `MASTER` (`requireMasterSession`). Sem sessão → login; outras roles → `notFound()`.
 - **Usuários de loja:** `MASTER` gerencia em `/master/stores/[storeId]/users` (criar / ativar-desativar / role). Sem `MASTER_ADMIN_*` na Vercel Production.

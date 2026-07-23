@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import {
+  isAdminSessionValidForUser,
+} from "@/features/admin/auth/admin-session-verifier";
+import { loadAdminSessionUser } from "@/features/admin/auth/admin-session-user";
+import {
   getAdminSessionMaxAgeSeconds,
   signAdminToken,
+  toAdminSessionPayload,
   verifyAdminToken,
 } from "@/features/admin/auth/admin-jwt";
 import type {
@@ -32,7 +37,17 @@ export async function getAdminSession(): Promise<AdminSessionPayload | null> {
     return null;
   }
 
-  return verifyAdminToken(token);
+  const claims = await verifyAdminToken(token);
+  if (!claims) {
+    return null;
+  }
+
+  const user = await loadAdminSessionUser(claims.userId);
+  if (!isAdminSessionValidForUser(claims, user)) {
+    return null;
+  }
+
+  return toAdminSessionPayload(claims);
 }
 
 export async function createAdminSession(

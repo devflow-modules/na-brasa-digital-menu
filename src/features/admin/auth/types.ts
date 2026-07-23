@@ -24,4 +24,5 @@ export type AuthenticatedAdminUser = {
   email: string;
   role: UserRole;
   storeId: string | null;
+  sessionVersion: number;
 };

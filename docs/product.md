@@ -128,7 +128,7 @@ Transições de status e permissões: validadas no server (matrizes abaixo).
 ## Autenticação e autorização
 
 - Login: `User.email` + `passwordHash` (bcrypt); inativos rejeitados.
-- Sessão: JWT (`jose`), cookie `ADMIN_SESSION_COOKIE`, claims `userId`, `role`, `storeId`, etc.
+- Sessão: JWT (`jose`), cookie `ADMIN_SESSION_COOKIE`, claims incl. `sessionVersion`; revalidação server-side invalida sessão se usuário inativo ou versão/role/store divergirem do banco.
 - Bootstrap: `MASTER_ADMIN_NAME`, `MASTER_ADMIN_EMAIL`, `MASTER_ADMIN_PASSWORD` no **seed** (não `ADMIN_EMAIL`/`ADMIN_PASSWORD`).
 - **`/master`:** só `MASTER`; demais roles → `notFound()`.
 - **`/admin`:** roles de loja com `session.storeId` válido; `MASTER` sem contexto explícito → redirect `/master`.
