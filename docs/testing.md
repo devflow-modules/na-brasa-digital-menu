@@ -14,6 +14,7 @@ Documentos relacionados: [README](../README.md) · [Deploy](deployment.md) · [O
 | `tests/e2e/master-landing-flow.spec.ts` | Landing por role: MASTER → `/master`, Store → `/admin`, redirect direto `/admin`, sessão ausente |
 | `tests/e2e/master-dashboard.spec.ts` | `/master` auth: redirect, MASTER ok, non-MASTER blocked, lista `na-brasa`, logout |
 | `tests/e2e/master-store-users.spec.ts` | usuários por Store: auth, create OPERATOR, login `/admin`, block MASTER role option, e-mail duplicado, isActive |
+| `tests/e2e/admin-session-revocation.spec.ts` | revogação de sessão: desativar usuário A derruba sessão A; usuário B permanece autenticado |
 | `tests/e2e/admin-store-scope.spec.ts` | Isolamento por Store no `/admin` (lista/detalhe/status; MASTER → `/master`) |
 | `tests/e2e/admin-orders.spec.ts` | Lista + detalhe (MANAGER); badge de origem Online (DIRECT) e Balcão (COUNTER) |
 | `tests/e2e/admin-order-queue-filters.spec.ts` | Filtros da fila: origem, código, nome, status+origem, limpar; smoke mobile |

@@ -1,5 +1,9 @@
 import { SignJWT, jwtVerify } from "jose";
 import type { UserRole } from "@prisma/client";
+import {
+  normalizeTokenSessionVersion,
+  type AdminJwtSessionClaims,
+} from "@/features/admin/auth/admin-session-verifier";
 import type {
   AdminSessionPayload,
   AuthenticatedAdminUser,
@@ -43,6 +47,7 @@ export async function signAdminToken(
     email: user.email,
     role: user.role,
     storeId: user.storeId,
+    sessionVersion: user.sessionVersion,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -53,7 +58,7 @@ export async function signAdminToken(
 
 export async function verifyAdminToken(
   token: string,
-): Promise<AdminSessionPayload | null> {
+): Promise<AdminJwtSessionClaims | null> {
   try {
     const { payload } = await jwtVerify(token, getJwtSecret(), {
       algorithms: ["HS256"],
@@ -67,6 +72,11 @@ export async function verifyAdminToken(
       typeof payload.iat !== "number" ||
       typeof payload.exp !== "number"
     ) {
+      return null;
+    }
+
+    const sessionVersion = normalizeTokenSessionVersion(payload.sessionVersion);
+    if (sessionVersion < 0) {
       return null;
     }
 
@@ -85,10 +95,25 @@ export async function verifyAdminToken(
       email: payload.email,
       role: payload.role,
       storeId,
+      sessionVersion,
       iat: payload.iat,
       exp: payload.exp,
     };
   } catch {
     return null;
   }
+}
+
+export function toAdminSessionPayload(
+  claims: AdminJwtSessionClaims,
+): AdminSessionPayload {
+  return {
+    userId: claims.userId,
+    name: claims.name,
+    email: claims.email,
+    role: claims.role,
+    storeId: claims.storeId,
+    iat: claims.iat,
+    exp: claims.exp,
+  };
 }
