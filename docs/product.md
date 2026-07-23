@@ -231,7 +231,7 @@ Não prometer ao cliente Na Braza sem decisão de produto e **product-grill**:
 - Observação de 7–14 dias dos filtros da fila (uso efetivo, legenda “Na lista”, limites do `take: 50`)
 - Observação de 7–14 dias do tempo decorrido na fila (ajuda a priorizar? confusão com “atraso”?)
 - Histórico de status do pedido: experimento **VALIDATE** — [product/order-history-validation.md](product/order-history-validation.md) (sem schema/timeline até evidência + novo grill)
-- Checkout idempotency → **VALIDATE** → observe DIRECT duplicate candidates for 14 days → no migration or contract change authorized — [product/checkout-idempotency-validation.md](product/checkout-idempotency-validation.md)
+- Checkout idempotency → **BUILD** (#105) — DIRECT Online: UUID por tentativa + unicidade `storeId + idempotencyKey` + fingerprint HMAC (`ORDER_IDEMPOTENCY_SECRET`); replay seguro; conflito se payload divergir — [product/checkout-idempotency-validation.md](product/checkout-idempotency-validation.md)
 - Pilot Production Readiness → **IN PROGRESS** → **GO COM CONDIÇÕES** → reliability, recovery, security and operational controls — [product/pilot-production-readiness.md](product/pilot-production-readiness.md) · admin recovery runbook: [admin-access-recovery.md](admin-access-recovery.md)
 - Admin daily summary expansion → **DEFER** → current cards validated as operationally useful → no copy correction required → reopen only with a concrete operational gap — [product/admin-daily-summary-validation.md](product/admin-daily-summary-validation.md)
 - Daily closing operational report → **BUILD** → dedicated `/admin/relatorios/fechamento` + WhatsApp copy; does not expand `/admin` summary cards — [product/daily-closing-report.md](product/daily-closing-report.md)

@@ -2,9 +2,11 @@ import { recordOrderLifecycleFunnelEvent } from "@/features/analytics/record-ord
 import { createOrderSchema } from "@/features/orders/schemas/create-order.schema";
 import {
   createOrderWithItems,
+  findDirectOrderByIdempotencyKey,
   findStoreForOrderBySlug,
 } from "@/features/orders/repositories/orders.repository";
 import { formatPaymentMethodLabel } from "@/features/orders/payment-method";
+import { resolveDirectOrderIdempotency } from "@/features/orders/services/resolve-direct-order-idempotency";
 import { resolveAndPriceOrderItems } from "@/features/orders/services/resolve-and-price-order-items";
 import type {
   CreateOrderInput,
@@ -12,6 +14,12 @@ import type {
   CreateOrderResult,
 } from "@/features/orders/types";
 import { isBelowDeliveryMinimumOrder } from "@/features/orders/utils/delivery-minimum-order";
+import {
+  buildOrderIdempotencyCanonicalPayload,
+  computeOrderIdempotencyFingerprint,
+  getOrderIdempotencySecret,
+  isPrismaUniqueConstraintOn,
+} from "@/features/orders/utils/order-idempotency";
 import { generateOrderCode } from "@/features/orders/utils/order-code";
 import { parseCurrencyToCents } from "@/features/orders/utils/parse-currency-to-cents";
 import { createWhatsAppUrl } from "@/features/orders/whatsapp/create-whatsapp-url";
@@ -21,18 +29,22 @@ const MAX_CODE_ATTEMPTS = 5;
 
 export type CreateOrderDeps = {
   findStoreForOrderBySlug: typeof findStoreForOrderBySlug;
+  findDirectOrderByIdempotencyKey: typeof findDirectOrderByIdempotencyKey;
   resolveAndPriceOrderItems: typeof resolveAndPriceOrderItems;
   createOrderWithItems: typeof createOrderWithItems;
   generateOrderCode: typeof generateOrderCode;
   recordOrderLifecycleFunnelEvent?: typeof recordOrderLifecycleFunnelEvent;
+  getOrderIdempotencySecret?: typeof getOrderIdempotencySecret;
 };
 
 const defaultDeps: CreateOrderDeps = {
   findStoreForOrderBySlug,
+  findDirectOrderByIdempotencyKey,
   resolveAndPriceOrderItems,
   createOrderWithItems,
   generateOrderCode,
   recordOrderLifecycleFunnelEvent,
+  getOrderIdempotencySecret,
 };
 
 function firstZodMessage(error: {
@@ -52,6 +64,18 @@ export async function createOrder(
   }
 
   const input = parsed.data;
+
+  let idempotencySecret: string;
+  try {
+    const readSecret = deps.getOrderIdempotencySecret ?? getOrderIdempotencySecret;
+    idempotencySecret = readSecret();
+  } catch {
+    console.error("[createOrder] ORDER_IDEMPOTENCY_SECRET missing");
+    return {
+      ok: false,
+      message: "Não foi possível criar o pedido. Tente novamente.",
+    };
+  }
 
   const store = await deps.findStoreForOrderBySlug(input.storeSlug);
   if (!store) {
@@ -124,6 +148,38 @@ export async function createOrder(
   const customerName = input.customerName.trim();
   const customerPhone = input.customerPhone.trim();
   const paymentMethod = input.paymentMethod;
+  const idempotencyKey = input.idempotencyKey;
+
+  const idempotencyFingerprint = computeOrderIdempotencyFingerprint(
+    idempotencySecret,
+    buildOrderIdempotencyCanonicalPayload({
+      storeId: store.id,
+      customerName,
+      customerPhone,
+      deliveryType: input.deliveryType,
+      deliveryAddress,
+      paymentMethod,
+      changeForCents,
+      notes,
+      subtotalCents: priced.subtotalCents,
+      deliveryFeeCents,
+      totalCents,
+      pricedItems: priced.items,
+      clientItems: input.items,
+    }),
+  );
+
+  const existing = await deps.findDirectOrderByIdempotencyKey(
+    store.id,
+    idempotencyKey,
+  );
+  if (existing) {
+    return resolveDirectOrderIdempotency(
+      existing,
+      idempotencyFingerprint,
+      store.whatsapp,
+    );
+  }
 
   for (let attempt = 0; attempt < MAX_CODE_ATTEMPTS; attempt += 1) {
     const code = deps.generateOrderCode();
@@ -169,6 +225,8 @@ export async function createOrder(
       whatsappMessage,
       createdByUserId: null,
       items: priced.items,
+      idempotencyKey,
+      idempotencyFingerprint,
     };
 
     try {
@@ -196,11 +254,28 @@ export async function createOrder(
         whatsappUrl,
       };
     } catch (error) {
+      if (
+        isPrismaUniqueConstraintOn(error, ["storeId", "idempotencyKey"])
+      ) {
+        const raced = await deps.findDirectOrderByIdempotencyKey(
+          store.id,
+          idempotencyKey,
+        );
+        if (raced) {
+          return resolveDirectOrderIdempotency(
+            raced,
+            idempotencyFingerprint,
+            store.whatsapp,
+          );
+        }
+      }
+
       const isUniqueCodeConflict =
         typeof error === "object" &&
         error !== null &&
         "code" in error &&
-        (error as { code?: string }).code === "P2002";
+        (error as { code?: string }).code === "P2002" &&
+        isPrismaUniqueConstraintOn(error, ["code"]);
 
       if (isUniqueCodeConflict && attempt < MAX_CODE_ATTEMPTS - 1) {
         continue;

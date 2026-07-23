@@ -1,9 +1,15 @@
+import { randomUUID } from "node:crypto";
+
 export const CART_STORAGE_KEY = "na-brasa-cart-v1";
 
 export const E2E_CUSTOMER_PREFIX = "E2E";
 
 export function uniqueCustomerName(label: string): string {
   return `${E2E_CUSTOMER_PREFIX} ${label} ${Date.now()}`;
+}
+
+export function e2eOrderIdempotencyKey(): string {
+  return randomUUID();
 }
 
 export const e2ePhone = "13988887777";
