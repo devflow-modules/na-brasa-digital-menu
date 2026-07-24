@@ -27,11 +27,25 @@ export type DailyClosingPeriod = {
   endExclusiveIso: string;
 };
 
+export type DailyClosingProductRow = {
+  productId: string | null;
+  name: string;
+  quantity: number;
+  amountCents: number;
+};
+
 export type DailyClosingPaymentRow = {
   method: DailyClosingPaymentMethod;
   orderCount: number;
   amountCents: number;
   percentageBps: number;
+  /**
+   * Products from single-tender COMPLETED orders only.
+   * Split-tender orders are excluded (items are not allocated across methods).
+   */
+  products: DailyClosingProductRow[];
+  /** Delivery fees from the same single-tender orders as `products`. */
+  deliveryFeesCents: number;
 };
 
 export type DailyClosingFulfillmentRow = {
@@ -40,13 +54,6 @@ export type DailyClosingFulfillmentRow = {
   productsSubtotalCents: number;
   deliveryFeesCents: number;
   totalCents: number;
-};
-
-export type DailyClosingProductRow = {
-  productId: string | null;
-  name: string;
-  quantity: number;
-  amountCents: number;
 };
 
 export type DailyClosingAddonRow = {

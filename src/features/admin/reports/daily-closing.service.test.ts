@@ -285,4 +285,133 @@ describe("aggregateDailyClosingReport", () => {
     );
     assert.ok(report.notes.some((note) => note.includes("pagamento misto")));
   });
+
+  it("attributes products and delivery fees under single-tender payments only", () => {
+    const report = aggregateDailyClosingReport({
+      storeName: "Na Braza",
+      period: period(),
+      orders: [
+        baseOrder({
+          code: "PIX1",
+          paymentMethod: "PIX",
+          deliveryType: "DELIVERY",
+          subtotalCents: 4000,
+          deliveryFeeCents: 1000,
+          totalCents: 5000,
+          items: [
+            {
+              productId: "p1",
+              productNameSnapshot: "X-Burger",
+              quantity: 2,
+              unitPriceCents: 2000,
+              totalCents: 4000,
+              addons: [],
+            },
+          ],
+        }),
+        baseOrder({
+          code: "CASH1",
+          paymentMethod: "CASH",
+          subtotalCents: 3000,
+          totalCents: 3000,
+          items: [
+            {
+              productId: "p2",
+              productNameSnapshot: "Espetinho",
+              quantity: 3,
+              unitPriceCents: 1000,
+              totalCents: 3000,
+              addons: [],
+            },
+          ],
+        }),
+        baseOrder({
+          code: "MIX1",
+          paymentMethod: "PIX",
+          subtotalCents: 5000,
+          totalCents: 5000,
+          payments: [
+            { method: "PIX", amountCents: 2000 },
+            { method: "CASH", amountCents: 3000 },
+          ],
+          items: [
+            {
+              productId: "p3",
+              productNameSnapshot: "X-Tudo",
+              quantity: 1,
+              unitPriceCents: 5000,
+              totalCents: 5000,
+              addons: [],
+            },
+          ],
+        }),
+        baseOrder({
+          code: "SINGLE_PAY",
+          paymentMethod: "PIX",
+          subtotalCents: 1500,
+          totalCents: 1500,
+          payments: [{ method: "DEBIT_CARD", amountCents: 1500 }],
+          items: [
+            {
+              productId: "p4",
+              productNameSnapshot: "Refri",
+              quantity: 1,
+              unitPriceCents: 1500,
+              totalCents: 1500,
+              addons: [],
+            },
+          ],
+        }),
+      ],
+    });
+
+    const byPay = Object.fromEntries(
+      report.payments.map((row) => [row.method, row]),
+    );
+
+    assert.equal(report.summary.splitTenderCompletedOrders, 1);
+
+    assert.deepEqual(byPay.PIX?.products, [
+      {
+        productId: "p1",
+        name: "X-Burger",
+        quantity: 2,
+        amountCents: 4000,
+      },
+    ]);
+    assert.equal(byPay.PIX?.deliveryFeesCents, 1000);
+
+    assert.deepEqual(byPay.CASH?.products, [
+      {
+        productId: "p2",
+        name: "Espetinho",
+        quantity: 3,
+        amountCents: 3000,
+      },
+    ]);
+    assert.equal(byPay.CASH?.deliveryFeesCents, 0);
+
+    assert.deepEqual(byPay.DEBIT_CARD?.products, [
+      {
+        productId: "p4",
+        name: "Refri",
+        quantity: 1,
+        amountCents: 1500,
+      },
+    ]);
+
+    // Split-tender X-Tudo must not appear under any payment method.
+    for (const row of report.payments) {
+      assert.equal(
+        row.products.some((product) => product.name === "X-Tudo"),
+        false,
+      );
+    }
+
+    // Global product list still includes split-tender items.
+    assert.equal(
+      report.products.some((product) => product.name === "X-Tudo"),
+      true,
+    );
+  });
 });
