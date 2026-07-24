@@ -171,7 +171,13 @@ describe("formatDailyClosingWhatsapp", () => {
     assert.match(text, /Pagamento misto: 0/);
     assert.match(text, /💳 \*FORMAS DE PAGAMENTO\*/);
     assert.match(text, /• Pix: R\$\s*102,00 — 2 pedidos — /);
+    assert.match(text, / {2}• 3x X-Burger — R\$\s*60,00/);
+    assert.match(text, / {2}• 2x X-Salada — R\$\s*30,00/);
+    assert.match(text, / {2}• Taxa entrega — R\$\s*12,00/);
+    assert.match(text, /• Dinheiro: R\$\s*30,00 — 1 pedido — /);
+    assert.match(text, / {2}• 1x X-Burger — R\$\s*30,00/);
     assert.match(text, /• Cartão — tipo não informado: R\$\s*30,00 — 1 pedido — /);
+    assert.match(text, / {2}• 2x X-Salada — R\$\s*30,00/);
     assert.match(text, /%/);
     assert.match(text, /🛵 \*MODALIDADES\*/);
     assert.match(text, /• Entrega: 2 pedidos — R\$\s*102,00/);
@@ -254,5 +260,67 @@ describe("formatDailyClosingWhatsapp", () => {
     assert.equal(text.includes("ADICIONAIS"), false);
     assert.equal(text.includes("CANCELADOS"), false);
     assert.equal(text.endsWith("\n"), true);
+  });
+
+  it("omits split-tender products under payment methods", () => {
+    const report = buildReport([
+      {
+        code: "MIX1",
+        status: "COMPLETED",
+        source: "COUNTER",
+        deliveryType: "PICKUP",
+        paymentMethod: "PIX",
+        payments: [
+          { method: "PIX", amountCents: 2000 },
+          { method: "CASH", amountCents: 3000 },
+        ],
+        subtotalCents: 5000,
+        deliveryFeeCents: 0,
+        totalCents: 5000,
+        createdAt: new Date("2026-07-21T21:00:00.000Z"),
+        items: [
+          {
+            productId: "p1",
+            productNameSnapshot: "X-Tudo",
+            quantity: 1,
+            unitPriceCents: 5000,
+            totalCents: 5000,
+            addons: [],
+          },
+        ],
+      },
+      {
+        code: "PIX1",
+        status: "COMPLETED",
+        source: "DIRECT",
+        deliveryType: "PICKUP",
+        paymentMethod: "PIX",
+        payments: [],
+        subtotalCents: 2000,
+        deliveryFeeCents: 0,
+        totalCents: 2000,
+        createdAt: new Date("2026-07-21T21:30:00.000Z"),
+        items: [
+          {
+            productId: "p2",
+            productNameSnapshot: "X-Burger",
+            quantity: 1,
+            unitPriceCents: 2000,
+            totalCents: 2000,
+            addons: [],
+          },
+        ],
+      },
+    ]);
+
+    const text = formatDailyClosingWhatsapp(report);
+
+    assert.match(text, /Pagamento misto: 1/);
+    assert.match(text, /• Pix: R\$\s*40,00 — 2 pedidos — /);
+    assert.match(text, / {2}• 1x X-Burger — R\$\s*20,00/);
+    assert.match(text, /• Dinheiro: R\$\s*30,00 — 1 pedido — /);
+    assert.equal(text.includes("X-Tudo"), true);
+    // X-Tudo appears only in the global PRODUTOS section, not indented under payments.
+    assert.equal(text.includes("  • 1x X-Tudo"), false);
   });
 });
