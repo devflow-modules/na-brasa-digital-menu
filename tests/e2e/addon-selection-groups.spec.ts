@@ -38,7 +38,7 @@ test.describe("addon selection groups", () => {
       select: {
         id: true,
         addonGroups: {
-          where: { name: "Escolha o queijo extra", active: true },
+          where: { name: "Escolha o queijo", active: true },
           select: {
             id: true,
             options: {

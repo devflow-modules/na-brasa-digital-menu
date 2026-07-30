@@ -113,19 +113,20 @@ Pilot categories:
 | --- | ---: | --- |
 | Bacon extra | R$ 5,00 | confirmed — independent |
 | Salada | R$ 5,00 | confirmed — independent |
-| Cheddar extra | R$ 3,00 | confirmed — cheese group |
-| Queijo prato extra | R$ 3,00 | confirmed — cheese group |
+| Queijo cheddar | R$ 0,00 | confirmed — cheese group (included choice) |
+| Queijo prato | R$ 0,00 | confirmed — cheese group (included choice) |
+| Sem queijo | R$ 0,00 | confirmed — cheese group (included choice) |
 | Hambúrguer extra | R$ 15,00 | confirmed — independent |
-| Queijo extra (legado) | R$ 3,00 | inactive — historical snapshots only |
+| Queijo extra / Cheddar extra / Queijo prato extra (legado) | R$ 3,00 | inactive — historical snapshots only |
 
 Addon linkage:
 
 - Independent addons linked to `Pão Carne Queijo` via `ProductAddon`.
-- Cheese group `Escolha o queijo extra` (min 0, max 1) on the same product via `AddonGroup`.
+- Cheese group `Escolha o queijo` (min 1, max 1) on the same product via `AddonGroup`.
 
 Operational note:
 
-The base product is Pão Carne Queijo. The customer adds optional extras; the product should not be modeled as multiple fixed variations in this pilot. Cheese exclusivity is enforced by selection groups (server + UI). Detalhe: [../product/addon-selection-groups.md](../product/addon-selection-groups.md).
+The base product is Pão Carne Queijo. Cheese type is a required distinction of what already comes with the sandwich (or none) and does not change price. Paid extras (bacon, salad, extra burger) remain independent addons. Detalhe: [../product/addon-selection-groups.md](../product/addon-selection-groups.md).
 
 ### Espetinhos na Brasa
 

@@ -34,11 +34,11 @@ Lote 1: grupo por produto + validação server-side + UI radio/checkbox + admin 
 
 ## Piloto Na Braza
 
-Grupo `Escolha o queijo extra` no `Pão Carne Queijo`:
+Grupo `Escolha o queijo` no `Pão Carne Queijo`:
 
-- minSelection: 0
+- minSelection: 1
 - maxSelection: 1
-- opções: Cheddar extra, Queijo prato extra
+- opções: Queijo cheddar, Queijo prato, Sem queijo (todas a R$ 0,00 — distinção inclusa, não adicional pago)
 
 Configurado via `pnpm menu:apply-na-braza-pilot`.
 

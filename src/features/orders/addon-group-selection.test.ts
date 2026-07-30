@@ -22,16 +22,24 @@ function cheeseProduct(): CatalogProductForAddonSelection {
       {
         addon: {
           id: "cheddar",
-          name: "Cheddar extra",
-          priceCents: 300,
+          name: "Queijo cheddar",
+          priceCents: 0,
           active: true,
         },
       },
       {
         addon: {
           id: "prato",
-          name: "Queijo prato extra",
-          priceCents: 300,
+          name: "Queijo prato",
+          priceCents: 0,
+          active: true,
+        },
+      },
+      {
+        addon: {
+          id: "none",
+          name: "Sem queijo",
+          priceCents: 0,
           active: true,
         },
       },
@@ -39,8 +47,8 @@ function cheeseProduct(): CatalogProductForAddonSelection {
     addonGroups: [
       {
         id: "g-cheese",
-        name: "Escolha o queijo extra",
-        minSelection: 0,
+        name: "Escolha o queijo",
+        minSelection: 1,
         maxSelection: 1,
         active: true,
         sortOrder: 0,
@@ -49,8 +57,8 @@ function cheeseProduct(): CatalogProductForAddonSelection {
             sortOrder: 0,
             addon: {
               id: "cheddar",
-              name: "Cheddar extra",
-              priceCents: 300,
+              name: "Queijo cheddar",
+              priceCents: 0,
               active: true,
             },
           },
@@ -58,8 +66,17 @@ function cheeseProduct(): CatalogProductForAddonSelection {
             sortOrder: 1,
             addon: {
               id: "prato",
-              name: "Queijo prato extra",
-              priceCents: 300,
+              name: "Queijo prato",
+              priceCents: 0,
+              active: true,
+            },
+          },
+          {
+            sortOrder: 2,
+            addon: {
+              id: "none",
+              name: "Sem queijo",
+              priceCents: 0,
               active: true,
             },
           },
@@ -81,17 +98,23 @@ describe("addon-group-selection", () => {
   });
 
   it("allows zero selection for optional max=1 group", () => {
-    const result = validateAddonSelectionForProduct(cheeseProduct(), ["bacon"]);
+    const product = cheeseProduct();
+    product.addonGroups[0]!.minSelection = 0;
+    const result = validateAddonSelectionForProduct(product, ["bacon"]);
     assert.equal(result.ok, true);
   });
 
-  it("allows cheddar or prato alone", () => {
+  it("allows cheddar, prato or no-cheese alone", () => {
     assert.equal(
       validateAddonSelectionForProduct(cheeseProduct(), ["cheddar"]).ok,
       true,
     );
     assert.equal(
       validateAddonSelectionForProduct(cheeseProduct(), ["prato"]).ok,
+      true,
+    );
+    assert.equal(
+      validateAddonSelectionForProduct(cheeseProduct(), ["none"]).ok,
       true,
     );
   });
@@ -107,9 +130,7 @@ describe("addon-group-selection", () => {
   });
 
   it("rejects required group with zero selections", () => {
-    const product = cheeseProduct();
-    product.addonGroups[0]!.minSelection = 1;
-    const result = validateAddonSelectionForProduct(product, []);
+    const result = validateAddonSelectionForProduct(cheeseProduct(), []);
     assert.equal(result.ok, false);
     if (result.ok) return;
     assert.match(result.message, /Selecione uma opção/);
