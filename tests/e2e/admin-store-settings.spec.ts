@@ -16,6 +16,7 @@ import {
   ensureE2eStore,
   ensurePilotMenuForE2e,
   getPrisma,
+  resolveRequiredAddonIdsForProduct,
 } from "./helpers/db";
 import { addFirstProductToCart, clearCartStorage } from "./helpers/menu";
 import { e2eOrderIdempotencyKey, e2ePhone, getStoreSlug, uniqueCustomerName } from "./helpers/test-data";
@@ -154,6 +155,9 @@ test.describe("admin store settings", () => {
       select: { id: true },
     });
     expect(product).toBeTruthy();
+    const closedStoreAddonIds = await resolveRequiredAddonIdsForProduct(
+      product!.id,
+    );
 
     const denied = await createOrder({
       storeSlug: getStoreSlug(),
@@ -162,7 +166,13 @@ test.describe("admin store settings", () => {
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
       idempotencyKey: e2eOrderIdempotencyKey(),
-      items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
+      items: [
+        {
+          productId: product!.id,
+          quantity: 1,
+          addonIds: closedStoreAddonIds,
+        },
+      ],
     });
     expect(denied.ok).toBe(false);
     if (!denied.ok) {
@@ -182,6 +192,9 @@ test.describe("admin store settings", () => {
       select: { id: true },
     });
     expect(product).toBeTruthy();
+    const noDeliveryAddonIds = await resolveRequiredAddonIdsForProduct(
+      product!.id,
+    );
 
     const denied = await createOrder({
       storeSlug: getStoreSlug(),
@@ -191,7 +204,13 @@ test.describe("admin store settings", () => {
       deliveryAddress: "Rua E2E, 1",
       paymentMethod: "PIX",
       idempotencyKey: e2eOrderIdempotencyKey(),
-      items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
+      items: [
+        {
+          productId: product!.id,
+          quantity: 1,
+          addonIds: noDeliveryAddonIds,
+        },
+      ],
     });
     expect(denied.ok).toBe(false);
     if (!denied.ok) {
@@ -211,6 +230,9 @@ test.describe("admin store settings", () => {
       select: { id: true },
     });
     expect(product).toBeTruthy();
+    const noPickupAddonIds = await resolveRequiredAddonIdsForProduct(
+      product!.id,
+    );
 
     const denied = await createOrder({
       storeSlug: getStoreSlug(),
@@ -219,7 +241,13 @@ test.describe("admin store settings", () => {
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
       idempotencyKey: e2eOrderIdempotencyKey(),
-      items: [{ productId: product!.id, quantity: 1, addonIds: [] }],
+      items: [
+        {
+          productId: product!.id,
+          quantity: 1,
+          addonIds: noPickupAddonIds,
+        },
+      ],
     });
     expect(denied.ok).toBe(false);
     if (!denied.ok) {
@@ -368,6 +396,7 @@ test.describe("admin store settings", () => {
       select: { id: true },
     });
     expect(product).toBeTruthy();
+    const burgerAddonIds = await resolveRequiredAddonIdsForProduct(product!.id);
 
     const created = await createOrder({
       storeSlug: getStoreSlug(),
@@ -376,7 +405,13 @@ test.describe("admin store settings", () => {
       deliveryType: "PICKUP",
       paymentMethod: "PIX",
       idempotencyKey: e2eOrderIdempotencyKey(),
-      items: [{ productId: product!.id, quantity: 2, addonIds: [] }],
+      items: [
+        {
+          productId: product!.id,
+          quantity: 2,
+          addonIds: burgerAddonIds,
+        },
+      ],
     });
     expect(created.ok).toBe(true);
     if (created.ok) {
