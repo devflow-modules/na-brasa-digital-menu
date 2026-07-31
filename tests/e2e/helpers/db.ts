@@ -192,6 +192,81 @@ export async function ensurePilotMenuForE2e(): Promise<void> {
 }
 
 /**
+ * Resolves addon IDs that satisfy active required AddonGroups for a product.
+ * Generic across groups; prefers named options when present (pilot: Queijo cheddar).
+ */
+export async function resolveRequiredAddonIdsForProduct(
+  productId: string,
+  options?: { preferredAddonNames?: string[] },
+): Promise<string[]> {
+  const prisma = getPrisma();
+  const preferredNames = (
+    options?.preferredAddonNames ?? ["Queijo cheddar"]
+  ).map((name) => name.toLocaleLowerCase("pt-BR"));
+
+  const groups = await prisma.addonGroup.findMany({
+    where: {
+      productId,
+      active: true,
+      minSelection: { gt: 0 },
+    },
+    orderBy: { sortOrder: "asc" },
+    select: {
+      minSelection: true,
+      options: {
+        orderBy: { sortOrder: "asc" },
+        select: {
+          addon: {
+            select: { id: true, name: true, active: true },
+          },
+        },
+      },
+    },
+  });
+
+  const selectedIds: string[] = [];
+
+  for (const group of groups) {
+    const activeOptions = group.options
+      .map((option) => option.addon)
+      .filter((addon) => addon.active);
+    if (activeOptions.length === 0) {
+      continue;
+    }
+
+    const picked: string[] = [];
+    const need = group.minSelection;
+
+    for (const preferred of preferredNames) {
+      if (picked.length >= need) {
+        break;
+      }
+      const match = activeOptions.find(
+        (addon) =>
+          !picked.includes(addon.id) &&
+          addon.name.toLocaleLowerCase("pt-BR").includes(preferred),
+      );
+      if (match) {
+        picked.push(match.id);
+      }
+    }
+
+    for (const addon of activeOptions) {
+      if (picked.length >= need) {
+        break;
+      }
+      if (!picked.includes(addon.id)) {
+        picked.push(addon.id);
+      }
+    }
+
+    selectedIds.push(...picked);
+  }
+
+  return selectedIds;
+}
+
+/**
  * Clears featured flags so E2E products can occupy the Destaques strip
  * (UI shows at most 3; pilot products would otherwise fill the slots).
  * Call `ensurePilotMenuForE2e` afterward to restore.

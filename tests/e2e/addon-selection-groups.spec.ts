@@ -38,7 +38,7 @@ test.describe("addon selection groups", () => {
       select: {
         id: true,
         addonGroups: {
-          where: { name: "Escolha o queijo extra", active: true },
+          where: { name: "Escolha o queijo", active: true },
           select: {
             id: true,
             options: {
@@ -53,10 +53,10 @@ test.describe("addon selection groups", () => {
     const group = burger.addonGroups[0];
     expect(group).toBeTruthy();
     const cheddar = group!.options.find((option) =>
-      option.addon.name.includes("Cheddar"),
+      /queijo\s*cheddar/i.test(option.addon.name),
     )?.addon;
     const prato = group!.options.find((option) =>
-      option.addon.name.includes("prato"),
+      /queijo\s*prato/i.test(option.addon.name),
     )?.addon;
     expect(cheddar).toBeTruthy();
     expect(prato).toBeTruthy();

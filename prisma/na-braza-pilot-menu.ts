@@ -10,14 +10,26 @@ export const PILOT_BURGER_ADDON_NAMES = [
   "Hambúrguer extra",
 ] as const;
 
-export const PILOT_CHEESE_GROUP_NAME = "Escolha o queijo extra";
+export const PILOT_CHEESE_GROUP_NAME = "Escolha o queijo";
+/** Previous group title; apply renames this when found. */
+export const PILOT_CHEESE_GROUP_LEGACY_NAMES = [
+  "Escolha o queijo extra",
+] as const;
 export const PILOT_CHEESE_GROUP_OPTION_NAMES = [
+  "Queijo cheddar",
+  "Queijo prato",
+  "Sem queijo",
+] as const;
+
+/**
+ * Legacy cheese addons kept inactive for historical order snapshots.
+ * Former paid "extra" cheese options are deactivated after the included-choice model.
+ */
+export const PILOT_LEGACY_INACTIVE_ADDON_NAMES = [
+  "Queijo extra",
   "Cheddar extra",
   "Queijo prato extra",
 ] as const;
-
-/** Legacy generic cheese addon kept inactive for historical snapshots. */
-export const PILOT_LEGACY_INACTIVE_ADDON_NAMES = ["Queijo extra"] as const;
 
 const BEER_AGE_DESCRIPTION =
   "Produto permitido apenas para maiores de 18 anos.";
@@ -81,22 +93,28 @@ export const PILOT_ADDONS: PilotAddonSeed[] = [
     sortOrder: 2,
   },
   {
-    name: "Cheddar extra",
-    description: "Fatia extra de cheddar.",
-    priceCents: 300,
+    name: "Queijo cheddar",
+    description: "Queijo cheddar incluso no lanche (sem custo adicional).",
+    priceCents: 0,
     sortOrder: 3,
   },
   {
-    name: "Queijo prato extra",
-    description: "Fatia extra de queijo prato.",
-    priceCents: 300,
+    name: "Queijo prato",
+    description: "Queijo prato incluso no lanche (sem custo adicional).",
+    priceCents: 0,
     sortOrder: 4,
+  },
+  {
+    name: "Sem queijo",
+    description: "Lanche sem queijo (sem custo adicional).",
+    priceCents: 0,
+    sortOrder: 5,
   },
   {
     name: "Hambúrguer extra",
     description: "Hambúrguer artesanal adicional 160g.",
     priceCents: 1500,
-    sortOrder: 5,
+    sortOrder: 6,
   },
 ];
 
@@ -589,22 +607,32 @@ export async function applyNaBrazaPilotMenu(
     return id;
   });
 
-  const existingCheeseGroup = await prisma.addonGroup.findFirst({
-    where: {
-      storeId,
-      productId: burger.id,
-      name: PILOT_CHEESE_GROUP_NAME,
-    },
-    select: { id: true },
-  });
+  const existingCheeseGroup =
+    (await prisma.addonGroup.findFirst({
+      where: {
+        storeId,
+        productId: burger.id,
+        name: PILOT_CHEESE_GROUP_NAME,
+      },
+      select: { id: true },
+    })) ??
+    (await prisma.addonGroup.findFirst({
+      where: {
+        storeId,
+        productId: burger.id,
+        name: { in: [...PILOT_CHEESE_GROUP_LEGACY_NAMES] },
+      },
+      select: { id: true },
+    }));
 
   const cheeseGroupId = existingCheeseGroup
     ? (
         await prisma.addonGroup.update({
           where: { id: existingCheeseGroup.id },
           data: {
+            name: PILOT_CHEESE_GROUP_NAME,
             description: null,
-            minSelection: 0,
+            minSelection: 1,
             maxSelection: 1,
             active: true,
             sortOrder: 0,
@@ -619,7 +647,7 @@ export async function applyNaBrazaPilotMenu(
             productId: burger.id,
             name: PILOT_CHEESE_GROUP_NAME,
             description: null,
-            minSelection: 0,
+            minSelection: 1,
             maxSelection: 1,
             active: true,
             sortOrder: 0,
@@ -627,6 +655,25 @@ export async function applyNaBrazaPilotMenu(
           select: { id: true },
         })
       ).id;
+
+  // Deactivate any leftover cheese groups on the burger (legacy title duplicates).
+  const staleCheeseGroups = await prisma.addonGroup.findMany({
+    where: {
+      storeId,
+      productId: burger.id,
+      id: { not: cheeseGroupId },
+      name: {
+        in: [PILOT_CHEESE_GROUP_NAME, ...PILOT_CHEESE_GROUP_LEGACY_NAMES],
+      },
+    },
+    select: { id: true },
+  });
+  for (const stale of staleCheeseGroups) {
+    await prisma.addonGroup.update({
+      where: { id: stale.id },
+      data: { active: false },
+    });
+  }
 
   await prisma.addonGroupOption.deleteMany({ where: { groupId: cheeseGroupId } });
   await prisma.addonGroupOption.createMany({
