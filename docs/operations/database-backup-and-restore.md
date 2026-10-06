@@ -16,10 +16,10 @@ Documentos relacionados: [Deploy](../deployment.md) · [Operação](../operation
 | Plano Neon | **CONFIRMED** | Free Plan (Console → Settings → Postgres, 2026-10-06) |
 | PITR / Instant restore | **CONFIRMED** | History window habilitada no projeto |
 | History window (retenção) | **CONFIRMED** | **6 hours** (máximo do Free neste projeto; upgrade permite até 30 days) |
-| Restore drill | **PENDING** | Rodar seção [Drill de restore](#drill-de-restore-obrigatório-para-fechar-109) e preencher o registro |
+| Restore drill | **DONE** | 2026-10-06 UTC — branch temporária PITR + `SELECT 1` + delete (produção intacta) |
 | Responsável em incidente | **DEFINED** | Ver [Ownership](#ownership) |
 
-PITR/retenção confirmados por inspeção humana do Console Neon (Settings → Postgres → History window). Restore drill ainda exige execução documentada.
+PITR/retenção confirmados por inspeção humana do Console Neon (Settings → Postgres → History window). Restore drill executado e registrado abaixo.
 
 ---
 
@@ -66,7 +66,7 @@ Rollback de **aplicação** (redeploy Vercel) **não** restaura dados. Ver [depl
 3. **History window = 6h** (slider no máximo do Free; nota do Console: upgrade até 30 days).
 4. Checklist PPR §6 e [Status operacional](#status-operacional) atualizados.
 
-PPR-05 (drill) ainda é necessário para fechar a #109.
+PPR-05 (drill) concluído em 2026-10-06 — ver [Registro do drill](#registro-do-drill).
 
 ---
 
@@ -155,17 +155,17 @@ Preencher após a primeira execução bem-sucedida:
 
 | Campo | Valor |
 | --- | --- |
-| Data (UTC) | |
-| Executado por | |
-| Projeto Neon (nome, sem secrets) | |
-| History retention confirmada | _N dias_ |
-| Timestamp de origem do restore | |
-| Nome da branch de drill | |
-| Validação | `SELECT 1` ok / contagens ok |
-| Branch de drill removida | sim / não |
-| Produção alterada | **não** (drill) / sim (emergência — detalhar) |
+| Data (UTC) | 2026-10-06 |
+| Executado por | Platform owner (Gustavo) via `scripts/neon-restore-drill.ts` |
+| Projeto Neon (nome, sem secrets) | Free Plan — projeto piloto Na Braza (`soft-pond-93456445`, `sa-east-1`) |
+| History retention confirmada | **6 hours** |
+| Timestamp de origem do restore | `2026-10-06T21:01:15.188Z` (~60 min antes do drill) |
+| Nome da branch de drill | `restore-drill-20261006T220115` (`br-super-pine-act4rovl`) |
+| Validação | `SELECT 1` ok |
+| Branch de drill removida | sim |
+| Produção alterada | **não** (drill) |
 
-Quando esta tabela estiver preenchida e PITR confirmado no Console, atualizar PPR-04/PPR-05 e fechar [#109](https://github.com/devflow-modules/na-brasa-digital-menu/issues/109).
+PITR + drill documentados. Após merge do runbook, fechar [#109](https://github.com/devflow-modules/na-brasa-digital-menu/issues/109).
 
 ---
 
