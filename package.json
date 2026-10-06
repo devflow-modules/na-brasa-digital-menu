@@ -25,6 +25,7 @@
     "report:weekly-funnel": "tsx scripts/weekly-funnel-report.ts",
     "ifood:poll": "tsx scripts/ifood-poller.ts",
     "ifood:order-action": "tsx scripts/ifood-order-action.ts",
+    "neon:restore-drill": "tsx scripts/neon-restore-drill.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",

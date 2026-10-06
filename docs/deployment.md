@@ -241,6 +241,8 @@ Qualquer falha → **NO-GO** (não divulgar o link).
 3. **Preservar o banco** (dados de pedidos são históricos)
 4. Se necessário: remova/oculte temporariamente o link público enquanto corrige
 
+Rollback de **app** não restaura dados. Backup/PITR/restore do Postgres (Neon): [operations/database-backup-and-restore.md](operations/database-backup-and-restore.md).
+
 ## Troubleshooting inicial
 
 | Sintoma | Verificar |
