@@ -13,12 +13,13 @@ Documentos relacionados: [Deploy](../deployment.md) · [Operação](../operation
 | Controle | Status | Evidência |
 | --- | --- | --- |
 | Provedor do banco de produção | **CONFIRMED** | Host `*.aws.neon.tech` (Neon, região `sa-east-1`) |
-| PITR / history window | **PENDING HUMAN** | Confirmar no Console Neon → Project → Settings → **History retention** / Instant restore |
-| Retenção (dias) | **PENDING HUMAN** | Anotar o valor do plano (Free típico: ~1 dia; Paid: até ~7 dias — ver [Neon history window](https://neon.com/docs/introduction/branching#history-retention)) |
+| Plano Neon | **CONFIRMED** | Free Plan (Console → Settings → Postgres, 2026-10-06) |
+| PITR / Instant restore | **CONFIRMED** | History window habilitada no projeto |
+| History window (retenção) | **CONFIRMED** | **6 hours** (máximo do Free neste projeto; upgrade permite até 30 days) |
 | Restore drill | **PENDING** | Rodar seção [Drill de restore](#drill-de-restore-obrigatório-para-fechar-109) e preencher o registro |
 | Responsável em incidente | **DEFINED** | Ver [Ownership](#ownership) |
 
-Não marcar PITR/retenção/restore como `CONFIRMED` no checklist PPR sem evidência humana (screenshot/data no Console ou saída do drill).
+PITR/retenção confirmados por inspeção humana do Console Neon (Settings → Postgres → History window). Restore drill ainda exige execução documentada.
 
 ---
 
@@ -40,7 +41,7 @@ Valores **operacionais do piloto**, não SLA comercial:
 
 | Métrica | Expectativa piloto | Nota |
 | --- | --- | --- |
-| **RPO** | Até o limite da **history window** do projeto Neon | Perda máxima ≈ janela de PITR (ex.: 24h no Free). Fora da janela, sem restore instantâneo |
+| **RPO** | Até **6 hours** (history window atual do Free) | Perda máxima ≈ 6h. Fora da janela, sem instant restore; upgrade aumenta a janela |
 | **RTO** | Meta: menos de **60 min** para restore não destrutivo via **branch temporária** + validação; promote para produção só com decisão explícita | Depende de Console/API e troca cuidadosa de `DATABASE_URL` na Vercel |
 
 Rollback de **aplicação** (redeploy Vercel) **não** restaura dados. Ver [deployment.md](../deployment.md) — preservar o banco.
@@ -58,14 +59,14 @@ Rollback de **aplicação** (redeploy Vercel) **não** restaura dados. Ver [depl
 
 ## Confirmar PITR no Console (PPR-04)
 
-1. Abrir [Neon Console](https://console.neon.tech) → projeto do piloto Na Braza.
-2. Confirmar que o endpoint de produção corresponde ao host usado pela Vercel (`DATABASE_URL` de Production).
-3. Em **Settings** (ou Storage / History), anotar:
-   - Instant restore / PITR: enabled
-   - History retention: **N dias**
-4. Preencher a tabela em [pilot-production-readiness.md](../product/pilot-production-readiness.md) §6 e a tabela [Status operacional](#status-operacional) deste doc (data + responsável).
+**Feito em 2026-10-06** (Console → Settings → Postgres):
 
-Até este passo, PPR-05 permanece bloqueado para fechamento formal da #109.
+1. Projeto Neon do piloto Na Braza (Free Plan).
+2. Endpoint de produção = host usado pela Vercel (`*.aws.neon.tech`, `sa-east-1`).
+3. **History window = 6h** (slider no máximo do Free; nota do Console: upgrade até 30 days).
+4. Checklist PPR §6 e [Status operacional](#status-operacional) atualizados.
+
+PPR-05 (drill) ainda é necessário para fechar a #109.
 
 ---
 
@@ -92,7 +93,7 @@ Criar branch temporária a partir de um timestamp passado (PITR)
 ### Opção A — Console (preferida para o primeiro drill)
 
 1. Neon Console → projeto → **Branches**.
-2. **Create branch** a partir da branch de produção (root), escolhendo **Point in time** (ex.: 1–2 horas atrás, dentro da retention).
+2. **Create branch** a partir da branch de produção (root), escolhendo **Point in time** (ex.: **1 hora atrás** — dentro da history window de **6h**).
 3. Nome sugerido: `restore-drill-YYYYMMDD-HHMM` (UTC).
 4. Copiar a connection string **somente** dessa branch de drill.
 5. Validar sem logar a URL:
