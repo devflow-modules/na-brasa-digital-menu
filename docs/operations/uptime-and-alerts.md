@@ -117,3 +117,29 @@ Revalidar: curl health 200 + smoke pedido piloto (checklist produção)
 - Sem APM/tracing distribuído.
 - Webhook só em erros críticos explícitos, não em toda falha de negócio esperada (validação, permissão).
 - Uptime via GitHub schedule não substitui monitor com SLA.
+
+---
+
+## Confirmação Vercel (PPR-01) — 2026-10-06
+
+Inspeção no Console do projeto `na-brasa-cardapio` (team **Hobby**).
+
+| Controle | Resultado | Evidência |
+| --- | --- | --- |
+| Plano | **Hobby** | Badge “Gustavo's projects Hobby” no Console |
+| Runtime Logs | **Disponível** | Aba Logs: busca, filtros Warning/Error/Fatal, Live; tráfego real (`/api/health`, `/na-brasa`, …) |
+| Janela de consulta de logs | Até **Last 2 weeks** no seletor Timeline | Opções: 30m → 2 weeks |
+| Alert Rules / Webhooks nativos Vercel | **Indisponível no plano** | Settings → Alerts: Add Rule / Add Webhook desabilitados |
+| Log Drains | **Indisponível no plano** | Settings → Drains: Add Drain desabilitado (“Upgrade to Pro”) |
+| `MONITORING_WEBHOOK_URL` (Production) | **Não configurada** (2026-10-06) | Busca na lista de Environment Variables sem match |
+| Probe uptime | **Operando** | Workflow Production Uptime com runs recentes `success`; `GET /api/health` → 200 |
+
+### Classificação do piloto
+
+```text
+PARTIAL
+```
+
+**Por quê:** logs de runtime são úteis para triage, mas não há alerta push nativo na Vercel Hobby nem drain de longo prazo. O caminho de alerta do piloto continua sendo: Actions (falha do health) + webhook opcional da app + inspeção manual em Runtime Logs.
+
+**Não autoriza** upgrade Pro / Sentry / APM automaticamente — ver decisão PPR-02 em [pilot-production-readiness.md](../product/pilot-production-readiness.md).

@@ -65,7 +65,7 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 | CI workflows | EXISTS — ADEQUATE | Quality inclui `pnpm test` (PPR-07); E2E com Postgres efêmero; triggers PR + push `main`; concurrency | — | PPR-07 done |
 | Branch protection | EXISTS — ADEQUATE | Ruleset `Protect main` (id 19223806): PR obrigatório; checks `Lint, typecheck and build` + `Playwright E2E`; non-fast-forward; push direto bloqueado | — | PPR-08 done |
 | Secret scanning e Dependabot | EXISTS — ADEQUATE | Secret scanning + push protection + Dependabot security updates enabled; `.github/dependabot.yml` (npm + github-actions semanal) | Validity checks / non-provider patterns ainda disabled (opcional) | PPR-09 done |
-| Observabilidade | PARTIAL | `#108`: `/api/health`, logs JSON allowlisted, webhook opcional, Actions a cada ~5 min; Runtime Logs Vercel | Sem APM/dashboard/replay; cron GitHub pode atrasar (piloto, não SLA) | PPR-01 → PPR-02 → PPR-03 |
+| Observabilidade | PARTIAL (confirmado) | Hobby: Runtime Logs até ~2 weeks; health + Actions OK; Alert Rules/Drains indisponíveis; `MONITORING_WEBHOOK_URL` ausente — [uptime-and-alerts.md](../operations/uptime-and-alerts.md) | Sem alerta push nativo; sem drain; sem APM | PPR-02 decisão: VALIDATE webhook; DEFER Sentry/Pro |
 | Backup e PITR | DONE | Neon Free; history window **6h**; drill PITR 2026-10-06 (`SELECT 1` + branch removida); [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | — | PPR-04 / PPR-05 |
 | Recuperação administrativa | EXISTS — ADEQUATE (docs) | Runbook [admin-access-recovery.md](../admin-access-recovery.md); script Owner; MASTER users UI; bcrypt; rotação JWT; inativo bloqueia novo login | Reset self-service no painel continua roadmap; sessão JWT pré-existente até 8h sem recheck de `isActive` | PPR-06 done |
 | Rate limiting | MISSING | Nenhuma dependência/código/docs de rate limit | Login, `createOrder`, polling Admin (e catálogo público se aplicável) sem limite; sem incidente de abuso documentado | PPR-10 → PPR-11 |
@@ -100,16 +100,16 @@ Nenhum conhecido
 | | |
 | --- | --- |
 | Objetivo | Detectar falhas; alertar rapidamente; evitar PII; identificar Store, rota e tipo de erro |
-| Estado | READY FOR PRODUCT-GRILL |
-| Dependência externa | Confirmar recursos do plano Vercel (logs, alertas, Log Drain) — PPR-01 |
-| Gate | **Não** abrir `product-grill` de implementação até PPR-01 |
+| Estado | PPR-01 DONE — classificação **PARTIAL**; PPR-02 decisão registrada (VALIDATE / DEFER) |
+| Dependência externa | Confirmada 2026-10-06 — ver [uptime-and-alerts.md § PPR-01](../operations/uptime-and-alerts.md#confirmação-vercel-ppr-01--2026-10-06) |
+| Gate | Product-grill de error tracking **concluído** abaixo (sem BUILD de APM neste ciclo) |
 
 #### P1.2 Backup / PITR / restore
 
 | | |
 | --- | --- |
-| Estado | BLOCKED BY EXTERNAL CONFIRMATION |
-| Ações | Confirmar provedor; PITR; retenção; testar restore; documentar resultado; definir responsável |
+| Estado | DONE |
+| Ações | Provedor Neon Free; PITR 6h; drill 2026-10-06 documentado |
 | IDs | PPR-04, PPR-05 |
 
 #### P1.3 Recuperação administrativa
@@ -190,10 +190,10 @@ NOT APPLICABLE
 | Retenção do PITR | CONFIRMED | **6 hours** (máx. Free neste projeto; upgrade até 30 days) | Platform owner | 2026-10-06 |
 | Restore testado | CONFIRMED | Branch temporária PITR + `SELECT 1` + delete — [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | Platform owner | 2026-10-06 |
 | Resultado do restore | CONFIRMED | `restore-drill-20261006T220115`; validação ok; produção intacta | Platform owner | 2026-10-06 |
-| Vercel Runtime Logs | NOT CONFIRMED | Preencher na PPR-01 (ADEQUATE / PARTIAL / INADEQUATE) | | |
-| Retenção dos logs (Vercel) | NOT CONFIRMED | PPR-01 | | |
-| Alertas da Vercel | NOT CONFIRMED | PPR-01 | | |
-| Log Drain | NOT CONFIRMED | PPR-01 | | |
+| Vercel Runtime Logs | CONFIRMED | Hobby — aba Logs ativa; filtros/busca/Live; tráfego real observado. Classificação geral PPR-01: **PARTIAL** | Platform owner | 2026-10-06 |
+| Retenção dos logs (Vercel) | CONFIRMED | Seletor Timeline até **Last 2 weeks** (não é arquivo de longo prazo) | Platform owner | 2026-10-06 |
+| Alertas da Vercel | UNAVAILABLE ON PLAN | Settings → Alerts: Add Rule / Add Webhook desabilitados no Hobby | Platform owner | 2026-10-06 |
+| Log Drain | UNAVAILABLE ON PLAN | Settings → Drains: Add Drain desabilitado (Upgrade to Pro) | Platform owner | 2026-10-06 |
 | Monitoramento Neon | NOT CONFIRMED | | | |
 | Alertas Neon | NOT CONFIRMED | | | |
 | Admins GitHub | NOT CONFIRMED | | | |
@@ -210,8 +210,8 @@ Não marcar como `CONFIRMED` sem evidência humana.
 
 O epic só pode ser marcado como concluído quando:
 
-* [ ] error tracking ou cobertura equivalente estiver operacional;
-* [ ] alertas críticos estiverem configurados;
+* [~] error tracking ou cobertura equivalente estiver operacional — **DEFER** SDK; cobertura parcial = Runtime Logs + ops-log (#108); fechar gap de alerta via VALIDATE webhook;
+* [ ] alertas críticos estiverem configurados — nativos Vercel **UNAVAILABLE ON PLAN**; falta configurar `MONITORING_WEBHOOK_URL` (VALIDATE);
 * [x] PITR estiver confirmado ou alternativa formalmente aceita;
 * [x] restore tiver sido testado;
 * [x] recuperação de acesso estiver documentada;
@@ -220,7 +220,7 @@ O epic só pode ser marcado como concluído quando:
 * [x] secret scanning estiver habilitado ou risco formalmente aceito;
 * [ ] rate limiting estiver implementado ou decisão formal estiver registrada;
 * [ ] runbook de incidentes existir;
-* [ ] uptime estiver monitorado;
+* [x] uptime estiver monitorado — health + Production Uptime Actions (PPR-12; monitor dedicado DEFER);
 * [ ] smoke recente estiver verde.
 
 ### Critério de classificação final
@@ -247,9 +247,9 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 
 | ID | Item | Prioridade | Tipo | Estado | Dependência | Evidência de conclusão |
 | -- | ---- | ---------- | ---- | ------ | ----------- | ---------------------- |
-| PPR-01 | Confirm Vercel logging and alerts | P1 | EXTERNAL | READY | — | Classificar ADEQUATE / PARTIAL / INADEQUATE no checklist; grill só se PARTIAL/INADEQUATE |
-| PPR-02 | Plan production error tracking | P1 | PRODUCT-GRILL | BLOCKED | PPR-01 | Product Decision BUILD (ou DEFER/VALIDATE) |
-| PPR-03 | Configure error tracking | P1 | BUILD | BLOCKED | PPR-02 = BUILD | Erros de checkout/Admin capturados sem PII + alerta |
+| PPR-01 | Confirm Vercel logging and alerts | P1 | EXTERNAL | DONE | — | **PARTIAL** (2026-10-06): Logs OK (~2w); Alerts/Drains Hobby indisponíveis; webhook app ausente — [uptime-and-alerts.md](../operations/uptime-and-alerts.md) |
+| PPR-02 | Plan production error tracking | P1 | PRODUCT-GRILL | DONE | PPR-01 | Decisão: **VALIDATE** `MONITORING_WEBHOOK_URL` + **DEFER** Sentry/APM/Pro drains (ver § abaixo) |
+| PPR-03 | Configure error tracking | P1 | BUILD | DEFER | PPR-02 ≠ BUILD | Sem SDK de error tracking neste ciclo; reabrir se VALIDATE webhook falhar ou incidente passar despercebido |
 | PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | DONE | — | Neon Free + history window 6h confirmados no Console (2026-10-06) |
 | PPR-05 | Execute restore drill | P1 | VALIDATION | DONE | PPR-04 | 2026-10-06: branch `restore-drill-20261006T220115` from ~60m ago; `SELECT 1` ok; branch deleted; produção intacta |
 | PPR-06 | Document admin recovery runbook | P1 | DOCUMENTATION | DONE | — | [admin-access-recovery.md](../admin-access-recovery.md) |
@@ -289,14 +289,30 @@ PPR-10 Rate limiting product-grill
 → após observabilidade ou em paralelo conforme risco
 ```
 
-**Observabilidade** entra em `product-grill` **somente** depois de confirmar o que a Vercel já oferece no plano atual.
+**Observabilidade:** PPR-01 **DONE** (**PARTIAL**). PPR-02 decisão abaixo. Próximo no plano: configurar webhook (VALIDATE) → PPR-10 rate limit grill → PPR-14 smoke → PPR-13 runbook.
 
 ---
 
-## Product Decision
+## Product Decision — PPR-02 (error tracking)
+
+- **Problem:** No Hobby, falhas de checkout/Admin podem passar sem alerta push (Alert Rules/Drains indisponíveis; `MONITORING_WEBHOOK_URL` ausente).
+- **Evidence:** PPR-01 2026-10-06 — Runtime Logs OK (~2 weeks); Alerts/Drains blocked; Production Uptime verde; health 200; webhook env ausente.
+- **Who:** Platform owner / operador do piloto.
+- **Expected behavior:** Erro crítico inesperado gera sinal acionável (Slack/Discord) sem PII; triage detalhada nos Runtime Logs / ops-log.
+- **Classification:** PLATFORM.
+- **Decision:** **VALIDATE** configurar `MONITORING_WEBHOOK_URL` em Production + redeploy se necessário; **DEFER** Sentry/APM, upgrade Pro, Log Drains e Alert Rules nativas.
+- **Rationale:** Menor mudança que fecha o gap de alerta no plano atual; APM/Pro é custo/complexidade sem incidente perdido documentado.
+- **Primary metric:** Tempo até o owner perceber falha crítica (meta piloto: &lt; 15 min via webhook ou falha do Actions).
+- **Guardrails:** Sem PII no payload do webhook; sem SDK de error tracking neste ciclo; sem upgrade de plano sem decisão explícita.
+- **Next step:** Owner cria Incoming Webhook (Slack/Discord) → cola em Vercel env `MONITORING_WEBHOOK_URL` (Production) → redeploy → opcional smoke de `logOpsCriticalError` só em preview/staging.
+- **Reopen PPR-03 (BUILD)** se: webhook inviável, ou incidente crítico passar despercebido na janela #111, ou retenção de 2 weeks for insuficiente na prática.
+
+---
+
+## Product Decision (epic)
 
 - **Problem:** O piloto opera em produção com núcleo funcional completo, mas sem cobertura suficiente de detecção de falhas, recuperação de dados, proteção de `main`, recuperação de acesso e mitigação de abuso.
-- **Evidence:** Auditoria C — CI workflows adequados (units fora do Quality); branch protection ausente; secret scanning/Dependabot desabilitados; observabilidade ausente (só `console.error`); PITR/restore não confirmados; recuperação admin incompleta; rate limiting ausente; deploy/smoke/rollback de app adequados.
+- **Evidence:** Inventário atualizado — vários controles P1 já DONE (CI, main, Dependabot, PITR/restore, admin recovery, health/uptime); observabilidade **PARTIAL**; rate limiting ainda MISSING.
 - **Expected behavior:** Controles P1 fechados de forma incremental; fatias de produto/arquitetura passam por grill; configs de painel documentadas no checklist externo; classificação final só com critérios da seção 7.
 - **Classification:** PLATFORM.
 - **Decision:** BUILD INCREMENTALLY.
