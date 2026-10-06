@@ -66,7 +66,7 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 | Branch protection | EXISTS — ADEQUATE | Ruleset `Protect main` (id 19223806): PR obrigatório; checks `Lint, typecheck and build` + `Playwright E2E`; non-fast-forward; push direto bloqueado | — | PPR-08 done |
 | Secret scanning e Dependabot | EXISTS — ADEQUATE | Secret scanning + push protection + Dependabot security updates enabled; `.github/dependabot.yml` (npm + github-actions semanal) | Validity checks / non-provider patterns ainda disabled (opcional) | PPR-09 done |
 | Observabilidade | PARTIAL | `#108`: `/api/health`, logs JSON allowlisted, webhook opcional, Actions a cada ~5 min; Runtime Logs Vercel | Sem APM/dashboard/replay; cron GitHub pode atrasar (piloto, não SLA) | PPR-01 → PPR-02 → PPR-03 |
-| Backup e PITR | EXTERNAL CONFIRMATION REQUIRED | Rollback de aplicação documentado; preservação do banco e migrations seguras em docs | Provedor real, PITR, retenção, restore testado e responsável não confirmados | PPR-04 → PPR-05 |
+| Backup e PITR | DONE | Neon Free; history window **6h**; drill PITR 2026-10-06 (`SELECT 1` + branch removida); [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | — | PPR-04 / PPR-05 |
 | Recuperação administrativa | EXISTS — ADEQUATE (docs) | Runbook [admin-access-recovery.md](../admin-access-recovery.md); script Owner; MASTER users UI; bcrypt; rotação JWT; inativo bloqueia novo login | Reset self-service no painel continua roadmap; sessão JWT pré-existente até 8h sem recheck de `isActive` | PPR-06 done |
 | Rate limiting | MISSING | Nenhuma dependência/código/docs de rate limit | Login, `createOrder`, polling Admin (e catálogo público se aplicável) sem limite; sem incidente de abuso documentado | PPR-10 → PPR-11 |
 | Deploy, smoke e rollback | EXISTS — ADEQUATE | Deploy Vercel; migrations; seed controlado; checklist; smoke; rollback de app; scripts operacionais | Rollback de **dados** não coberto | PPR-04 / PPR-05 |
@@ -185,11 +185,11 @@ NOT APPLICABLE
 
 | Controle | Status | Evidência | Responsável | Data |
 | -------- | ------ | --------- | ----------- | ---- |
-| Provedor real do banco | NOT CONFIRMED | | | |
-| PITR habilitado | NOT CONFIRMED | | | |
-| Retenção do PITR | NOT CONFIRMED | | | |
-| Restore testado | NOT CONFIRMED | | | |
-| Resultado do restore | NOT CONFIRMED | | | |
+| Provedor real do banco | CONFIRMED | Neon Free (`sa-east-1`, host `*.aws.neon.tech`) | Platform owner | 2026-10-06 |
+| PITR habilitado | CONFIRMED | History window ativa (Settings → Postgres) | Platform owner | 2026-10-06 |
+| Retenção do PITR | CONFIRMED | **6 hours** (máx. Free neste projeto; upgrade até 30 days) | Platform owner | 2026-10-06 |
+| Restore testado | CONFIRMED | Branch temporária PITR + `SELECT 1` + delete — [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | Platform owner | 2026-10-06 |
+| Resultado do restore | CONFIRMED | `restore-drill-20261006T220115`; validação ok; produção intacta | Platform owner | 2026-10-06 |
 | Vercel Runtime Logs | NOT CONFIRMED | Preencher na PPR-01 (ADEQUATE / PARTIAL / INADEQUATE) | | |
 | Retenção dos logs (Vercel) | NOT CONFIRMED | PPR-01 | | |
 | Alertas da Vercel | NOT CONFIRMED | PPR-01 | | |
@@ -212,8 +212,8 @@ O epic só pode ser marcado como concluído quando:
 
 * [ ] error tracking ou cobertura equivalente estiver operacional;
 * [ ] alertas críticos estiverem configurados;
-* [ ] PITR estiver confirmado ou alternativa formalmente aceita;
-* [ ] restore tiver sido testado;
+* [x] PITR estiver confirmado ou alternativa formalmente aceita;
+* [x] restore tiver sido testado;
 * [x] recuperação de acesso estiver documentada;
 * [x] `main` estiver protegida;
 * [x] unit tests rodarem no CI;
@@ -250,8 +250,8 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-01 | Confirm Vercel logging and alerts | P1 | EXTERNAL | READY | — | Classificar ADEQUATE / PARTIAL / INADEQUATE no checklist; grill só se PARTIAL/INADEQUATE |
 | PPR-02 | Plan production error tracking | P1 | PRODUCT-GRILL | BLOCKED | PPR-01 | Product Decision BUILD (ou DEFER/VALIDATE) |
 | PPR-03 | Configure error tracking | P1 | BUILD | BLOCKED | PPR-02 = BUILD | Erros de checkout/Admin capturados sem PII + alerta |
-| PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | NOT CONFIRMED | — | Provedor + PITR + retenção no checklist (painel humano; não bloqueia PPR-07/08/09) |
-| PPR-05 | Execute restore drill | P1 | VALIDATION | BLOCKED | PPR-04 | Restore em branch/DB temporário documentado |
+| PPR-04 | Confirm database provider and PITR | P1 | EXTERNAL | DONE | — | Neon Free + history window 6h confirmados no Console (2026-10-06) |
+| PPR-05 | Execute restore drill | P1 | VALIDATION | DONE | PPR-04 | 2026-10-06: branch `restore-drill-20261006T220115` from ~60m ago; `SELECT 1` ok; branch deleted; produção intacta |
 | PPR-06 | Document admin recovery runbook | P1 | DOCUMENTATION | DONE | — | [admin-access-recovery.md](../admin-access-recovery.md) |
 | PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | DONE | — | `pnpm test` no `quality.yml`; CI verde (PR #73) |
 | PPR-08 | Protect main branch | P1 | CONFIGURATION | DONE | — | Ruleset `Protect main`; required checks Quality + E2E; push direto bloqueado |
