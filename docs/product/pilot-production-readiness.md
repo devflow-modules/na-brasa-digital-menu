@@ -188,8 +188,8 @@ NOT APPLICABLE
 | Provedor real do banco | CONFIRMED | Neon Free (`sa-east-1`, host `*.aws.neon.tech`) | Platform owner | 2026-10-06 |
 | PITR habilitado | CONFIRMED | History window ativa (Settings → Postgres) | Platform owner | 2026-10-06 |
 | Retenção do PITR | CONFIRMED | **6 hours** (máx. Free neste projeto; upgrade até 30 days) | Platform owner | 2026-10-06 |
-| Restore testado | NOT CONFIRMED | Drill em branch temporária — [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | | |
-| Resultado do restore | NOT CONFIRMED | Preencher registro do drill no runbook | | |
+| Restore testado | CONFIRMED | Branch temporária PITR + `SELECT 1` + delete — [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | Platform owner | 2026-10-06 |
+| Resultado do restore | CONFIRMED | `restore-drill-20261006T220115`; validação ok; produção intacta | Platform owner | 2026-10-06 |
 | Vercel Runtime Logs | NOT CONFIRMED | Preencher na PPR-01 (ADEQUATE / PARTIAL / INADEQUATE) | | |
 | Retenção dos logs (Vercel) | NOT CONFIRMED | PPR-01 | | |
 | Alertas da Vercel | NOT CONFIRMED | PPR-01 | | |
@@ -212,8 +212,8 @@ O epic só pode ser marcado como concluído quando:
 
 * [ ] error tracking ou cobertura equivalente estiver operacional;
 * [ ] alertas críticos estiverem configurados;
-* [ ] PITR estiver confirmado ou alternativa formalmente aceita;
-* [ ] restore tiver sido testado;
+* [x] PITR estiver confirmado ou alternativa formalmente aceita;
+* [x] restore tiver sido testado;
 * [x] recuperação de acesso estiver documentada;
 * [x] `main` estiver protegida;
 * [x] unit tests rodarem no CI;
