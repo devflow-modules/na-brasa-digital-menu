@@ -120,6 +120,21 @@ Revalidar: curl health 200 + smoke pedido piloto (checklist produção)
 
 ---
 
+## Rate limits de abuso (piloto) — #107 / PPR-11
+
+Limites **best-effort in-memory** (por instância serverless; não distribuídos):
+
+| Superfície | Limite | Chave |
+| --- | --- | --- |
+| Admin login (`loginAdminAction`) | 10 / 15 min | IP (`x-forwarded-for` / `x-real-ip`) |
+| Pedido online (`createOrderAction`) | 20 / 1 min | IP |
+
+Resposta ao cliente (ambos): mensagem genérica `Muitas tentativas…` — sem retry-after, IP ou detalhes internos.
+
+Fora de escopo nesta fatia: rate limit de polling Admin, catálogo público, balcão, e limiter distribuído (Redis).
+
+---
+
 ## Confirmação Vercel (PPR-01) — 2026-10-06
 
 Inspeção no Console do projeto `na-brasa-cardapio` (team **Hobby**).
