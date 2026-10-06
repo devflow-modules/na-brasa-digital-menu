@@ -78,6 +78,16 @@ export function formatDailyClosingWhatsapp(report: DailyClosingReport): string {
       lines.push(
         `• ${dailyClosingPaymentLabel(row.method)}: ${formatMoney(row.amountCents)} — ${pedidoCountLabel(row.orderCount)} — ${formatWhatsappPercentage(row.percentageBps)}`,
       );
+      for (const product of row.products) {
+        lines.push(
+          `  • ${product.quantity}x ${product.name} — ${formatMoney(product.amountCents)}`,
+        );
+      }
+      if (row.deliveryFeesCents > 0) {
+        lines.push(
+          `  • Taxa entrega — ${formatMoney(row.deliveryFeesCents)}`,
+        );
+      }
     }
   }
 

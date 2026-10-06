@@ -88,7 +88,12 @@ export function aggregateDailyClosingReport(options: {
 
   const paymentMap = new Map<
     DailyClosingPaymentMethod,
-    { orderCount: number; amountCents: number }
+    {
+      orderCount: number;
+      amountCents: number;
+      deliveryFeesCents: number;
+      products: Map<string, DailyClosingProductRow>;
+    }
   >();
   const fulfillmentMap = new Map<
     DailyClosingFulfillmentChannel,
@@ -102,12 +107,49 @@ export function aggregateDailyClosingReport(options: {
   const productMap = new Map<string, DailyClosingProductRow>();
   const addonMap = new Map<string, DailyClosingAddonRow>();
 
+  function ensurePaymentRow(method: DailyClosingPaymentMethod) {
+    const existing = paymentMap.get(method);
+    if (existing) {
+      return existing;
+    }
+    const created = {
+      orderCount: 0,
+      amountCents: 0,
+      deliveryFeesCents: 0,
+      products: new Map<string, DailyClosingProductRow>(),
+    };
+    paymentMap.set(method, created);
+    return created;
+  }
+
+  function attributeOrderItemsToPayment(
+    method: DailyClosingPaymentMethod,
+    order: DailyClosingOrderInput,
+  ) {
+    const payRow = ensurePaymentRow(method);
+    payRow.deliveryFeesCents += order.deliveryFeeCents;
+
+    for (const item of order.items) {
+      const productKey = `${item.productId ?? "null"}::${item.productNameSnapshot}`;
+      const productRow = payRow.products.get(productKey) ?? {
+        productId: item.productId,
+        name: item.productNameSnapshot,
+        quantity: 0,
+        amountCents: 0,
+      };
+      productRow.quantity += item.quantity;
+      productRow.amountCents += item.totalCents;
+      payRow.products.set(productKey, productRow);
+    }
+  }
+
   for (const order of completed) {
     productsSubtotalCents += order.subtotalCents;
     deliveryFeesCents += order.deliveryFeeCents;
     grossTotalCents += order.totalCents;
 
-    if (order.payments.length > 1) {
+    const isSplitTender = order.payments.length > 1;
+    if (isSplitTender) {
       splitTenderCompletedOrders += 1;
     }
 
@@ -115,17 +157,20 @@ export function aggregateDailyClosingReport(options: {
     if (order.payments.length > 0) {
       for (const payment of order.payments) {
         const pay = paymentKey(payment.method);
-        const payRow = paymentMap.get(pay) ?? { orderCount: 0, amountCents: 0 };
+        const payRow = ensurePaymentRow(pay);
         payRow.orderCount += 1;
         payRow.amountCents += payment.amountCents;
-        paymentMap.set(pay, payRow);
+      }
+      // Single OrderPayment line: attribute items/fees. Split tender: amounts only.
+      if (!isSplitTender) {
+        attributeOrderItemsToPayment(paymentKey(order.payments[0]!.method), order);
       }
     } else {
       const pay = paymentKey(order.paymentMethod);
-      const payRow = paymentMap.get(pay) ?? { orderCount: 0, amountCents: 0 };
+      const payRow = ensurePaymentRow(pay);
       payRow.orderCount += 1;
       payRow.amountCents += order.totalCents;
-      paymentMap.set(pay, payRow);
+      attributeOrderItemsToPayment(pay, order);
     }
 
     const channel = fulfillmentChannel(order);
@@ -184,6 +229,8 @@ export function aggregateDailyClosingReport(options: {
       orderCount: row.orderCount,
       amountCents: row.amountCents,
       percentageBps,
+      products: [...row.products.values()].sort(compareProducts),
+      deliveryFeesCents: row.deliveryFeesCents,
     };
   });
 
