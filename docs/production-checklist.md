@@ -146,6 +146,33 @@ Resumo dos fluxos já validados em produção (jul/2026). Repetir após mudança
 
 Referência: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md#validated-production-smoke).
 
+### Registro PPR-14 — smoke técnico (2026-10-07 UTC)
+
+Ambiente: produção `https://na-brasa-cardapio.vercel.app` (somente leitura / HTTP; **sem** criar pedido nem alterar dados).
+
+| Check | Resultado |
+| --- | --- |
+| `GET /api/health` | **200** — `status=ok`, `db=ok` |
+| `GET /na-brasa` | **200** |
+| `GET /admin/login` | **200** |
+| Workflow Production Uptime (últimas runs) | **success** |
+
+### Registro PPR-14 — smoke comercial (2026-10-07 UTC)
+
+Ambiente: produção. Dados fictícios; WhatsApp **não** enviado (parada na página Share). Pedido cancelado ao final.
+
+| Check | Resultado |
+| --- | --- |
+| Cardápio → Pão Carne Queijo + Queijo cheddar → carrinho | **OK** |
+| Checkout retirada + Pix; cliente `Smoke PPR14 Autobot` | **OK** |
+| Pedido persistido | **`#NB-720910-682`** · `PICKUP` · R$ 25,00 · `PENDING` |
+| `wa.me` / WhatsApp destino | **`5513981091971`** (número oficial) |
+| Login admin | **OK** (MASTER → `/master`) |
+| Cancelamento | **OK** — status final `CANCELLED` |
+| Toggle loja / modalidades | **não exercitado** nesta rodada |
+
+Smoke comercial Online + login admin + cancelamento: **DONE**.
+
 ## Na Braza — após `pnpm store:apply-na-braza-settings`
 
 Rodar o script manual em produção só após merge desta PR e com `DATABASE_URL` de produção. Depois conferir no público `/na-brasa`:

@@ -71,7 +71,7 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 | Rate limiting | PARTIAL | PPR-10 BUILD: login + `createOrder` in-memory por IP (#107) | Sem limiter distribuído; polling Admin / catálogo fora de escopo | PPR-11 |
 | Deploy, smoke e rollback | EXISTS — ADEQUATE | Deploy Vercel; migrations; seed controlado; checklist; smoke; rollback de app; scripts operacionais | Rollback de **dados** não coberto | PPR-04 / PPR-05 |
 | Health e uptime | PARTIAL | `#108` health + workflow `Production Uptime` + runbook | Monitor dedicado / SLA comercial ainda DEFER | PPR-12 |
-| Runbook de incidentes | EXISTS — INCOMPLETE | Troubleshooting parcial (`deployment.md`); rollback básico | Sem matriz consolidada incidente → mitigação → responsável → comunicação | PPR-13 |
+| Runbook de incidentes | EXISTS — ADEQUATE | [incident-runbook.md](../operations/incident-runbook.md) + uptime / PITR / admin recovery | — | PPR-13 done |
 
 ### Estados usados no inventário
 
@@ -218,10 +218,10 @@ O epic só pode ser marcado como concluído quando:
 * [x] `main` estiver protegida;
 * [x] unit tests rodarem no CI;
 * [x] secret scanning estiver habilitado ou risco formalmente aceito;
-* [~] rate limiting — decisão **BUILD** (PPR-10); implementação mínima login/`createOrder` (PPR-11 / #107);
-* [ ] runbook de incidentes existir;
+* [x] rate limiting — login/`createOrder` in-memory (#107 / #152);
+* [x] runbook de incidentes existir — [incident-runbook.md](../operations/incident-runbook.md);
 * [x] uptime estiver monitorado — health + Production Uptime Actions (PPR-12; monitor dedicado DEFER);
-* [ ] smoke recente estiver verde.
+* [x] smoke técnico + comercial (PPR-14, 2026-10-07): pedido `#NB-720910-682` criado, WhatsApp oficial, login admin, cancelado.
 
 ### Critério de classificação final
 
@@ -257,10 +257,10 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-08 | Protect main branch | P1 | CONFIGURATION | DONE | — | Ruleset `Protect main`; required checks Quality + E2E; push direto bloqueado |
 | PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | DONE | — | Secret scanning + push protection + Dependabot security updates + `dependabot.yml` |
 | PPR-10 | Plan rate limiting | P1 | PRODUCT-GRILL | DONE | PPR-01 | **BUILD** — login + `createOrder` in-memory por IP; DEFER Redis/polling (ver § PPR-10) |
-| PPR-11 | Implement approved rate limiting | P1 | BUILD | IN PROGRESS | PPR-10 = BUILD | `#107` — limites documentados em uptime-and-alerts |
+| PPR-11 | Implement approved rate limiting | P1 | BUILD | DONE | PPR-10 = BUILD | Merged #152 / #107; CI bypass when `CI=true` |
 | PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | DONE (#108) | — | Health + Actions + webhook opcional; monitor dedicado ainda DEFER |
-| PPR-13 | Consolidate incident runbook | P2 | DOCUMENTATION | NOT STARTED | Útil após PPR-06 | Matriz incidente → mitigação → responsável → comunicação |
-| PPR-14 | Re-run production smoke | P1 | VALIDATION | NOT STARTED | Após fatias relevantes | Smoke checklist verde documentado |
+| PPR-13 | Consolidate incident runbook | P2 | DOCUMENTATION | DONE | PPR-06 | [incident-runbook.md](../operations/incident-runbook.md) |
+| PPR-14 | Re-run production smoke | P1 | VALIDATION | DONE | Após fatias relevantes | 2026-10-07: tech smoke + comercial `#NB-720910-682` (wa.me oficial, login MASTER, cancelado) — [production-checklist.md](../production-checklist.md) |
 
 ---
 
@@ -289,7 +289,7 @@ PPR-10 Rate limiting product-grill
 → após observabilidade ou em paralelo conforme risco
 ```
 
-**Observabilidade:** PPR-01 **DONE** (**PARTIAL**). PPR-02 decisão abaixo. Próximo no plano: configurar webhook (VALIDATE) → PPR-10 rate limit grill → PPR-14 smoke → PPR-13 runbook.
+**Observabilidade:** PPR-01 **DONE** (**PARTIAL**). PPR-10/11/13/14 **DONE**. Pendente ops: configurar `MONITORING_WEBHOOK_URL` (VALIDATE PPR-02); smoke comercial (pedido) com operador.
 
 ---
 
@@ -327,7 +327,7 @@ PPR-10 Rate limiting product-grill
 ## Product Decision (epic)
 
 - **Problem:** O piloto opera em produção com núcleo funcional completo, mas sem cobertura suficiente de detecção de falhas, recuperação de dados, proteção de `main`, recuperação de acesso e mitigação de abuso.
-- **Evidence:** Inventário atualizado — vários controles P1 já DONE (CI, main, Dependabot, PITR/restore, admin recovery, health/uptime); observabilidade **PARTIAL**; rate limiting ainda MISSING.
+- **Evidence:** Inventário atualizado — CI, main, Dependabot, PITR/restore, admin recovery, health/uptime, rate limit mínimo, runbook incidente, smoke técnico+comercial DONE; observabilidade **PARTIAL** (falta webhook).
 - **Expected behavior:** Controles P1 fechados de forma incremental; fatias de produto/arquitetura passam por grill; configs de painel documentadas no checklist externo; classificação final só com critérios da seção 7.
 - **Classification:** PLATFORM.
 - **Decision:** BUILD INCREMENTALLY.

@@ -5,6 +5,7 @@ Guia para deploy em produção da **plataforma** com foco na **primeira implanta
 Documentos relacionados:
 
 - [Production checklist](production-checklist.md) (GO / NO-GO)
+- [Incident runbook](operations/incident-runbook.md)
 - [Operação](operations.md)
 - [Release notes](release-notes/mvp-v0.1.0.md)
 - [Testes / CI](testing.md)
