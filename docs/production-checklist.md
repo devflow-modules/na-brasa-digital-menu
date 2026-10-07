@@ -146,6 +146,24 @@ Resumo dos fluxos já validados em produção (jul/2026). Repetir após mudança
 
 Referência: [releases/v0.1.0-pilot.md](releases/v0.1.0-pilot.md#validated-production-smoke).
 
+### Registro PPR-14 — smoke técnico (2026-10-07 UTC)
+
+Ambiente: produção `https://na-brasa-cardapio.vercel.app` (somente leitura / HTTP; **sem** criar pedido nem alterar dados).
+
+| Check | Resultado |
+| --- | --- |
+| `GET /api/health` | **200** — `status=ok`, `db=ok` |
+| `GET /na-brasa` | **200** |
+| `GET /admin/login` | **200** |
+| Workflow Production Uptime (últimas runs) | **success** |
+
+| Check | Resultado |
+| --- | --- |
+| Pedido Online + `wa.me` + status no admin | **PENDING** — requer operador (dados fictícios; cancelar após) |
+| Toggle loja / modalidades | **PENDING** — só com Owner/MANAGER e restore de settings |
+
+PPR-14 considera o **smoke técnico** DONE; o smoke comercial completo permanece no checklist acima antes de campanha.
+
 ## Na Braza — após `pnpm store:apply-na-braza-settings`
 
 Rodar o script manual em produção só após merge desta PR e com `DATABASE_URL` de produção. Depois conferir no público `/na-brasa`:
