@@ -221,7 +221,7 @@ O epic só pode ser marcado como concluído quando:
 * [x] rate limiting — login/`createOrder` in-memory (#107 / #152);
 * [x] runbook de incidentes existir — [incident-runbook.md](../operations/incident-runbook.md);
 * [x] uptime estiver monitorado — health + Production Uptime Actions (PPR-12; monitor dedicado DEFER);
-* [x] smoke técnico recente verde (PPR-14, 2026-10-07); smoke comercial completo (pedido + admin) ainda PENDING operador.
+* [x] smoke técnico + comercial (PPR-14, 2026-10-07): pedido `#NB-720910-682` criado, WhatsApp oficial, login admin, cancelado.
 
 ### Critério de classificação final
 
@@ -260,7 +260,7 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-11 | Implement approved rate limiting | P1 | BUILD | DONE | PPR-10 = BUILD | Merged #152 / #107; CI bypass when `CI=true` |
 | PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | DONE (#108) | — | Health + Actions + webhook opcional; monitor dedicado ainda DEFER |
 | PPR-13 | Consolidate incident runbook | P2 | DOCUMENTATION | DONE | PPR-06 | [incident-runbook.md](../operations/incident-runbook.md) |
-| PPR-14 | Re-run production smoke | P1 | VALIDATION | DONE | Após fatias relevantes | 2026-10-07: health + `/na-brasa` + `/admin/login` + Uptime OK; pedido Online PENDING humano — [production-checklist.md](../production-checklist.md) |
+| PPR-14 | Re-run production smoke | P1 | VALIDATION | DONE | Após fatias relevantes | 2026-10-07: tech smoke + comercial `#NB-720910-682` (wa.me oficial, login MASTER, cancelado) — [production-checklist.md](../production-checklist.md) |
 
 ---
 
@@ -327,7 +327,7 @@ PPR-10 Rate limiting product-grill
 ## Product Decision (epic)
 
 - **Problem:** O piloto opera em produção com núcleo funcional completo, mas sem cobertura suficiente de detecção de falhas, recuperação de dados, proteção de `main`, recuperação de acesso e mitigação de abuso.
-- **Evidence:** Inventário atualizado — CI, main, Dependabot, PITR/restore, admin recovery, health/uptime, rate limit mínimo, runbook incidente, smoke técnico DONE; observabilidade **PARTIAL** (falta webhook); smoke comercial PENDING.
+- **Evidence:** Inventário atualizado — CI, main, Dependabot, PITR/restore, admin recovery, health/uptime, rate limit mínimo, runbook incidente, smoke técnico+comercial DONE; observabilidade **PARTIAL** (falta webhook).
 - **Expected behavior:** Controles P1 fechados de forma incremental; fatias de produto/arquitetura passam por grill; configs de painel documentadas no checklist externo; classificação final só com critérios da seção 7.
 - **Classification:** PLATFORM.
 - **Decision:** BUILD INCREMENTALLY.

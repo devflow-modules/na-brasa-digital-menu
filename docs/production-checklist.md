@@ -157,12 +157,21 @@ Ambiente: produção `https://na-brasa-cardapio.vercel.app` (somente leitura / H
 | `GET /admin/login` | **200** |
 | Workflow Production Uptime (últimas runs) | **success** |
 
+### Registro PPR-14 — smoke comercial (2026-10-07 UTC)
+
+Ambiente: produção. Dados fictícios; WhatsApp **não** enviado (parada na página Share). Pedido cancelado ao final.
+
 | Check | Resultado |
 | --- | --- |
-| Pedido Online + `wa.me` + status no admin | **PENDING** — requer operador (dados fictícios; cancelar após) |
-| Toggle loja / modalidades | **PENDING** — só com Owner/MANAGER e restore de settings |
+| Cardápio → Pão Carne Queijo + Queijo cheddar → carrinho | **OK** |
+| Checkout retirada + Pix; cliente `Smoke PPR14 Autobot` | **OK** |
+| Pedido persistido | **`#NB-720910-682`** · `PICKUP` · R$ 25,00 · `PENDING` |
+| `wa.me` / WhatsApp destino | **`5513981091971`** (número oficial) |
+| Login admin | **OK** (MASTER → `/master`) |
+| Cancelamento | **OK** — status final `CANCELLED` |
+| Toggle loja / modalidades | **não exercitado** nesta rodada |
 
-PPR-14 considera o **smoke técnico** DONE; o smoke comercial completo permanece no checklist acima antes de campanha.
+Smoke comercial Online + login admin + cancelamento: **DONE**.
 
 ## Na Braza — após `pnpm store:apply-na-braza-settings`
 
