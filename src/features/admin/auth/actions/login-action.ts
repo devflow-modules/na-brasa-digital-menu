@@ -9,6 +9,12 @@ import {
 import { getAdminPostLoginPath } from "@/features/admin/auth/admin-post-login";
 import { createAdminSession } from "@/features/admin/auth/admin-session";
 import type { AdminLoginResult } from "@/features/admin/auth/types";
+import {
+  ABUSE_RATE_LIMIT_MESSAGE,
+  adminLoginRateLimiter,
+  checkAbuseRateLimit,
+} from "@/features/ops/abuse-rate-limit";
+import { resolveRequestRateLimitKey } from "@/features/ops/request-rate-limit-key";
 
 /**
  * Database-backed admin login.
@@ -17,6 +23,11 @@ import type { AdminLoginResult } from "@/features/admin/auth/types";
 export async function loginAdminAction(
   input: unknown,
 ): Promise<AdminLoginResult> {
+  const rateKey = await resolveRequestRateLimitKey("admin-login");
+  if (!checkAbuseRateLimit(adminLoginRateLimiter, rateKey).allowed) {
+    return { ok: false, message: ABUSE_RATE_LIMIT_MESSAGE };
+  }
+
   const parsed = adminLoginSchema.safeParse(input);
 
   if (!parsed.success) {

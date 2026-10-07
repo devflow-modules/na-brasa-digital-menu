@@ -68,7 +68,7 @@ O restante do trabalho é **confiabilidade, segurança operacional e recuperaç�
 | Observabilidade | PARTIAL (confirmado) | Hobby: Runtime Logs até ~2 weeks; health + Actions OK; Alert Rules/Drains indisponíveis; `MONITORING_WEBHOOK_URL` ausente — [uptime-and-alerts.md](../operations/uptime-and-alerts.md) | Sem alerta push nativo; sem drain; sem APM | PPR-02 decisão: VALIDATE webhook; DEFER Sentry/Pro |
 | Backup e PITR | DONE | Neon Free; history window **6h**; drill PITR 2026-10-06 (`SELECT 1` + branch removida); [database-backup-and-restore.md](../operations/database-backup-and-restore.md) | — | PPR-04 / PPR-05 |
 | Recuperação administrativa | EXISTS — ADEQUATE (docs) | Runbook [admin-access-recovery.md](../admin-access-recovery.md); script Owner; MASTER users UI; bcrypt; rotação JWT; inativo bloqueia novo login | Reset self-service no painel continua roadmap; sessão JWT pré-existente até 8h sem recheck de `isActive` | PPR-06 done |
-| Rate limiting | MISSING | Nenhuma dependência/código/docs de rate limit | Login, `createOrder`, polling Admin (e catálogo público se aplicável) sem limite; sem incidente de abuso documentado | PPR-10 → PPR-11 |
+| Rate limiting | PARTIAL | PPR-10 BUILD: login + `createOrder` in-memory por IP (#107) | Sem limiter distribuído; polling Admin / catálogo fora de escopo | PPR-11 |
 | Deploy, smoke e rollback | EXISTS — ADEQUATE | Deploy Vercel; migrations; seed controlado; checklist; smoke; rollback de app; scripts operacionais | Rollback de **dados** não coberto | PPR-04 / PPR-05 |
 | Health e uptime | PARTIAL | `#108` health + workflow `Production Uptime` + runbook | Monitor dedicado / SLA comercial ainda DEFER | PPR-12 |
 | Runbook de incidentes | EXISTS — INCOMPLETE | Troubleshooting parcial (`deployment.md`); rollback básico | Sem matriz consolidada incidente → mitigação → responsável → comunicação | PPR-13 |
@@ -132,9 +132,9 @@ Nenhum conhecido
 
 | | |
 | --- | --- |
-| Estado | READY FOR PRODUCT-GRILL |
-| Nota | Implementar só após decisão arquitetural (PPR-10 → PPR-11) |
-| Risco | Sem abuso documentado; priorizar após observabilidade ou em paralelo se o risco for aceito |
+| Estado | PPR-10 BUILD autorizado; PPR-11 em implementação (#107) |
+| Nota | Escopo mínimo: admin login + Online `createOrder`; in-memory por IP |
+| Risco | Sem abuso documentado; limites conservadores para não bloquear piloto |
 
 ---
 
@@ -218,7 +218,7 @@ O epic só pode ser marcado como concluído quando:
 * [x] `main` estiver protegida;
 * [x] unit tests rodarem no CI;
 * [x] secret scanning estiver habilitado ou risco formalmente aceito;
-* [ ] rate limiting estiver implementado ou decisão formal estiver registrada;
+* [~] rate limiting — decisão **BUILD** (PPR-10); implementação mínima login/`createOrder` (PPR-11 / #107);
 * [ ] runbook de incidentes existir;
 * [x] uptime estiver monitorado — health + Production Uptime Actions (PPR-12; monitor dedicado DEFER);
 * [ ] smoke recente estiver verde.
@@ -256,8 +256,8 @@ Tipos: `EXTERNAL` · `DOCUMENTATION` · `CONFIGURATION` · `PRODUCT-GRILL` · `B
 | PPR-07 | Add unit tests to Quality workflow | P1 | CONFIGURATION | DONE | — | `pnpm test` no `quality.yml`; CI verde (PR #73) |
 | PPR-08 | Protect main branch | P1 | CONFIGURATION | DONE | — | Ruleset `Protect main`; required checks Quality + E2E; push direto bloqueado |
 | PPR-09 | Enable secret scanning and Dependabot | P1 | CONFIGURATION | DONE | — | Secret scanning + push protection + Dependabot security updates + `dependabot.yml` |
-| PPR-10 | Plan rate limiting | P1 | PRODUCT-GRILL | NOT STARTED | Preferível após PPR-01/02 | Product Decision |
-| PPR-11 | Implement approved rate limiting | P1 | BUILD | BLOCKED | PPR-10 = BUILD | Limites em login/`createOrder` (escopo aprovado) |
+| PPR-10 | Plan rate limiting | P1 | PRODUCT-GRILL | DONE | PPR-01 | **BUILD** — login + `createOrder` in-memory por IP; DEFER Redis/polling (ver § PPR-10) |
+| PPR-11 | Implement approved rate limiting | P1 | BUILD | IN PROGRESS | PPR-10 = BUILD | `#107` — limites documentados em uptime-and-alerts |
 | PPR-12 | Add health and uptime monitoring | P2 | BUILD / CONFIGURATION | DONE (#108) | — | Health + Actions + webhook opcional; monitor dedicado ainda DEFER |
 | PPR-13 | Consolidate incident runbook | P2 | DOCUMENTATION | NOT STARTED | Útil após PPR-06 | Matriz incidente → mitigação → responsável → comunicação |
 | PPR-14 | Re-run production smoke | P1 | VALIDATION | NOT STARTED | Após fatias relevantes | Smoke checklist verde documentado |
@@ -290,6 +290,21 @@ PPR-10 Rate limiting product-grill
 ```
 
 **Observabilidade:** PPR-01 **DONE** (**PARTIAL**). PPR-02 decisão abaixo. Próximo no plano: configurar webhook (VALIDATE) → PPR-10 rate limit grill → PPR-14 smoke → PPR-13 runbook.
+
+---
+
+## Product Decision — PPR-10 (rate limiting)
+
+- **Problem:** Login admin e criação de pedido online aceitam tráfego ilimitado; risco de brute-force / flood sem incidente documentado ainda.
+- **Evidence:** Issue #107; inventário MISSING; já existe padrão in-memory em funnel ingest; PPR-01/02 fecharam observabilidade parcial.
+- **Who:** Clientes no checkout Online; operadores no `/admin/login`.
+- **Expected behavior:** Pico abusivo recebe mensagem genérica e não cria sessão/pedido; uso normal do piloto não é bloqueado.
+- **Classification:** PLATFORM (integridade / abuso).
+- **Decision:** **BUILD** escopo mínimo — `loginAdminAction` (10/15 min/IP) + `createOrderAction` (20/min/IP), in-memory; **DEFER** Redis, polling Admin, catálogo, balcão.
+- **Rationale:** Menor proteção server-side reutilizando padrão já validado no funnel; sem infra nova.
+- **Primary metric:** Zero bloqueios falsos em operação normal do piloto; tentativas de login em massa param com mensagem segura.
+- **Guardrails:** Sem PII nos logs do limiter; mensagem não vaza se a conta existe; sem middleware global.
+- **Next step:** Implementar PPR-11 (#107) e observar na janela comercial (#111).
 
 ---
 
