@@ -131,6 +131,8 @@ Limites **best-effort in-memory** (por instância serverless; não distribuídos
 
 Resposta ao cliente (ambos): mensagem genérica `Muitas tentativas…` — sem retry-after, IP ou detalhes internos.
 
+Em CI (`CI=true`, GitHub Actions / Playwright) o limite **não é aplicado** — o runner compartilha um IP e esgotaria o orçamento de login no meio da suite. Produção e `pnpm dev` local mantêm o limite.
+
 Fora de escopo nesta fatia: rate limit de polling Admin, catálogo público, balcão, e limiter distribuído (Redis).
 
 ---

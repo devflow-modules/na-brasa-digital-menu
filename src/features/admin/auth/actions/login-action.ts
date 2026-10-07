@@ -12,6 +12,7 @@ import type { AdminLoginResult } from "@/features/admin/auth/types";
 import {
   ABUSE_RATE_LIMIT_MESSAGE,
   adminLoginRateLimiter,
+  checkAbuseRateLimit,
 } from "@/features/ops/abuse-rate-limit";
 import { resolveRequestRateLimitKey } from "@/features/ops/request-rate-limit-key";
 
@@ -23,7 +24,7 @@ export async function loginAdminAction(
   input: unknown,
 ): Promise<AdminLoginResult> {
   const rateKey = await resolveRequestRateLimitKey("admin-login");
-  if (!adminLoginRateLimiter.check(rateKey).allowed) {
+  if (!checkAbuseRateLimit(adminLoginRateLimiter, rateKey).allowed) {
     return { ok: false, message: ABUSE_RATE_LIMIT_MESSAGE };
   }
 

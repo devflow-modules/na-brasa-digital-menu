@@ -2,6 +2,7 @@
 
 import {
   ABUSE_RATE_LIMIT_MESSAGE,
+  checkAbuseRateLimit,
   createOrderRateLimiter,
 } from "@/features/ops/abuse-rate-limit";
 import { logOpsCriticalError } from "@/features/ops/monitoring-webhook";
@@ -16,7 +17,7 @@ export async function createOrderAction(
   input: CreateOrderInput,
 ): Promise<CreateOrderResult> {
   const rateKey = await resolveRequestRateLimitKey("create-order");
-  if (!createOrderRateLimiter.check(rateKey).allowed) {
+  if (!checkAbuseRateLimit(createOrderRateLimiter, rateKey).allowed) {
     return { ok: false, message: ABUSE_RATE_LIMIT_MESSAGE };
   }
 
